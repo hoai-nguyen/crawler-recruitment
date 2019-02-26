@@ -21,12 +21,12 @@ class MyWorkCrawler extends Controller{
 			echo "i = ".$x.": ";
             $pageUrl = 'https://mywork.com.vn/tuyen-dung/trang/'.$x;
     		$crawler = $client -> request('GET', $pageUrl);
-			$jobs = $crawler -> filter('div.item-list') -> filter('a.item');
+			$jobs = $crawler -> filter('div.item-list') -> first() -> filter('a.item');
 			if ($jobs -> count() <= 0) {
                 echo "NA";
 				break;
             } 
-            dd($jobs -> count());
+
 			$jobs -> each(
 		    	function ($node) {
 					try {
@@ -36,18 +36,17 @@ class MyWorkCrawler extends Controller{
                         if ($job_link == null){
                         } else{
                             $full_link = 'https://mywork.com.vn'.$job_link;
-                            
                             //todo separate
                             $fp = fopen('mywork-links.csv', 'a');
                             fputcsv($fp, array($full_link));
                             fclose($fp);
                             
-                            // MyWorkCrawler::TimJob($full_link);
+                            MyWorkCrawler::TimJob($full_link);
                         }
                         
 					} catch (Exception $e) {
 						// echo 'Caught exception: ',  $e -> getMessage(), "\n";
-						$fp = fopen('timviecnhanh-error.csv', 'a');
+						$fp = fopen('mywork-error.csv', 'a');
 						fputcsv($fp, array("ERROR: ", $e -> getMessage()), $delimiter = "|");
 						fclose($fp);
 					}
@@ -83,7 +82,9 @@ class MyWorkCrawler extends Controller{
 			$title_crawler = $crawler -> filter('h1.main-title > span');
 			if ($title_crawler ->count() > 0 ) {
 				$job_title = $title_crawler -> first() -> text();
-			}
+            }
+            
+            
 			// echo 'header: '.(microtime(true) - $header_start).' secs, ';
 
 			// $posted_start = microtime(true);
@@ -98,7 +99,9 @@ class MyWorkCrawler extends Controller{
                         break;
                     }
                 }
-			}
+            }
+            $created = trim(explode(":", $created)[1], "\r\n ");
+            
 			// echo 'posted time: '.(microtime(true) - $posted_start).' secs, ';
 			
 			// $company_start = microtime(true);
@@ -106,7 +109,8 @@ class MyWorkCrawler extends Controller{
 			$company_crawler = $content -> filter('p.company-name > a > strong');
 			if ($company_crawler -> count() > 0 ) {
 				$company = $company_crawler -> first() -> text();
-			}
+            }
+            
 			// echo 'company: '.(microtime(true) - $company_start).' secs, ';
 
 			// $address_start = microtime(true);
@@ -114,19 +118,19 @@ class MyWorkCrawler extends Controller{
 			$address_crawler = $content -> filter('p.address > span');
 			if ($address_crawler -> count() > 0 ) {
 				$address = $address_crawler -> first() -> text();
-			}
+            }
 			// echo 'address: '.(microtime(true) - $address_start).' secs, ';
 
-			// $deadline_start = microtime(true);
-			// $deadline = $content -> filter('b.text-danger') -> first() -> text();
-			// echo 'deadline: '.(microtime(true) - $deadline_start).' secs, ';
+			
 
             // $salary_start = microtime(true);
             $salary = 'n/a';
-            $salary_crawler = $content -> filter('span.text-red');
+            $salary_crawler = $content -> filter('span.text_red');
             if ($salary_crawler -> count() > 0 ) {
 				$salary = $salary_crawler -> first() -> text();
             }
+            $salary = trim(preg_replace("/[\r\n]*/", "", $salary), " ");
+            $salary = str_replace("  ", "", $salary);
             // echo 'salary: '.(microtime(true) - $salary_start).' secs, ';
             
             // $website_start = microtime(true);
@@ -135,7 +139,7 @@ class MyWorkCrawler extends Controller{
 			if ($website_crawler -> count() > 0 ) {
                 $ref = $website_crawler -> first() -> attr('href');
                 $website = 'https://mywork.com.vn'.$ref;
-			}
+            }
             // echo 'website: '.(microtime(true) - $website_start).' secs, ';
             
             // soluong
@@ -152,22 +156,50 @@ class MyWorkCrawler extends Controller{
                     }
                 }
             }
+            $soluong = trim(explode(":", $soluong)[1], "\r\n ");
 			// echo 'soluong: '.(microtime(true) - $soluong_start).' secs, ';
 
-			// $job_des = $content -> filter('td > p') -> first() -> text();
+            // contacts
+            // $deadline_start = microtime(true);
+            $contact = "n/a";
+            $deadline = 'n/a';
+            $contact_infos = $content -> filter('div.box-contact > div.row');
+			if ($contact_infos -> count() > 0 ) {
+                foreach ($contact_infos as $node) {
+                    $contact_crawler = new Crawler($node);
+                    
+                    $label = $contact_crawler -> filter('div.label-contact');
+                    if ($label -> count() > 0){
+                        $label = $label -> first() -> text();
+                        if (strpos($label, 'Người liên hệ') !== false){
+                            $contact = $contact_crawler -> filter('div') -> last() -> text();
+                            // dd($contact);
+                        } else if (strpos($label, 'Hạn nộp hồ sơ') !== false){
+                            $deadline = $contact_crawler -> filter('div') -> last() -> text();
+                            $deadline = preg_replace("/[\r\n ]*/", "", $deadline);
+                        }
+                    }
+                }
+            }
+			// echo 'deadline: '.(microtime(true) - $deadline_start).' secs, ';
+
+            // $job_des = $content -> filter('td > p') -> first() -> text();
+            $job_des = "job_des";
 
 			// $file_start = microtime(true);
 			$line = array($job_title
-				, trim($company, "\r\n ")
-				, $created, trim($deadline, "\r\n ")
-				, trim(explode("\n", $salary)[2], "\r\n ")
-				, trim(explode("\n", $soluong)[2], "\r\n ")
+				, $company
+                , $created
+                , $deadline
+				, $salary
+				, $soluong
 				, $website
-				, explode(":", $address)[1]
-				, trim(preg_replace("/[\r\n]*/", "", $job_des), "-")
+				, $address
+                , trim(preg_replace("/[\r\n]*/", "", $job_des), "-")
+                , $contact
 				, $url);
-			
-			$fp = fopen('timviecnhanh.csv', 'a');
+            
+			$fp = fopen('mywork.csv', 'a');
 			fputcsv($fp, $line, $delimiter = "|");
 			fclose($fp);
 			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';

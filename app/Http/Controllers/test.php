@@ -19,8 +19,10 @@
 // preg_replace("  ", "", $soluong);
 // var_dump($soluong);
 
-$string = "123: 456,78,000"; 
-$str_arr = explode(":", $string)[1]; 
-print_r($str_arr); 
+// $string = "123: 456,78,000"; 
+// $str_arr = explode(":", $string)[1]; 
+// print_r($str_arr); 
+
+echo str_replace("  ","","Hello     world!");
 
 ?>
