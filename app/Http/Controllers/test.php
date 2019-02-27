@@ -23,6 +23,53 @@
 // $str_arr = explode(":", $string)[1]; 
 // print_r($str_arr); 
 
-echo str_replace("  ","","Hello     world!");
+// echo str_replace("  ","","Hello     world!");
+
+$str = "Ms Nhung - 08888.92.600 Ms Nhung - 08888.92.600 Mr Toàn ( 0909 391771 ), //Ms Như ( 0909.65363.8 ), Ms Nga ( 09.025001.48 )";
+$str = "Mr Toàn ( 0909391771); Ms Như 0909653638; Ms Nga 0902500148";
+// $str = "Ms Nhung 088";
+
+preg_match_all('!\d+!', $str, $matches);
+print_r($matches[0]);
+
+$len = count($matches[0]);
+if ($len > 0){
+    $nums = $matches[0];
+    $mobiles = array();
+    $mobile_tmp = "";
+    for ($x = 0; $x < $len; $x++) {
+        $num = $nums[$x];
+        if (strlen($mobile_tmp.$num) <= 12){
+            $mobile_tmp = $mobile_tmp.$num;
+        } else {
+            array_push($mobiles, $mobile_tmp);
+            $mobile_tmp = $num;
+        }
+        if ($x == $len - 1){
+            array_push($mobiles, $mobile_tmp);
+        }
+    } 
+    $mobiles_str = implode(",", $mobiles);
+    echo $mobiles_str;
+    // print_r($mobiles);
+} 
+
+// $mobiles = array();
+// $mobile_tmp = "";
+// foreach ($matches[0] as $num) {
+//     if (strlen($mobile_tmp.$num) < 12){
+//         $mobile_tmp = $mobile_tmp.$num;
+//     } else {
+//         array_push($mobiles, $mobile_tmp);
+//         $mobile_tmp = $num;
+//     }
+// }
+// $mobiles_str = implode(",", $mobiles);
+// echo $mobiles_str
+// print_r($mobiles);
+
+// $arr = array('Hello','World!','Beautiful','Day!');
+// echo implode(",",$mobiles);
+// echo implode("",$matches[0]);
 
 ?>
