@@ -45,12 +45,12 @@ class FindJobsCrawler extends Controller{
 								or strcmp($job_link, 'https://www.findjobs.vn') < 0
 								or strcmp('https://www.findjobs.vn/viec-lam-vi', $job_link) == 0
 								){
-							$fp = fopen('findjobs-error.csv', 'a');
+							$fp = fopen('findjobs-error-'.date('Ymd').'.csv', 'a');
 							fputcsv($fp, array($job_link));
 							fclose($fp);
 						} else{
 							//todo separate
-							$fp = fopen('findjobs-links.csv', 'a');
+							$fp = fopen('findjobs-links-'.date('Ymd').'.csv', 'a');
 							fputcsv($fp, array($job_link));
 							fclose($fp);
 							
@@ -61,7 +61,7 @@ class FindJobsCrawler extends Controller{
 						}
 					} catch (Exception $e) {
 						// echo 'Caught exception: ',  $e -> getMessage(), "\n";
-						$fp = fopen('findjobs-error.csv', 'a');
+						$fp = fopen('findjobs-error-'.date('Ymd').'.csv', 'a');
 						fputcsv($fp, array("ERROR: ", $e -> getMessage()), $delimiter = "|");
 						fclose($fp);
 					}
@@ -77,7 +77,6 @@ class FindJobsCrawler extends Controller{
 	}
 	
     public function TimJob($url, $created){
-		$url = "https://www.findjobs.vn/viec-lam-senior-talent-acquisition-j19485vi.html";
 		// $job_start = microtime(true);
 		$client = new Client;
 		// echo 'create client: '.(microtime(true) - $job_start).' secs, ';
@@ -86,7 +85,7 @@ class FindJobsCrawler extends Controller{
 
 		$content_crawler = $crawler -> filter('#job_detail');
 		if ($content_crawler -> count() <= 0 ) {
-			$fp = fopen('findjobs-error.csv', 'a');
+			$fp = fopen('findjobs-error-'.date('Ymd').'.csv', 'a');
 			fputcsv($fp, array("ERROR: ", $url), $delimiter = "|");
 			fclose($fp);
 		} else{
@@ -170,7 +169,7 @@ class FindJobsCrawler extends Controller{
 				, $website
 				, $url);
 			
-			$fp = fopen('findjobs.csv', 'a');
+			$fp = fopen('findjobs-'.date('Ymd').'.csv', 'a');
 			fputcsv($fp, $line, $delimiter = "|");
 			fclose($fp);
 			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';

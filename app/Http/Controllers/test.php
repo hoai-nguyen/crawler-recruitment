@@ -72,10 +72,19 @@
 // echo implode(",",$mobiles);
 // echo implode("",$matches[0]);
 
-$job_link = 'https://www.findjobs.vn/viec-lam-ke-toan-kho-j19748vi.html';
-$job_link = "https://www.findjobs.vn2";
-echo ($job_link == null)."1<br>";
-echo (strcmp($job_link, 'https://www.findjobs.vn') < 0)."2<br>";
-echo (strcmp('https://www.findjobs.vn/viec-lam-vi', $job_link) == 0)."3<br>";
+
+// $job_link = 'https://www.findjobs.vn/viec-lam-ke-toan-kho-j19748vi.html';
+// $job_link = "https://www.findjobs.vn2";
+// echo ($job_link == null)."1<br>";
+// echo (strcmp($job_link, 'https://www.findjobs.vn') < 0)."2<br>";
+// echo (strcmp('https://www.findjobs.vn/viec-lam-vi', $job_link) == 0)."3<br>";
+
+// echo date_format($date,"YmdHis");
+
+// echo 'findjobs-error-'.date('YmdH').'.csv<br>';
+// echo 'findjobs-links-'.date('YmdH').'.csv<br>';
+// echo 'findjobs-error-'.date('YmdH').'.csv<br>';
+// echo 'findjobs-'.date('YmdH').'.csv<br>';
+
 
 ?>

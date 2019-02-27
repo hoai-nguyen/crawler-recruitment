@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Goutte\Client;
 use Symfony\Component\DomCrawler\Crawler;
 use \Exception as Exception;
+use Illuminate\Support\Facades\DB;
 
 class MyWorkCrawler extends Controller{
 
@@ -24,8 +25,29 @@ class MyWorkCrawler extends Controller{
 			if ($jobs -> count() <= 0) {
                 echo "NA";
 				break;
-            } 
-			$jobs -> each(
+			} 
+			$jobs_links = $jobs -> each(
+		    	function ($node) {
+					try {
+                        $job_link = $node -> attr('href');
+                        if ($job_link != null){
+                            return $full_link = 'https://mywork.com.vn'.$job_link;
+                        }
+					} catch (Exception $e) {
+						// echo 'Caught exception: ',  $e -> getMessage(), "\n";
+						$fp = fopen('mywork-error.csv', 'a');
+						fputcsv($fp, array("ERROR: ", $e -> getMessage()), $delimiter = "|");
+						fclose($fp);
+					}
+				}
+			);
+			// dd($jobs_links);
+			$jobs_links = array('1266938', 'https://mywork.com.vn/tuyen-dung/viec-lam/1276230/nhan-vien-xuat-nhap-khau.html');
+			$duplicates = DB::select('select link from mywork where link in (?)', $jobs_links);
+			// $duplicates = DB::select('select * from crawler_mywork_com');
+			dd($duplicates);
+
+			$saved_links = $jobs -> each(
 		    	function ($node) {
 					try {
 						ini_set('max_execution_time', 10000000);				
@@ -40,9 +62,10 @@ class MyWorkCrawler extends Controller{
                             fputcsv($fp, array($full_link));
                             fclose($fp);
                             
-                            MyWorkCrawler::TimJob($full_link);
+							// MyWorkCrawler::TimJob($full_link);
+							
+							return $full_link;
                         }
-                        
 					} catch (Exception $e) {
 						// echo 'Caught exception: ',  $e -> getMessage(), "\n";
 						$fp = fopen('mywork-error.csv', 'a');
