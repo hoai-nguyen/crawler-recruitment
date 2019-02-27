@@ -23,6 +23,7 @@
 // $str_arr = explode(":", $string)[1]; 
 // print_r($str_arr); 
 
-echo str_replace("  ","","Hello     world!");
+// echo str_replace("  ","","Hello     world!");
+echo date('Ymd');
 
 ?>

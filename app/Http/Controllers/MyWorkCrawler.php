@@ -76,15 +76,13 @@ class MyWorkCrawler extends Controller{
 			fclose($fp);
 		} else{
 			$content = $content_crawler -> first();
-			
+
 			// $header_start = microtime(true);
 			$job_title = "n/a";
 			$title_crawler = $crawler -> filter('h1.main-title > span');
 			if ($title_crawler ->count() > 0 ) {
 				$job_title = $title_crawler -> first() -> text();
             }
-            
-            
 			// echo 'header: '.(microtime(true) - $header_start).' secs, ';
 
 			// $posted_start = microtime(true);
@@ -101,7 +99,6 @@ class MyWorkCrawler extends Controller{
                 }
             }
             $created = trim(explode(":", $created)[1], "\r\n ");
-            
 			// echo 'posted time: '.(microtime(true) - $posted_start).' secs, ';
 			
 			// $company_start = microtime(true);
@@ -110,7 +107,6 @@ class MyWorkCrawler extends Controller{
 			if ($company_crawler -> count() > 0 ) {
 				$company = $company_crawler -> first() -> text();
             }
-            
 			// echo 'company: '.(microtime(true) - $company_start).' secs, ';
 
 			// $address_start = microtime(true);
@@ -120,8 +116,6 @@ class MyWorkCrawler extends Controller{
 				$address = $address_crawler -> first() -> text();
             }
 			// echo 'address: '.(microtime(true) - $address_start).' secs, ';
-
-			
 
             // $salary_start = microtime(true);
             $salary = 'n/a';
@@ -183,20 +177,39 @@ class MyWorkCrawler extends Controller{
             }
 			// echo 'deadline: '.(microtime(true) - $deadline_start).' secs, ';
 
-            // $job_des = $content -> filter('td > p') -> first() -> text();
-            $job_des = "job_des";
+			// $job_des 
+			$jds = $content -> filter('div.multiple > div.mw-box-item');
+			$job_des = "n/a";
+			$idx = 0;
+			if ($jds -> count() > 0){
+				foreach ($jds as $node) {
+					$jd = new Crawler($node);
+					if ($idx == 2){
+						$job_des = $jd -> text();
+						echo $job_des;
+						break;
+					}
+					$idx++;
+				}
+			}
+			$job_des = trim($job_des, "\r\n -");
+
+			$mobile = "";
+			$email = "";
 
 			// $file_start = microtime(true);
-			$line = array($job_title
+			$line = array($mobile
+				, $email
+				, $contact
 				, $company
+				, $address
+				, $job_title
+				, $salary
+				, $job_des
                 , $created
                 , $deadline
-				, $salary
 				, $soluong
 				, $website
-				, $address
-                , trim(preg_replace("/[\r\n]*/", "", $job_des), "-")
-                , $contact
 				, $url);
             
 			$fp = fopen('mywork.csv', 'a');
