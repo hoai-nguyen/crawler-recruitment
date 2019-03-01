@@ -99,12 +99,15 @@
 // echo 'mywork-'.date('Ymd').'.csv';
 // echo 'mywork-error-'.date('Ymd').'.csv';
 
-$jobs_links = array("1", "2", "3");
-$select_param = "('".implode("','", $jobs_links)."')";
-echo $select_param;
+// $jobs_links = array("1", "2", "3");
+// $select_param = "('".implode("','", $jobs_links)."')";
+// echo $select_param;
 
-$tempalate = "select %s from %s ";
+// $tempalate = "select %s from %s ";
+// echo sprintf($tempalate, "a", "b");
 
-echo sprintf($tempalate, "a", "b");
+$insert_links = array("1");
+$insert_param = implode(",", $insert_links);
+echo $insert_param;
 
 ?>

@@ -11,6 +11,16 @@ class DBController extends Controller{
      *
      * @return Response
      */
+
+    public function CheckLinksExist($jobs_links, $database, $table){
+		$select_param = "('".implode("','", $jobs_links)."')";
+		$select_dialect = "select link from ".$database.".".$table." where link in ";
+		$select_query = $select_dialect.$select_param;
+		$select_results = DB::select($select_query);
+
+		return $select_results;
+	}
+
     public function index(){
         // $users = DB::select('select * from test where id = ?', [1]);
         $start = microtime(true);

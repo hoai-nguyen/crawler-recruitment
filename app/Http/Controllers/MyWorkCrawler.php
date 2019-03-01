@@ -10,16 +10,45 @@ use Illuminate\Support\Facades\DB;
 
 class MyWorkCrawler extends Controller{
 
-	public function CheckLinksExist($jobs_links, $table){
-		$select_param = "('".implode("','", $jobs_links)."')";
-		$select_dialect = "select link from ".$table." where link in ";
-		$select_query = $select_dialect.$select_param;
-		$select_results = DB::select($select_query);
+	const TABLE = "mywork";
+	const MYWORK_DATA = 'mywork-data-';
+	const MYWORK_ERROR = 'mywork-error-';
+	const MYWORK_LINK = 'mywork-link-';
+	const MYWORK_HOME = 'https://mywork.com.vn';
+	const LABEL_CONTACT = 'Người liên hệ';
+	const LABEL_DEADjob_data = 'Hạn nộp hồ sơ';
+	const LABEL_QUANTITY = 'Số lượng cần tuyển';
+	const LABEL_APPROVER = 'Ngày duyệt';
+	const DATE_FORMAT = "Ymd";
 
-		return $select_results;
+	public function CheckLinksExist($jobs_links, $database="phpmyadmin", $table){
+		if (env("DATABASE") == null) $database="phpmyadmin";
+
+		$select_param = "('".implode("','", $jobs_links)."')";
+		$select_dialect = "select link from ".$database.".".$table." where link in ";
+		$select_query = $select_dialect.$select_param;
+		$existing_links = DB::select($select_query);
+
+		return $existing_links;
+	}
+
+	public function InsertLinks($new_links, $database="phpmyadmin", $table){
+		if (env("DATABASE") == null) $database="phpmyadmin";
+
+		$insert_links = array();
+		foreach($new_links as $el){
+			array_push($insert_links, "('".$el."')");
+		}
+		$insert_param = implode(",", $insert_links);
+		$insert_dialect = "insert into ".$database.".".$table."(link) values ";
+		$insert_query = $insert_dialect.$insert_param;
+		$insert_results = DB::insert($insert_query);
+		
+		return $insert_results;
 	}
 
     public function MyWorkCrawler($start_page, $step){
+
 		$start = microtime(true);
         $client = new Client;
         
@@ -29,13 +58,14 @@ class MyWorkCrawler extends Controller{
 			$page_start = microtime(true);
 			echo "page = ".$x.": ";
 			
-			$pageUrl = 'https://mywork.com.vn/tuyen-dung/trang/'.$x;
+			$pageUrl = self::MYWORK_HOME.'/tuyen-dung/trang/'.$x;
     		$crawler = $client -> request('GET', $pageUrl);
 			$jobs = $crawler -> filter('div.item-list') -> first() -> filter('a.item');
 			if ($jobs -> count() <= 0) {
-                echo "NA";
+                MyWorkCrawler::AppendStringToFile("No job found on ".$pageUrl, self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 				break;
 			} 
+
 			// get job links
 			$jobs_links = $jobs -> each(
 		    	function ($node) {
@@ -45,37 +75,23 @@ class MyWorkCrawler extends Controller{
                             return $job_link;
                         }
 					} catch (Exception $e) {
-						// echo 'Caught exception: ',  $e -> getMessage(), "\n";
-						$fp = fopen('mywork-error-'.date('Ymd').'.csv', 'a');
-						fputcsv($fp, array("ERROR: ", $e -> getMessage()), $delimiter = "|");
-						fclose($fp);
+						MyWorkCrawler::AppendStringToFile($e -> getMessage(), self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 					}
 				}
 			);
 			
 			// select duplicated records
-			$select_results = MyWorkCrawler::CheckLinksExist($jobs_links, "phpmyadmin.mywork");
-
-			// deduplicate
+			$existing_links = MyWorkCrawler::CheckLinksExist($jobs_links, env("DATABASE"), $table="mywork");
 			$duplicated_links = array();
-			foreach($select_results as $row){
+			foreach($existing_links as $row){
 				$link = $row -> link;
 				array_push($duplicated_links, $link);
 			}
+
+			// deduplicate
 			$new_links = array_diff($jobs_links, $duplicated_links);
 
 			if (is_array($new_links) and sizeof($new_links) > 0){
-				
-				// insert new links
-				$insert_links = array();
-				foreach($new_links as $el){
-					array_push($insert_links, "('".$el."')");
-				}
-				$insert_param = implode(",", $insert_links);
-				$insert_dialect = "insert into phpmyadmin.mywork(link) values ";
-				$insert_query = $insert_dialect.$insert_param;
-				$insert_results = DB::insert($insert_query);
-
 				// crawl each link
 				foreach ($new_links as $job_link) {
 					try {
@@ -83,24 +99,16 @@ class MyWorkCrawler extends Controller{
 
 						if ($job_link == null){
 						} else{
-							$full_link = 'https://mywork.com.vn'.$job_link;
-							
-							//todo separate
-							$fp = fopen('mywork-links-'.date('Ymd').'.csv', 'a');
-							fputcsv($fp, array($full_link));
-							fclose($fp);
-							
-							MyWorkCrawler::TimJob($full_link);
+							$full_link = self::MYWORK_HOME.$job_link;
+							MyWorkCrawler::CrawlJob($full_link);
+							MyWorkCrawler::AppendStringToFile($full_link, self::MYWORK_LINK.date(self::DATE_FORMAT).'.csv');
+							$inserted = MyWorkCrawler::InsertLinks(array($job_link), env("DATABASE"), $table="mywork");
 						}
 					} catch (Exception $e) {
-						// echo 'Caught exception: ',  $e -> getMessage(), "\n";
-						$fp = fopen('mywork-error-'.date('Ymd').'.csv', 'a');
-						fputcsv($fp, array("ERROR: ", $e -> getMessage()), $delimiter = "|");
-						fclose($fp);
+						MyWorkCrawler::AppendStringToFile($e -> getMessage(), self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 					}
 				}
 			}
-			
 			$x++;
 
 			$page_total_time = microtime(true) - $page_start;
@@ -111,7 +119,7 @@ class MyWorkCrawler extends Controller{
 		echo "\nDONE!";
 	}
 	
-    public function TimJob($url){
+    public function CrawlJob($url){
 		// $job_start = microtime(true);
 		$client = new Client;
 		// echo 'create client: '.(microtime(true) - $job_start).' secs, ';
@@ -120,9 +128,7 @@ class MyWorkCrawler extends Controller{
 
 		$content_crawler = $crawler -> filter('div.detail_job');
 		if ($content_crawler -> count() <= 0 ) {
-			$fp = fopen('mywork-error-'.date('Ymd').'.csv', 'a');
-			fputcsv($fp, array("ERROR: ", $url), $delimiter = "|");
-			fclose($fp);
+			MyWorkCrawler::AppendStringToFile("ERROR: ".$url, self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 		} else{
 			$content = $content_crawler -> first();
 			// $header_start = microtime(true);
@@ -142,7 +148,7 @@ class MyWorkCrawler extends Controller{
 					$label_crawler = $created_crawler -> filter('strong');
 					if ($label_crawler -> count() > 0){
 						$label = $label_crawler -> first() -> text();
-						if (strpos($label, 'Ngày duyệt') !== false){
+						if (strpos($label, self::LABEL_APPROVER) !== false){
 							$created = $created_crawler -> first() -> text();
 							break;
 						}
@@ -185,7 +191,7 @@ class MyWorkCrawler extends Controller{
 			$website_crawler = $content -> filter('p.company-name > a');
 			if ($website_crawler -> count() > 0 ) {
                 $ref = $website_crawler -> first() -> attr('href');
-                $website = 'https://mywork.com.vn'.$ref;
+                $website = self::MYWORK_HOME.$ref;
             }
             // echo 'website: '.(microtime(true) - $website_start).' secs, ';
             
@@ -196,7 +202,7 @@ class MyWorkCrawler extends Controller{
                 foreach ($general_infos as $node) {
                     $soluong_crawler = new Crawler($node);
                     $label = $soluong_crawler -> filter('strong') -> first() -> text();
-                    if (strpos($label, 'Số lượng cần tuyển') !== false){
+                    if (strpos($label, self::LABEL_QUANTITY) !== false){
                         $soluong = $soluong_crawler -> first() -> text();
                         break;
                     }
@@ -207,9 +213,9 @@ class MyWorkCrawler extends Controller{
 			}
 			// echo 'soluong: '.(microtime(true) - $soluong_start).' secs, ';
 
-            // $deadline_start = microtime(true);
+            // $deadjob_data_start = microtime(true);
             $contact = "n/a";
-            $deadline = 'n/a';
+            $deadjob_data = 'n/a';
             $contact_infos = $content -> filter('div.box-contact > div.row');
 			if ($contact_infos -> count() > 0 ) {
                 foreach ($contact_infos as $node) {
@@ -218,17 +224,16 @@ class MyWorkCrawler extends Controller{
                     $label = $contact_crawler -> filter('div.label-contact');
                     if ($label -> count() > 0){
                         $label = $label -> first() -> text();
-                        if (strpos($label, 'Người liên hệ') !== false){
+                        if (strpos($label, self::LABEL_CONTACT) !== false){
                             $contact = $contact_crawler -> filter('div') -> last() -> text();
-                            // dd($contact);
-                        } else if (strpos($label, 'Hạn nộp hồ sơ') !== false){
-                            $deadline = $contact_crawler -> filter('div') -> last() -> text();
-                            $deadline = preg_replace("/[\r\n ]*/", "", $deadline);
+                        } else if (strpos($label, self::LABEL_DEADjob_data) !== false){
+                            $deadjob_data = $contact_crawler -> filter('div') -> last() -> text();
+                            $deadjob_data = preg_replace("/[\r\n ]*/", "", $deadjob_data);
                         }
                     }
                 }
             }
-			// echo 'deadline: '.(microtime(true) - $deadline_start).' secs, ';
+			// echo 'deadjob_data: '.(microtime(true) - $deadjob_data_start).' secs, ';
 
 			// $job_des 
 			$jds = $content -> filter('div.multiple > div.mw-box-item');
@@ -250,7 +255,7 @@ class MyWorkCrawler extends Controller{
 			$email = "";
 
 			// $file_start = microtime(true);
-			$line = array($mobile
+			$job_data = array($mobile
 				, $email
 				, $contact
 				, $company
@@ -259,19 +264,17 @@ class MyWorkCrawler extends Controller{
 				, $salary
 				, $job_des
                 , $created
-                , $deadline
+                , $deadjob_data
 				, $soluong
 				, $website
 				, $url);
-            
-			$fp = fopen('mywork-'.date('Ymd').'.csv', 'a');
-			fputcsv($fp, $line, $delimiter = "|");
-			fclose($fp);
+			
+			MyWorkCrawler::AppendArrayToFile($job_data, self::MYWORK_DATA.date(self::DATE_FORMAT).'.csv', "|");
+
 			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';
 			// echo 'Total 1 job: '.(microtime(true) - $job_start).' secs <br>';
 		}
 	}
-
 
 	public function ExtractMobile($contact){
 		preg_match_all('!\d+!', $contact, $matches);
@@ -297,5 +300,17 @@ class MyWorkCrawler extends Controller{
 			$mobiles_str = implode(",", $mobiles);
 		} 
 		return $mobiles_str;
+	}
+
+	public function AppendArrayToFile($arr, $file_name, $limiter="|"){
+		$fp = fopen($file_name, 'a');
+		fputcsv($fp, $arr, $delimiter = $limiter);
+		fclose($fp);
+	}
+
+	public function AppendStringToFile($str, $file_name){
+		$fp = fopen($file_name, 'a');
+		fputcsv($fp, array($str));
+		fclose($fp);
 	}
 }
