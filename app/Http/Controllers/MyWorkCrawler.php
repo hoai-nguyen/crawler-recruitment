@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 class MyWorkCrawler extends Controller{
 
 	const TABLE = "mywork";
+	const MYWORK_DATA_PATH = 'mywork_test'; // CI must create directory in
 	const MYWORK_DATA = 'mywork-data-';
 	const MYWORK_ERROR = 'mywork-error-';
 	const MYWORK_LINK = 'mywork-link-';
@@ -20,6 +21,8 @@ class MyWorkCrawler extends Controller{
 	const LABEL_QUANTITY = 'Số lượng cần tuyển';
 	const LABEL_APPROVER = 'Ngày duyệt';
 	const DATE_FORMAT = "Ymd";
+	const SLASH = DIRECTORY_SEPARATOR;
+
 
 	public function CheckLinksExist($jobs_links, $database="phpmyadmin", $table){
 		if (env("DATABASE") == null) $database="phpmyadmin";
@@ -48,6 +51,7 @@ class MyWorkCrawler extends Controller{
 	}
 
     public function MyWorkCrawler($start_page, $step){
+		$DATA_PATH = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH;
 
 		$start = microtime(true);
         $client = new Client;
@@ -62,7 +66,8 @@ class MyWorkCrawler extends Controller{
     		$crawler = $client -> request('GET', $pageUrl);
 			$jobs = $crawler -> filter('div.item-list') -> first() -> filter('a.item');
 			if ($jobs -> count() <= 0) {
-                MyWorkCrawler::AppendStringToFile("No job found on ".$pageUrl, self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
+				MyWorkCrawler::AppendStringToFile("No job found on ".$pageUrl
+				, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 				break;
 			} 
 
@@ -73,9 +78,10 @@ class MyWorkCrawler extends Controller{
                         $job_link = $node -> attr('href');
                         if ($job_link != null){
                             return $job_link;
-                        }
-					} catch (Exception $e) {
-						MyWorkCrawler::AppendStringToFile($e -> getMessage(), self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
+						}
+					} catch (\Exception $e) {
+						$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
+						MyWorkCrawler::AppendStringToFile(substr($e -> getTraceAsString (), 0, 1000), $file_name);
 					}
 				}
 			);
@@ -96,16 +102,21 @@ class MyWorkCrawler extends Controller{
 				foreach ($new_links as $job_link) {
 					try {
 						ini_set('max_execution_time', 10000000);				
-
+						
 						if ($job_link == null){
 						} else{
 							$full_link = self::MYWORK_HOME.$job_link;
-							MyWorkCrawler::CrawlJob($full_link);
-							MyWorkCrawler::AppendStringToFile($full_link, self::MYWORK_LINK.date(self::DATE_FORMAT).'.csv');
+							MyWorkCrawler::CrawlJob($full_link, $DATA_PATH);
+							
+							MyWorkCrawler::AppendStringToFile($full_link
+							, $DATA_PATH.self::MYWORK_LINK.date(self::DATE_FORMAT).'.csv');
+
+							// this slow-down performance.
 							$inserted = MyWorkCrawler::InsertLinks(array($job_link), env("DATABASE"), $table="mywork");
 						}
-					} catch (Exception $e) {
-						MyWorkCrawler::AppendStringToFile($e -> getMessage(), self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
+					} catch (\Exception $e) {
+						MyWorkCrawler::AppendStringToFile(substr($e -> getTraceAsString (), 0, 1000)
+						, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 					}
 				}
 			}
@@ -116,10 +127,11 @@ class MyWorkCrawler extends Controller{
 		} 
 		$time_elapsed_secs = microtime(true) - $start;
 		echo '<b>Total Execution Time:</b> '.$time_elapsed_secs.' secs<br>';
-		echo "\nDONE!";
+		echo "DONE!";
 	}
 	
-    public function CrawlJob($url){
+    public function CrawlJob($url, $data_path){
+
 		// $job_start = microtime(true);
 		$client = new Client;
 		// echo 'create client: '.(microtime(true) - $job_start).' secs, ';
@@ -128,7 +140,8 @@ class MyWorkCrawler extends Controller{
 
 		$content_crawler = $crawler -> filter('div.detail_job');
 		if ($content_crawler -> count() <= 0 ) {
-			MyWorkCrawler::AppendStringToFile("ERROR: ".$url, self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
+			MyWorkCrawler::AppendStringToFile("ERROR: Failed to crawl ".$url
+			, $data_path.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 		} else{
 			$content = $content_crawler -> first();
 			// $header_start = microtime(true);
@@ -269,7 +282,8 @@ class MyWorkCrawler extends Controller{
 				, $website
 				, $url);
 			
-			MyWorkCrawler::AppendArrayToFile($job_data, self::MYWORK_DATA.date(self::DATE_FORMAT).'.csv', "|");
+			MyWorkCrawler::AppendArrayToFile($job_data
+			, $data_path.self::MYWORK_DATA.date(self::DATE_FORMAT).'.csv', "|");
 
 			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';
 			// echo 'Total 1 job: '.(microtime(true) - $job_start).' secs <br>';

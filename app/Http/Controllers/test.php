@@ -106,8 +106,30 @@
 // $tempalate = "select %s from %s ";
 // echo sprintf($tempalate, "a", "b");
 
-$insert_links = array("1");
-$insert_param = implode(",", $insert_links);
-echo $insert_param;
+// $insert_links = array("1");
+// $insert_param = implode(",", $insert_links);
+// echo $insert_param;
+
+// echo getcwd() . "\n";
+// // Path to the project's root folder    
+// echo base_path(). "\n";
+
+// // Path to the 'app' folder    
+// echo app_path(). "\n";        
+
+// // Path to the 'public' folder    
+// echo public_path(). "\n";
+
+// // Path to the 'storage' folder    
+// echo storage_path(). "\n";
+
+// // Path to the 'storage/app' folder    
+// echo storage_path('app'). "\n";
+
+echo substr("1asdfasdfasd2fsdfsdfasfsdf3", 0, 10);
+
+$str = 'https://mywork.com.vn/tuyen-dung/viec-lam/1275881/quan-ly-nha-hang-mon-ngon-ba-mien.html';
+$str = '/tuyen-dung/viec-lam/1276377/truong-phong-kinh-doanh.html';
+print_r (explode("/",$str));
 
 ?>

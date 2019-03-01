@@ -48,5 +48,23 @@ class DBController extends Controller{
         // dd($select_results);
 
         // return view('user.index', ['users' => $users]);
+
+        echo getcwd() . "<br>";
+
+		// Path to the project's root folder    
+		echo base_path(). "<br>";
+
+		// Path to the 'app' folder    
+		echo app_path(). "<br>";        
+
+		// Path to the 'public' folder    
+		echo public_path(). "<br>";
+		echo public_path('data').'mywork'. "<br>";
+
+		// Path to the 'storage' folder    
+		echo storage_path(). "<br>";
+
+		// Path to the 'storage/app' folder    
+		echo storage_path('app'). "<br>";
     }
 }
