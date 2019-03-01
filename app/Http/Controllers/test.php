@@ -86,5 +86,25 @@
 // echo 'findjobs-error-'.date('YmdH').'.csv<br>';
 // echo 'findjobs-'.date('YmdH').'.csv<br>';
 
+// $arr = array('1266938', '12', 'fsdfsdf');
+// $idx = 0;
+// foreach($arr as $el){
+//     $arr[$idx] = "(".$el.")";
+//     $idx++;
+// }
+// $str = implode(",", $arr);
+// echo $str;
+
+
+// echo 'mywork-'.date('Ymd').'.csv';
+// echo 'mywork-error-'.date('Ymd').'.csv';
+
+$jobs_links = array("1", "2", "3");
+$select_param = "('".implode("','", $jobs_links)."')";
+echo $select_param;
+
+$tempalate = "select %s from %s ";
+
+echo sprintf($tempalate, "a", "b");
 
 ?>

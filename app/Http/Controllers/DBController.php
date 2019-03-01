@@ -14,8 +14,29 @@ class DBController extends Controller{
     public function index(){
         // $users = DB::select('select * from test where id = ?', [1]);
         $start = microtime(true);
-        $users = DB::select('select * from test where id in (?)', array(2));
-        print_r($users);
+        // $users = DB::select('select * from test where id in (?)', array(2));
+        $arr = array("hoai", "nguyen", "van");
+        
+        array_push($arr, "dfs");
+        print_r($arr);
+
+        // $idx = 0;
+        // foreach($arr as $el){
+        //     $arr[$idx] = "('".$el."')";
+        //     $idx++;
+        // }
+        // $str = implode(",", $arr); 
+        // $dialect = "insert into phpmyadmin.mywork(link) values ";
+        // $query = $dialect.$str;
+        // $inserted = DB::insert($query);
+        // print_r($inserted);
+
+        // $select_param = "('".implode("','", $arr)."')";
+        // $select_dialect = "select link from phpmyadmin.mywork where link in ";
+        // $select_query = $select_dialect.$select_param;
+        // $select_results = DB::select($select_query);
+        // dd($select_results);
+
         // return view('user.index', ['users' => $users]);
     }
 }

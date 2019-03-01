@@ -10,6 +10,15 @@ use Illuminate\Support\Facades\DB;
 
 class MyWorkCrawler extends Controller{
 
+	public function CheckLinksExist($jobs_links, $table){
+		$select_param = "('".implode("','", $jobs_links)."')";
+		$select_dialect = "select link from ".$table." where link in ";
+		$select_query = $select_dialect.$select_param;
+		$select_results = DB::select($select_query);
+
+		return $select_results;
+	}
+
     public function MyWorkCrawler($start_page, $step){
 		$start = microtime(true);
         $client = new Client;
@@ -18,63 +27,82 @@ class MyWorkCrawler extends Controller{
         $end = (int) $start_page + (int) $step;
         while($x < $end) {
 			$page_start = microtime(true);
-			echo "i = ".$x.": ";
-            $pageUrl = 'https://mywork.com.vn/tuyen-dung/trang/'.$x;
+			echo "page = ".$x.": ";
+			
+			$pageUrl = 'https://mywork.com.vn/tuyen-dung/trang/'.$x;
     		$crawler = $client -> request('GET', $pageUrl);
 			$jobs = $crawler -> filter('div.item-list') -> first() -> filter('a.item');
 			if ($jobs -> count() <= 0) {
                 echo "NA";
 				break;
 			} 
+			// get job links
 			$jobs_links = $jobs -> each(
 		    	function ($node) {
 					try {
                         $job_link = $node -> attr('href');
                         if ($job_link != null){
-                            return $full_link = 'https://mywork.com.vn'.$job_link;
+                            return $job_link;
                         }
 					} catch (Exception $e) {
 						// echo 'Caught exception: ',  $e -> getMessage(), "\n";
-						$fp = fopen('mywork-error.csv', 'a');
+						$fp = fopen('mywork-error-'.date('Ymd').'.csv', 'a');
 						fputcsv($fp, array("ERROR: ", $e -> getMessage()), $delimiter = "|");
 						fclose($fp);
 					}
 				}
 			);
-			// dd($jobs_links);
-			$jobs_links = array('1266938', 'https://mywork.com.vn/tuyen-dung/viec-lam/1276230/nhan-vien-xuat-nhap-khau.html');
-			$duplicates = DB::select('select link from mywork where link in (?)', $jobs_links);
-			// $duplicates = DB::select('select * from crawler_mywork_com');
-			dd($duplicates);
+			
+			// select duplicated records
+			$select_results = MyWorkCrawler::CheckLinksExist($jobs_links, "phpmyadmin.mywork");
 
-			$saved_links = $jobs -> each(
-		    	function ($node) {
+			// deduplicate
+			$duplicated_links = array();
+			foreach($select_results as $row){
+				$link = $row -> link;
+				array_push($duplicated_links, $link);
+			}
+			$new_links = array_diff($jobs_links, $duplicated_links);
+
+			if (is_array($new_links) and sizeof($new_links) > 0){
+				
+				// insert new links
+				$insert_links = array();
+				foreach($new_links as $el){
+					array_push($insert_links, "('".$el."')");
+				}
+				$insert_param = implode(",", $insert_links);
+				$insert_dialect = "insert into phpmyadmin.mywork(link) values ";
+				$insert_query = $insert_dialect.$insert_param;
+				$insert_results = DB::insert($insert_query);
+
+				// crawl each link
+				foreach ($new_links as $job_link) {
 					try {
 						ini_set('max_execution_time', 10000000);				
-                        $job_link = $node -> attr('href');
-                        
-                        if ($job_link == null){
-                        } else{
-                            $full_link = 'https://mywork.com.vn'.$job_link;
+
+						if ($job_link == null){
+						} else{
+							$full_link = 'https://mywork.com.vn'.$job_link;
 							
 							//todo separate
-                            $fp = fopen('mywork-links.csv', 'a');
-                            fputcsv($fp, array($full_link));
-                            fclose($fp);
-                            
-							// MyWorkCrawler::TimJob($full_link);
+							$fp = fopen('mywork-links-'.date('Ymd').'.csv', 'a');
+							fputcsv($fp, array($full_link));
+							fclose($fp);
 							
-							return $full_link;
-                        }
+							MyWorkCrawler::TimJob($full_link);
+						}
 					} catch (Exception $e) {
 						// echo 'Caught exception: ',  $e -> getMessage(), "\n";
-						$fp = fopen('mywork-error.csv', 'a');
+						$fp = fopen('mywork-error-'.date('Ymd').'.csv', 'a');
 						fputcsv($fp, array("ERROR: ", $e -> getMessage()), $delimiter = "|");
 						fclose($fp);
 					}
 				}
-			);
+			}
+			
 			$x++;
+
 			$page_total_time = microtime(true) - $page_start;
 			echo '<b>Total execution time of page '.$x.":</b> ".$page_total_time.' secs<br>';
 		} 
@@ -92,7 +120,7 @@ class MyWorkCrawler extends Controller{
 
 		$content_crawler = $crawler -> filter('div.detail_job');
 		if ($content_crawler -> count() <= 0 ) {
-			$fp = fopen('mywork-error.csv', 'a');
+			$fp = fopen('mywork-error-'.date('Ymd').'.csv', 'a');
 			fputcsv($fp, array("ERROR: ", $url), $delimiter = "|");
 			fclose($fp);
 		} else{
@@ -236,7 +264,7 @@ class MyWorkCrawler extends Controller{
 				, $website
 				, $url);
             
-			$fp = fopen('mywork.csv', 'a');
+			$fp = fopen('mywork-'.date('Ymd').'.csv', 'a');
 			fputcsv($fp, $line, $delimiter = "|");
 			fclose($fp);
 			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';
