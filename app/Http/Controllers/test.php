@@ -126,10 +126,10 @@
 // // Path to the 'storage/app' folder    
 // echo storage_path('app'). "\n";
 
-echo substr("1asdfasdfasd2fsdfsdfasfsdf3", 0, 10);
+// echo substr("1asdfasdfasd2fsdfsdfasfsdf3", 0, 10);
 
-$str = 'https://mywork.com.vn/tuyen-dung/viec-lam/1275881/quan-ly-nha-hang-mon-ngon-ba-mien.html';
-$str = '/tuyen-dung/viec-lam/1276377/truong-phong-kinh-doanh.html';
-print_r (explode("/",$str));
+// $str = 'https://mywork.com.vn/tuyen-dung/viec-lam/1275881/quan-ly-nha-hang-mon-ngon-ba-mien.html';
+// $str = '/tuyen-dung/viec-lam/1276377/truong-phong-kinh-doanh.html';
+// print_r (explode("/",$str));
 
 ?>

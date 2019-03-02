@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\DB;
 class MyWorkCrawler extends Controller{
 
 	const TABLE = "mywork";
-	const MYWORK_DATA_PATH = 'mywork_test'; // CI must create directory in
-	const MYWORK_DATA = 'mywork-data-';
+	const MYWORK_DATA_PATH = 'mywork'; // CI must create directory in
+	const MYWORK_DATA = 'mywork-data';
 	const MYWORK_ERROR = 'mywork-error-';
-	const MYWORK_LINK = 'mywork-link-';
+	const MYWORK_LINK = 'mywork-link';
 	const MYWORK_HOME = 'https://mywork.com.vn';
 	const LABEL_CONTACT = 'Người liên hệ';
 	const LABEL_DEADjob_data = 'Hạn nộp hồ sơ';
@@ -61,64 +61,71 @@ class MyWorkCrawler extends Controller{
         while($x < $end) {
 			$page_start = microtime(true);
 			echo "page = ".$x.": ";
-			
-			$pageUrl = self::MYWORK_HOME.'/tuyen-dung/trang/'.$x;
-    		$crawler = $client -> request('GET', $pageUrl);
-			$jobs = $crawler -> filter('div.item-list') -> first() -> filter('a.item');
-			if ($jobs -> count() <= 0) {
-				MyWorkCrawler::AppendStringToFile("No job found on ".$pageUrl
-				, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
-				break;
-			} 
 
-			// get job links
-			$jobs_links = $jobs -> each(
-		    	function ($node) {
-					try {
-                        $job_link = $node -> attr('href');
-                        if ($job_link != null){
-                            return $job_link;
+			try{
+				$pageUrl = self::MYWORK_HOME.'/tuyen-dung/trang/'.$x;
+				$crawler = $client -> request('GET', $pageUrl);
+				$jobs = $crawler -> filter('div.item-list') -> first() -> filter('a.item');
+				if ($jobs -> count() <= 0) {
+					MyWorkCrawler::AppendStringToFile("No job found on ".$pageUrl
+					, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
+					break;
+				} 
+	
+				// get job links
+				$jobs_links = $jobs -> each(
+					function ($node) {
+						try {
+							$job_link = $node -> attr('href');
+							if ($job_link != null){
+								return $job_link;
+							}
+						} catch (\Exception $e) {
+							$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
+							MyWorkCrawler::AppendStringToFile(substr($e -> getTraceAsString (), 0, 1000), $file_name);
 						}
-					} catch (\Exception $e) {
-						$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
-						MyWorkCrawler::AppendStringToFile(substr($e -> getTraceAsString (), 0, 1000), $file_name);
 					}
+				);
+				
+				// select duplicated records
+				$existing_links = MyWorkCrawler::CheckLinksExist($jobs_links, env("DATABASE"), $table="mywork");
+				$duplicated_links = array();
+				foreach($existing_links as $row){
+					$link = $row -> link;
+					array_push($duplicated_links, $link);
 				}
-			);
-			
-			// select duplicated records
-			$existing_links = MyWorkCrawler::CheckLinksExist($jobs_links, env("DATABASE"), $table="mywork");
-			$duplicated_links = array();
-			foreach($existing_links as $row){
-				$link = $row -> link;
-				array_push($duplicated_links, $link);
-			}
+	
+				// deduplicate
+				$new_links = array_diff($jobs_links, $duplicated_links);
+				
+				$inserted = MyWorkCrawler::InsertLinks($new_links, env("DATABASE"), $table="mywork");
 
-			// deduplicate
-			$new_links = array_diff($jobs_links, $duplicated_links);
-
-			if (is_array($new_links) and sizeof($new_links) > 0){
-				// crawl each link
-				foreach ($new_links as $job_link) {
-					try {
-						ini_set('max_execution_time', 10000000);				
-						
-						if ($job_link == null){
-						} else{
-							$full_link = self::MYWORK_HOME.$job_link;
-							MyWorkCrawler::CrawlJob($full_link, $DATA_PATH);
+				if (is_array($new_links) and sizeof($new_links) > 0){
+					// crawl each link
+					foreach ($new_links as $job_link) {
+						try {
+							ini_set('max_execution_time', 10000000);				
 							
-							MyWorkCrawler::AppendStringToFile($full_link
-							, $DATA_PATH.self::MYWORK_LINK.date(self::DATE_FORMAT).'.csv');
-
-							// this slow-down performance.
-							$inserted = MyWorkCrawler::InsertLinks(array($job_link), env("DATABASE"), $table="mywork");
+							if ($job_link == null){
+							} else{
+								$full_link = self::MYWORK_HOME.$job_link;
+								MyWorkCrawler::CrawlJob($full_link, $DATA_PATH);
+								
+								MyWorkCrawler::AppendStringToFile($full_link
+								, $DATA_PATH.self::MYWORK_LINK.'.csv');
+	
+								// this slow-down performance.
+								// $inserted = MyWorkCrawler::InsertLinks(array($job_link), env("DATABASE"), $table="mywork");
+							}
+						} catch (\Exception $e) {
+							MyWorkCrawler::AppendStringToFile(substr($e -> getTraceAsString (), 0, 1000)
+							, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 						}
-					} catch (\Exception $e) {
-						MyWorkCrawler::AppendStringToFile(substr($e -> getTraceAsString (), 0, 1000)
-						, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 					}
 				}
+			} catch (\Exception $e) {
+				$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
+				MyWorkCrawler::AppendStringToFile(substr($e -> getTraceAsString (), 0, 1000), $file_name);
 			}
 			$x++;
 
@@ -264,7 +271,7 @@ class MyWorkCrawler extends Controller{
 			}
 			$job_des = trim($job_des, "\r\n -");
 
-			$mobile = MyWorkCrawler::ExtractMobile($contact);
+			$mobile = MyWorkCrawler::ExtractFirstMobile($contact);
 			$email = "";
 
 			// $file_start = microtime(true);
@@ -283,7 +290,7 @@ class MyWorkCrawler extends Controller{
 				, $url);
 			
 			MyWorkCrawler::AppendArrayToFile($job_data
-			, $data_path.self::MYWORK_DATA.date(self::DATE_FORMAT).'.csv', "|");
+			, $data_path.self::MYWORK_DATA.'.csv', "|");
 
 			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';
 			// echo 'Total 1 job: '.(microtime(true) - $job_start).' secs <br>';
@@ -312,6 +319,34 @@ class MyWorkCrawler extends Controller{
 				}
 			} 
 			$mobiles_str = implode(",", $mobiles);
+		} 
+		return $mobiles_str;
+	}
+
+	public function ExtractFirstMobile($contact){
+		preg_match_all('!\d+!', $contact, $matches);
+
+		$mobiles_str = "";
+		$len = count($matches[0]);
+		if ($len > 0){
+			$nums = $matches[0];
+			$mobiles = array();
+			$mobile_tmp = "";
+			for ($x = 0; $x < $len; $x++) {
+				$num = $nums[$x];
+				if (strlen($mobile_tmp.$num) <= 12){
+					$mobile_tmp = $mobile_tmp.$num;
+				} else {
+					array_push($mobiles, $mobile_tmp);
+					$mobile_tmp = $num;
+				}
+				if ($x == $len - 1){
+					array_push($mobiles, $mobile_tmp);
+				}
+			} 
+			if (sizeof($mobiles) > 0 ){
+				$mobiles_str = $mobiles[0];
+			}
 		} 
 		return $mobiles_str;
 	}
