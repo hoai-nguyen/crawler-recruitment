@@ -132,4 +132,6 @@
 // $str = '/tuyen-dung/viec-lam/1276377/truong-phong-kinh-doanh.html';
 // print_r (explode("/",$str));
 
+echo null."d";
+
 ?>

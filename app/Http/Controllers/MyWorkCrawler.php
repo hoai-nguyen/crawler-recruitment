@@ -17,124 +17,146 @@ class MyWorkCrawler extends Controller{
 	const MYWORK_LINK = 'mywork-link';
 	const MYWORK_HOME = 'https://mywork.com.vn';
 	const LABEL_CONTACT = 'Người liên hệ';
-	const LABEL_DEADjob_data = 'Hạn nộp hồ sơ';
+	const LABEL_DEADLINE = 'Hạn nộp hồ sơ';
 	const LABEL_QUANTITY = 'Số lượng cần tuyển';
 	const LABEL_APPROVER = 'Ngày duyệt';
 	const DATE_FORMAT = "Ymd";
 	const SLASH = DIRECTORY_SEPARATOR;
+	const BATCH_SIZE = 3;
+	const MAX_PAGE = 1000;
 
-
-	public function CheckLinksExist($jobs_links, $database="phpmyadmin", $table){
-		if (env("DATABASE") == null) $database="phpmyadmin";
-
-		$select_param = "('".implode("','", $jobs_links)."')";
-		$select_dialect = "select link from ".$database.".".$table." where link in ";
-		$select_query = $select_dialect.$select_param;
-		$existing_links = DB::select($select_query);
-
-		return $existing_links;
-	}
-
-	public function InsertLinks($new_links, $database="phpmyadmin", $table){
-		if (env("DATABASE") == null) $database="phpmyadmin";
-
-		$insert_links = array();
-		foreach($new_links as $el){
-			array_push($insert_links, "('".$el."')");
-		}
-		$insert_param = implode(",", $insert_links);
-		$insert_dialect = "insert into ".$database.".".$table."(link) values ";
-		$insert_query = $insert_dialect.$insert_param;
-		$insert_results = DB::insert($insert_query);
-		
-		return $insert_results;
-	}
-
-    public function MyWorkCrawler($start_page, $step){
-		$DATA_PATH = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH;
-
+	public function CrawlerStarter(){
 		$start = microtime(true);
+		// if option=reset: clear metadata
+			// delete from job_metadata where job_name=mywork
+		
+		while (true){
+			try {
+				$new_batch = MyWorkCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata");
+				if ($new_batch == null){
+					break;
+				}
+				$should_stop = MyWorkCrawler::MyWorkCrawler($new_batch -> start_page, $new_batch -> end_page);
+
+				if ($should_stop) break;
+
+			} catch (\Exception $e) {
+				$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
+				MyWorkCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);
+				break;
+			}
+		}
+
+		$time_elapsed_secs = microtime(true) - $start;
+		echo '<b>Total Execution Time:</b> '.$time_elapsed_secs.' secs<br>';
+		echo "DONE!";
+	}
+
+    public function MyWorkCrawler($start_page, $end_page){
+		$DATA_PATH = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH;
         $client = new Client;
-        
-        $x = (int) $start_page; 
-        $end = (int) $start_page + (int) $step;
-        while($x < $end) {
+		
+		$last_page_is_empty = false;
+		$should_stop = false;
+		$x = (int) $start_page; 
+		$$end_page = (int) $end_page;
+        while($x <= $end_page) {
 			$page_start = microtime(true);
 			echo "page = ".$x.": ";
 
 			try{
 				$pageUrl = self::MYWORK_HOME.'/tuyen-dung/trang/'.$x;
 				$crawler = $client -> request('GET', $pageUrl);
-				$jobs = $crawler -> filter('div.item-list') -> first() -> filter('a.item');
-				if ($jobs -> count() <= 0) {
-					MyWorkCrawler::AppendStringToFile("No job found on ".$pageUrl
-					, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
-					break;
-				} 
-	
-				// get job links
-				$jobs_links = $jobs -> each(
-					function ($node) {
-						try {
-							$job_link = $node -> attr('href');
-							if ($job_link != null){
-								return $job_link;
-							}
-						} catch (\Exception $e) {
-							$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
-							MyWorkCrawler::AppendStringToFile(substr($e -> getTraceAsString (), 0, 1000), $file_name);
-						}
-					}
-				);
-				
-				// select duplicated records
-				$existing_links = MyWorkCrawler::CheckLinksExist($jobs_links, env("DATABASE"), $table="mywork");
-				$duplicated_links = array();
-				foreach($existing_links as $row){
-					$link = $row -> link;
-					array_push($duplicated_links, $link);
-				}
-	
-				// deduplicate
-				$new_links = array_diff($jobs_links, $duplicated_links);
-				
-				$inserted = MyWorkCrawler::InsertLinks($new_links, env("DATABASE"), $table="mywork");
+				$jobs = $crawler -> filter('div.box-body > div.item-list') -> first() -> filter('a.item');
 
-				if (is_array($new_links) and sizeof($new_links) > 0){
-					// crawl each link
-					foreach ($new_links as $job_link) {
-						try {
-							ini_set('max_execution_time', 10000000);				
-							
-							if ($job_link == null){
-							} else{
-								$full_link = self::MYWORK_HOME.$job_link;
-								MyWorkCrawler::CrawlJob($full_link, $DATA_PATH);
-								
-								MyWorkCrawler::AppendStringToFile($full_link
-								, $DATA_PATH.self::MYWORK_LINK.'.csv');
-	
-								// this slow-down performance.
-								// $inserted = MyWorkCrawler::InsertLinks(array($job_link), env("DATABASE"), $table="mywork");
-							}
-						} catch (\Exception $e) {
-							MyWorkCrawler::AppendStringToFile(substr($e -> getTraceAsString (), 0, 1000)
+				if ($jobs -> count() <= 0) {
+					MyWorkCrawler::AppendStringToFile("No job found on page: ".$pageUrl
+						, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
+					
+					// if previous page is empty and current page is empty => quit
+					if ($last_page_is_empty){
+						$should_stop = true;
+						MyWorkCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
 							, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
+						break;
+					}
+
+					$last_page_is_empty = true;
+				} else{
+					$last_page_is_empty = false;
+
+					// get job links
+					$jobs_links = $jobs -> each(
+						function ($node) {
+							try {
+								$job_link = $node -> attr('href');
+								if ($job_link != null){
+									return $job_link;
+								}
+							} catch (\Exception $e) {
+								$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
+								MyWorkCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);
+							}
+						}
+					);
+					
+					// select duplicated records
+					$existing_links = MyWorkCrawler::CheckLinksExist($jobs_links, env("DATABASE"), $table="mywork");
+					$duplicated_links = array();
+					foreach($existing_links as $row){
+						$link = $row -> link;
+						array_push($duplicated_links, $link);
+					}
+		
+					// deduplicate
+					$new_links = array_diff($jobs_links, $duplicated_links);
+
+					if (is_array($new_links) and sizeof($new_links) > 0){
+						$inserted = MyWorkCrawler::InsertLinks($new_links, env("DATABASE"), $table="mywork");
+						if ($inserted){
+							// crawl each link
+							foreach ($new_links as $job_link) {
+								try {
+									ini_set('max_execution_time', 10000000);				
+									
+									if ($job_link == null){
+									} else{
+										
+										$full_link = self::MYWORK_HOME.$job_link;
+										MyWorkCrawler::CrawlJob($full_link, $DATA_PATH);
+										
+										MyWorkCrawler::AppendStringToFile($full_link
+										, $DATA_PATH.self::MYWORK_LINK.'.csv');
+			
+									}
+								} catch (\Exception $e) {
+									MyWorkCrawler::AppendStringToFile("Exception on link:".$job_link.": ".substr($e -> getMessage (), 0, 1000)
+										, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
+								}
+							}
 						}
 					}
+
 				}
 			} catch (\Exception $e) {
-				$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
-				MyWorkCrawler::AppendStringToFile(substr($e -> getTraceAsString (), 0, 1000), $file_name);
+				$should_stop = true;
+				$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
+				MyWorkCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
+				break;
 			}
+
 			$x++;
+
+			if ($x > 1000){ // du phong
+				$should_stop = true;
+				break;
+			}
 
 			$page_total_time = microtime(true) - $page_start;
 			echo '<b>Total execution time of page '.$x.":</b> ".$page_total_time.' secs<br>';
 		} 
-		$time_elapsed_secs = microtime(true) - $start;
-		echo '<b>Total Execution Time:</b> '.$time_elapsed_secs.' secs<br>';
-		echo "DONE!";
+
+		return $should_stop;
 	}
 	
     public function CrawlJob($url, $data_path){
@@ -235,7 +257,7 @@ class MyWorkCrawler extends Controller{
 
             // $deadjob_data_start = microtime(true);
             $contact = "n/a";
-            $deadjob_data = 'n/a';
+            $deadline = 'n/a';
             $contact_infos = $content -> filter('div.box-contact > div.row');
 			if ($contact_infos -> count() > 0 ) {
                 foreach ($contact_infos as $node) {
@@ -246,9 +268,9 @@ class MyWorkCrawler extends Controller{
                         $label = $label -> first() -> text();
                         if (strpos($label, self::LABEL_CONTACT) !== false){
                             $contact = $contact_crawler -> filter('div') -> last() -> text();
-                        } else if (strpos($label, self::LABEL_DEADjob_data) !== false){
-                            $deadjob_data = $contact_crawler -> filter('div') -> last() -> text();
-                            $deadjob_data = preg_replace("/[\r\n ]*/", "", $deadjob_data);
+                        } else if (strpos($label, self::LABEL_DEADLINE) !== false){
+                            $deadline = $contact_crawler -> filter('div') -> last() -> text();
+                            $deadline = preg_replace("/[\r\n ]*/", "", $deadline);
                         }
                     }
                 }
@@ -284,7 +306,7 @@ class MyWorkCrawler extends Controller{
 				, $salary
 				, $job_des
                 , $created
-                , $deadjob_data
+                , $deadline
 				, $soluong
 				, $website
 				, $url);
@@ -345,9 +367,14 @@ class MyWorkCrawler extends Controller{
 				}
 			} 
 			if (sizeof($mobiles) > 0 ){
+				if (sizeof($mobiles) > 1 and strlen($mobiles[1]) < 5){
+					$mobiles_str = $mobiles[0].'/'.$mobiles[1];
+				} 
 				$mobiles_str = $mobiles[0];
 			}
 		} 
+
+		if (strlen($mobiles_str) < 10 or strlen($mobiles_str) > 15) return "";
 		return $mobiles_str;
 	}
 
@@ -361,5 +388,65 @@ class MyWorkCrawler extends Controller{
 		$fp = fopen($file_name, 'a');
 		fputcsv($fp, array($str));
 		fclose($fp);
+	}
+
+	public function CheckLinksExist($jobs_links, $database="phpmyadmin", $table){
+		if (env("DATABASE") == null) $database="phpmyadmin";
+
+		$select_param = "('".implode("','", $jobs_links)."')";
+		$select_dialect = "select link from ".$database.".".$table." where link in ";
+		$select_query = $select_dialect.$select_param;
+		$existing_links = DB::select($select_query);
+
+		return $existing_links;
+	}
+
+	public function InsertLinks($new_links, $database="phpmyadmin", $table){
+		if (env("DATABASE") == null) $database="phpmyadmin";
+
+		$insert_links = array();
+		foreach($new_links as $el){
+			array_push($insert_links, "('".$el."')");
+		}
+		$insert_param = implode(",", $insert_links);
+		$insert_dialect = "insert into ".$database.".".$table."(link) values ";
+		$insert_query = $insert_dialect.$insert_param;
+		$insert_results = DB::insert($insert_query);
+		
+		return $insert_results;
+	}
+
+	public function FindNewBatchToProcess($database="phpmyadmin", $table){
+		try {
+			// find latest batch: id, job_name, start_page, end_page, timestamp
+			$select_query = "select * from ".$database.".".$table." where job_name='mywork' order by end_page desc limit 1 ";
+			$select_result = DB::select($select_query);
+
+			// find new batch
+			$latest_batch = null;
+			$new_batch = null;
+			if (sizeof($select_result) < 1){
+				$new_batch = (object) array("job_name" => "mywork", "start_page" => 1, "end_page" => self::BATCH_SIZE);
+			} else{
+				$latest_batch = $select_result[0];
+				$new_batch = (object) array("job_name" => $latest_batch -> job_name
+					, "start_page" => $latest_batch -> end_page + 1
+					, "end_page" => $latest_batch -> end_page + self::BATCH_SIZE);
+			}
+
+			// save batch to db
+			$insert_query = "insert into ".$database.".".$table."(job_name, start_page, end_page) values (?, ?, ?) ";
+			$insert_result = DB::insert(
+				$insert_query
+				, array($new_batch -> job_name, $new_batch -> start_page, $new_batch -> end_page)
+			);
+
+			return $new_batch;
+
+		} catch (\Exception $e) {
+			$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
+			MyWorkCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);
+		}
+		return null;
 	}
 }
