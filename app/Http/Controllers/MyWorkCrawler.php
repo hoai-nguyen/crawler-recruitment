@@ -27,19 +27,20 @@ class MyWorkCrawler extends Controller{
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
-		// if option=reset: clear metadata
-			// delete from job_metadata where job_name=mywork
-		
+
 		while (true){
 			try {
 				$new_batch = MyWorkCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata");
 				if ($new_batch == null){
 					break;
 				}
-				$should_stop = MyWorkCrawler::MyWorkCrawler($new_batch -> start_page, $new_batch -> end_page);
 
-				if ($should_stop) break;
+				$return_code = MyWorkCrawler::MyWorkCrawler($new_batch -> start_page, $new_batch -> end_page);
 
+				if ($return_code > 1) {
+					MyWorkCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "mywork");
+					break;
+				}
 			} catch (\Exception $e) {
 				$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
 				MyWorkCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);
@@ -57,7 +58,7 @@ class MyWorkCrawler extends Controller{
         $client = new Client;
 		
 		$last_page_is_empty = false;
-		$should_stop = false;
+		$return_code = 0;
 		$x = (int) $start_page; 
 		$$end_page = (int) $end_page;
         while($x <= $end_page) {
@@ -75,7 +76,7 @@ class MyWorkCrawler extends Controller{
 					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
-						$should_stop = true;
+						$return_code = 2;
 						MyWorkCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
 							, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 						break;
@@ -134,21 +135,20 @@ class MyWorkCrawler extends Controller{
 										, $DATA_PATH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv');
 								}
 							}
+							// end for
 						}
 					}
-
 				}
 			} catch (\Exception $e) {
-				$should_stop = true;
+				$return_code = 1;
 				$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
 				MyWorkCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
 
 			$x++;
-
-			if ($x > 1000){ // du phong
-				$should_stop = true;
+			if ($x > self::MAX_PAGE){ // du phong
+				$return_code = 3;
 				break;
 			}
 
@@ -156,7 +156,7 @@ class MyWorkCrawler extends Controller{
 			echo '<b>Total execution time of page '.$x.":</b> ".$page_total_time.' secs<br>';
 		} 
 
-		return $should_stop;
+		return $return_code;
 	}
 	
     public function CrawlJob($url, $data_path){
@@ -399,6 +399,10 @@ class MyWorkCrawler extends Controller{
 		$existing_links = DB::select($select_query);
 
 		return $existing_links;
+	}
+
+	public function ResetJobMetadata($database, $table, $job_name){
+		DB::delete("delete from ".$database.".".$table." where job_name=? ", array($job_name));
 	}
 
 	public function InsertLinks($new_links, $database="phpmyadmin", $table){
