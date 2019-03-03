@@ -24,6 +24,8 @@ class MyWorkCrawler extends Controller{
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 1000;
+	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
+	const PHONE_PATTERN = "!\d+!";
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
@@ -294,7 +296,11 @@ class MyWorkCrawler extends Controller{
 			$job_des = trim($job_des, "\r\n -");
 
 			$mobile = MyWorkCrawler::ExtractFirstMobile($contact);
-			$email = "";
+
+			$email = MyWorkCrawler::ExtractEmailFromText($contact);
+			if ($email == ""){
+				$email = MyWorkCrawler::ExtractEmailFromText($job_des);
+			}
 
 			// $file_start = microtime(true);
 			$job_data = array($mobile
@@ -320,7 +326,7 @@ class MyWorkCrawler extends Controller{
 	}
 
 	public function ExtractMobile($contact){
-		preg_match_all('!\d+!', $contact, $matches);
+		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
 
 		$mobiles_str = "";
 		$len = count($matches[0]);
@@ -346,7 +352,7 @@ class MyWorkCrawler extends Controller{
 	}
 
 	public function ExtractFirstMobile($contact){
-		preg_match_all('!\d+!', $contact, $matches);
+		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
 
 		$mobiles_str = "";
 		$len = count($matches[0]);
@@ -373,9 +379,17 @@ class MyWorkCrawler extends Controller{
 				$mobiles_str = $mobiles[0];
 			}
 		} 
-
-		if (strlen($mobiles_str) < 10 or strlen($mobiles_str) > 15) return "";
+		if (strlen($mobiles_str) < 10 or strlen($mobiles_str) > 16) return "";
 		return $mobiles_str;
+	}
+
+	public function ExtractEmailFromText($text){
+		preg_match_all(self::EMAIL_PATTERN, $text, $matches);
+		if (sizeof($matches[0]) > 0){
+			return $matches[0][0];
+		} else{
+			return "";
+		}
 	}
 
 	public function AppendArrayToFile($arr, $file_name, $limiter="|"){
