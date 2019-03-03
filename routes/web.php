@@ -24,5 +24,7 @@ Route::get('testparam/{start}/{step}',['uses' => 'TimViecNhanhCrawler@TestParame
 
 
 Route::get('timviecnhanh/{start_page}/{step}',['uses' => 'TimViecNhanhCrawler@TimViecNhanh'])->name('timviecnhanh');
-Route::get('mywork/{start_page}/{step}',['uses' => 'MyWorkCrawler@MyWorkCrawler'])->name('mywork');
+Route::get('mywork/{start_page}/{end_page}',['uses' => 'MyWorkCrawler@MyWorkCrawler'])->name('mywork');
+Route::get('mywork',['uses' => 'MyWorkCrawler@CrawlerStarter'])->name('mywork1');
 Route::get('findjobs/{start_page}/{step}',['uses' => 'FindJobsCrawler@FindJobsCrawler'])->name('findjobs');
+Route::get('testdb',['uses' => 'DBController@index'])->name('testdb');

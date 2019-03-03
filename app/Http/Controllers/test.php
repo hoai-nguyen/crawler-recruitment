@@ -72,10 +72,66 @@
 // echo implode(",",$mobiles);
 // echo implode("",$matches[0]);
 
-$job_link = 'https://www.findjobs.vn/viec-lam-ke-toan-kho-j19748vi.html';
-$job_link = "https://www.findjobs.vn2";
-echo ($job_link == null)."1<br>";
-echo (strcmp($job_link, 'https://www.findjobs.vn') < 0)."2<br>";
-echo (strcmp('https://www.findjobs.vn/viec-lam-vi', $job_link) == 0)."3<br>";
+
+// $job_link = 'https://www.findjobs.vn/viec-lam-ke-toan-kho-j19748vi.html';
+// $job_link = "https://www.findjobs.vn2";
+// echo ($job_link == null)."1<br>";
+// echo (strcmp($job_link, 'https://www.findjobs.vn') < 0)."2<br>";
+// echo (strcmp('https://www.findjobs.vn/viec-lam-vi', $job_link) == 0)."3<br>";
+
+// echo date_format($date,"YmdHis");
+
+// echo 'findjobs-error-'.date('YmdH').'.csv<br>';
+// echo 'findjobs-links-'.date('YmdH').'.csv<br>';
+// echo 'findjobs-error-'.date('YmdH').'.csv<br>';
+// echo 'findjobs-'.date('YmdH').'.csv<br>';
+
+// $arr = array('1266938', '12', 'fsdfsdf');
+// $idx = 0;
+// foreach($arr as $el){
+//     $arr[$idx] = "(".$el.")";
+//     $idx++;
+// }
+// $str = implode(",", $arr);
+// echo $str;
+
+
+// echo 'mywork-'.date('Ymd').'.csv';
+// echo 'mywork-error-'.date('Ymd').'.csv';
+
+// $jobs_links = array("1", "2", "3");
+// $select_param = "('".implode("','", $jobs_links)."')";
+// echo $select_param;
+
+// $tempalate = "select %s from %s ";
+// echo sprintf($tempalate, "a", "b");
+
+// $insert_links = array("1");
+// $insert_param = implode(",", $insert_links);
+// echo $insert_param;
+
+// echo getcwd() . "\n";
+// // Path to the project's root folder    
+// echo base_path(). "\n";
+
+// // Path to the 'app' folder    
+// echo app_path(). "\n";        
+
+// // Path to the 'public' folder    
+// echo public_path(). "\n";
+
+// // Path to the 'storage' folder    
+// echo storage_path(). "\n";
+
+// // Path to the 'storage/app' folder    
+// echo storage_path('app'). "\n";
+
+// echo substr("1asdfasdfasd2fsdfsdfasfsdf3", 0, 10);
+
+// $str = 'https://mywork.com.vn/tuyen-dung/viec-lam/1275881/quan-ly-nha-hang-mon-ngon-ba-mien.html';
+// $str = '/tuyen-dung/viec-lam/1276377/truong-phong-kinh-doanh.html';
+// print_r (explode("/",$str));
+
+echo null."d";
 
 ?>
