@@ -132,6 +132,8 @@
 // $str = '/tuyen-dung/viec-lam/1276377/truong-phong-kinh-doanh.html';
 // print_r (explode("/",$str));
 
-echo null."d";
-
+// echo null."d";
+$address = "dia chi xey";
+$arr = explode(":", $address)[1];
+print_r($arr);
 ?>
