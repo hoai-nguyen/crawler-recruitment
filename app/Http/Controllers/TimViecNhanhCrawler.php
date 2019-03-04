@@ -36,7 +36,7 @@ class TimViecNhanhCrawler extends Controller{
 					break;
 				}
 
-				$return_code = TimViecNhanhCrawler::TimViecNhanhCrawler($new_batch -> start_page, $new_batch -> end_page);
+				$return_code = TimViecNhanhCrawler::TimViecNhanhCrawlerFunc($new_batch -> start_page, $new_batch -> end_page);
 
 				if ($return_code > 1) {
 					TimViecNhanhCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "timviecnhanh");
@@ -44,7 +44,7 @@ class TimViecNhanhCrawler extends Controller{
 				}
 			} catch (\Exception $e) {
 				$file_name = public_path('data').self::SLASH.self::TIMVIECNHANH_DATA_PATH.self::SLASH.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv';
-				TimViecNhanhCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);
+				TimViecNhanhCrawler::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
 		}
@@ -54,7 +54,8 @@ class TimViecNhanhCrawler extends Controller{
 		echo "DONE!";
 	}
 	
-	public function TimViecNhanhCrawler($start_page, $end_page){
+	public function TimViecNhanhCrawlerFunc($start_page, $end_page){
+
 		$DATA_PATH = public_path('data').self::SLASH.self::TIMVIECNHANH_DATA_PATH.self::SLASH;
         $client = new Client;
 		
@@ -96,7 +97,7 @@ class TimViecNhanhCrawler extends Controller{
 								}
 							} catch (\Exception $e) {
 								$file_name = public_path('data').self::SLASH.self::TIMVIECNHANH_DATA_PATH.self::SLASH.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv';
-								TimViecNhanhCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);
+								TimViecNhanhCrawler::AppendStringToFile('Exception on getting job_link: '.substr($e -> getMessage (), 0, 1000), $file_name);
 							}
 						}
 					);
@@ -123,12 +124,12 @@ class TimViecNhanhCrawler extends Controller{
 									if ($job_link == null){
 									} else{
 										TimViecNhanhCrawler::CrawlJob($job_link, $DATA_PATH);
-										
+
 										TimViecNhanhCrawler::AppendStringToFile($job_link
 										, $DATA_PATH.self::TIMVIECNHANH_LINK.'.csv');
 									}
 								} catch (\Exception $e) {
-									TimViecNhanhCrawler::AppendStringToFile("Exception on link:".$job_link.": ".substr($e -> getMessage (), 0, 1000)
+									TimViecNhanhCrawler::AppendStringToFile("Exception on crawling link: ".$job_link.": ".substr($e -> getMessage (), 0, 1000)
 										, $DATA_PATH.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
 								}
 							}
@@ -227,7 +228,7 @@ class TimViecNhanhCrawler extends Controller{
 				$soluong = trim(explode("\n", $soluong)[2], "\r\n ");
 				// echo 'salary + soluong: '.(microtime(true) - $salary_start).' secs, ';
 			} catch (Exception $e) {
-				TimViecNhanhCrawler::AppendStringToFile($e -> getMessage()
+				TimViecNhanhCrawler::AppendStringToFile('Exception on get salaray + soluong: '.$url.': '.$e -> getMessage()
 					, $data_path.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
 			}
 			
@@ -251,32 +252,54 @@ class TimViecNhanhCrawler extends Controller{
 					}
 				}
 			} catch (Exception $e) {
-				TimViecNhanhCrawler::AppendStringToFile($e -> getMessage()
+				TimViecNhanhCrawler::AppendStringToFile('Exception on get website: '.$url.': '.$e -> getMessage()
 					, $data_path.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
 			}
 			$website = trim(preg_replace("/[\r\n]*/", "", $website), "-");
 			
 			$contact = "";
 			$address = "";
-			$job_des = "";
+			$email = "";
+			$mobile = "";
 			try{
 				$lienhe = $content -> filter('div.block-info-company > div.block-content') -> first() -> filter('tr');
 				if($lienhe -> count() > 0){
-					$contact = $lienhe -> first() -> filter('td > p') -> last() -> text();
+					foreach($lienhe as $info){
+						$info_crl = new Crawler($info);
+						$info_crl_td = $info_crl -> filter('td');
+						if ($info_crl_td -> count() > 1){
+							$label = $info_crl_td -> first() -> text();
+							if (strpos($label, "Người liên hệ") !== false){ //self::LABEL_CONTACT
+								$contact = $info_crl_td -> last() -> text();
+							} else if (strpos($label, "Địa chỉ") !== false){
+								$address = $info_crl_td -> last() -> text();
+							} else if (strpos($label, "Email") !== false){
+								$email = TimViecNhanhCrawler::ExtractEmailFromText($info_crl_td -> last() -> text());
+							} else if (strpos($label, "Điện thoại") !== false or strpos($label, "Di động") !== false){
+								$mobile = TimViecNhanhCrawler::ExtractFirstMobile($info_crl_td -> last() -> text());
+							}
+						}
+					}
 				}
-				if($lienhe -> count() > 1){
-					$address = $lienhe -> last() -> filter('td > p') -> last() -> text();
-				} 
-				$job_des = $content -> filter('td > p') -> first() -> text();
-				$job_des = trim(preg_replace("/[\r\n]*/", "", $job_des), "-");
+				$contact = trim(preg_replace("/[\t\r\n]*/", "", $contact), "\t\r\n ");
+				$address = trim(preg_replace("/[\t\r\n]*/", "", $address), "\t\r\n ");
+
 			} catch (Exception $e) {
-				TimViecNhanhCrawler::AppendStringToFile($e -> getMessage()
+				TimViecNhanhCrawler::AppendStringToFile('Exception on getting contact or address: '.$url.': '.$e -> getMessage()
 					, $data_path.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
 			}
 
-			$email = "";
-			$mobile = "";
-			$mobile = MyWorkCrawler::ExtractFirstMobile($contact);
+			$job_des = "";
+			try{
+				$job_des = $content -> filter('td > p') -> first() -> text();
+				$job_des = trim(preg_replace("/[\t\r\n]*/", "", $job_des), "\t\r\n- ");
+			} catch (Exception $e) {
+				TimViecNhanhCrawler::AppendStringToFile('Exception on getting job_des: '.$url.': '.$e -> getMessage()
+					, $data_path.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
+			}
+
+			
+			// $mobile = TimViecNhanhCrawler::ExtractFirstMobile($contact);
 			
 			// $file_start = microtime(true);
 			$job_data = array($mobile
@@ -301,6 +324,7 @@ class TimViecNhanhCrawler extends Controller{
 	}
 
 	public function ExtractMobile($contact){
+		if ($contact == null) return "";
 		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
 
 		$mobiles_str = "";
@@ -327,6 +351,7 @@ class TimViecNhanhCrawler extends Controller{
 	}
 
 	public function ExtractFirstMobile($contact){
+		if ($contact == null) return "";
 		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
 
 		$mobiles_str = "";
@@ -359,6 +384,7 @@ class TimViecNhanhCrawler extends Controller{
 	}
 
 	public function ExtractEmailFromText($text){
+		if ($text == null) return "";
 		preg_match_all(self::EMAIL_PATTERN, $text, $matches);
 		if (sizeof($matches[0]) > 0){
 			return $matches[0][0];
@@ -438,107 +464,10 @@ class TimViecNhanhCrawler extends Controller{
 
 		} catch (\Exception $e) {
 			$file_name = public_path('data').self::SLASH.self::TIMVIECNHANH_DATA_PATH.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv';
-			TimViecNhanhCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);
+			TimViecNhanhCrawler::AppendStringToFile('Ex on finding new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
 		}
 		return null;
 	}
-
-	
-    // public function DemoCrawlerFunc(){
-
-    // 	$url = 'https://itviec.com/it-jobs/java';
-    // 	$client = new Client;
-	// 	$crawler = $client->request('GET',$url);
-	// 	$linkDetail = $crawler->filter('h2.title > a')->attr('href');
-	// 	$orgLink = 'https://itviec.com/'.$linkDetail;
-
-	// 	$crawler1 = $client->request('GET',$orgLink);
-
-	// 	$company = $crawler1->filter('h3.name > a')->text();
-	// 	$location = $crawler1->filter('div.address__full-address > span')->text();
-	// 	$job_title = $crawler1->filter('h1.job_title')->text();
-	// 	$description = $crawler1->filter('div.description > ul');
-	// 	//$salary = $crawler1->filter('span.salary-text') -> text()
-
-
-	// 	$description_el = $description -> filter('li') -> each(
-	// 		function($node){
-	// 	    	return  $node->text();
-	// 		}
-	// 	);
-	// 	var_dump($company);
-	// 	var_dump($location);
-	// 	var_dump($job_title);
-	// 	//var_dump($salary);
-	// 	var_dump($description_el);
-    // }
-
-    // public function ManyNodeCrawlerFunc(){
-    // 	$client = new Client;
-    // 	$url = 'https://itviec.com/it-jobs/java?page=';
-
-    // 	$x = 1; 
-	// 	while($x <= 3) {
-	// 		var_dump('x = '.$x.'<br>');
-	// 		$pageUrl = 'https://itviec.com/it-jobs/java?page='.$x;
-    // 		$crawler = $client->request('GET',$pageUrl);
-		    
-	// 	    $crawler->filter('h2 > a')->each(function ($node) {
-	// 	    	ini_set('max_execution_time', 10);
-	// 			$client1 = new Client;
-
-	// 			$linkDetail = $node -> attr('href');
-	// 			$job_link = 'https://itviec.com/'.$linkDetail;
-	// 			var_dump($job_link.': ');
-	// 			$job_crawler = $client1->request('GET',$job_link);
-	// 		    $company = $job_crawler->filter('h3.name > a')->text()."<br>";
-	// 			$location = $job_crawler->filter('div.address__full-address > span')->text()."<br>";
-	// 			$job_title = $job_crawler->filter('h1.job_title')->text()."<br>";
-	// 			// $description = $job_crawler->filter('div.description > ul');
-	// 			var_dump($company);
-	// 			var_dump($location);
-	// 			var_dump($job_title);
-	// 			// var_dump($job_title);
-	// 			// var_dump($description_el);
-	// 		});
-
-	// 	    $x++;
-	// 	} 
-		
-    // }
-
-    // public function ManyNodeCrawlerFuncOpt(){
-    // 	$client = new Client;
-    // 	$url = 'https://itviec.com/it-jobs/java?page=';
-
-    // 	$x = 1; 
-	// 	while($x <= 15) {
-	// 		var_dump('x = '.$x.'<br>');
-	// 		$pageUrl = 'https://itviec.com/it-jobs?page='.$x;
-    // 		$crawler = $client->request('GET',$pageUrl);
-		    
-	// 	    $crawler->filter('h2 > a')->each(function ($node) {
-	// 	    	ini_set('max_execution_time', 10000000);
-	// 			$client1 = new Client;
-
-	// 			$linkDetail = $node -> attr('href');
-	// 			$job_link = 'https://itviec.com/'.$linkDetail;
-	// 			var_dump($job_link.': ');
-	// 			$job_crawler = $client1->request('GET',$job_link);
-	// 		    $company = $job_crawler->filter('h3.name > a')->text()."<br>";
-	// 			$location = $job_crawler->filter('div.address__full-address > span')->text()."<br>";
-	// 			$job_title = $job_crawler->filter('h1.job_title')->text()."<br>";
-	// 			// $description = $job_crawler->filter('div.description > ul');
-	// 			var_dump($company);
-	// 			var_dump($location);
-	// 			var_dump($job_title);
-	// 			// var_dump($job_title);
-	// 			// var_dump($description_el);
-	// 		});
-
-	// 	    $x++;
-	// 	} 
-	// }
 	
 	public function GithubLogin(){
     	$client = new Client;
