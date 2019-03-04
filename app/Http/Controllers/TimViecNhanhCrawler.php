@@ -227,7 +227,7 @@ class TimViecNhanhCrawler extends Controller{
 				$salary = trim(explode("\n", $salary)[2], "\r\n ");
 				$soluong = trim(explode("\n", $soluong)[2], "\r\n ");
 				// echo 'salary + soluong: '.(microtime(true) - $salary_start).' secs, ';
-			} catch (Exception $e) {
+			} catch (\Exception $e) {
 				TimViecNhanhCrawler::AppendStringToFile('Exception on get salaray + soluong: '.$url.': '.$e -> getMessage()
 					, $data_path.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
 			}
@@ -251,7 +251,7 @@ class TimViecNhanhCrawler extends Controller{
 						}
 					}
 				}
-			} catch (Exception $e) {
+			} catch (\Exception $e) {
 				TimViecNhanhCrawler::AppendStringToFile('Exception on get website: '.$url.': '.$e -> getMessage()
 					, $data_path.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
 			}
@@ -284,7 +284,7 @@ class TimViecNhanhCrawler extends Controller{
 				$contact = trim(preg_replace("/[\t\r\n]*/", "", $contact), "\t\r\n ");
 				$address = trim(preg_replace("/[\t\r\n]*/", "", $address), "\t\r\n ");
 
-			} catch (Exception $e) {
+			} catch (\Exception $e) {
 				TimViecNhanhCrawler::AppendStringToFile('Exception on getting contact or address: '.$url.': '.$e -> getMessage()
 					, $data_path.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
 			}
@@ -293,7 +293,7 @@ class TimViecNhanhCrawler extends Controller{
 			try{
 				$job_des = $content -> filter('td > p') -> first() -> text();
 				$job_des = trim(preg_replace("/[\t\r\n]*/", "", $job_des), "\t\r\n- ");
-			} catch (Exception $e) {
+			} catch (\Exception $e) {
 				TimViecNhanhCrawler::AppendStringToFile('Exception on getting job_des: '.$url.': '.$e -> getMessage()
 					, $data_path.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
 			}
