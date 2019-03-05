@@ -42,7 +42,7 @@ class ViecLam24HCrawler extends Controller{
 					break;
 				}
 
-				if ($new_batch -> end_page > 200){ // du phong
+				if ($new_batch -> end_page > 500){ // du phong
 					break;
 				}
 			} catch (\Exception $e) {
@@ -126,11 +126,11 @@ class ViecLam24HCrawler extends Controller{
 									if ($job_link == null){
 									} else{
 										$full_link = self::VIECLAM24H_HOME.$job_link;
-										
-										ViecLam24HCrawler::CrawlJob($full_link, $DATA_PATH);
-										
-										ViecLam24HCrawler::AppendStringToFile($full_link
-											, $DATA_PATH.self::VIECLAM24H_LINK.'.csv');
+										$crawled = ViecLam24HCrawler::CrawlJob($full_link, $DATA_PATH);
+										if ($crawled == 0){
+											ViecLam24HCrawler::AppendStringToFile($full_link
+												, $DATA_PATH.self::VIECLAM24H_LINK.'.csv');
+										}
 									}
 								} catch (\Exception $e) {
 									ViecLam24HCrawler::AppendStringToFile("Exception on link:".$job_link.": ".substr($e -> getMessage (), 0, 1000)
@@ -165,16 +165,27 @@ class ViecLam24HCrawler extends Controller{
 		// $job_start = microtime(true);
 		$client = new Client;
 		// echo 'create client: '.(microtime(true) - $job_start).' secs, ';
-		$crawler = $client -> request('GET', $url);
+		try{
+			$crawler = $client -> request('GET', $url);
+		} catch (\Exception $e) {
+			ViecLam24HCrawler::AppendStringToFile('Exception on crawling job: '.$url.': '.$e -> getMessage()
+				, $data_path.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv');
+			return -1;
+		}
+		
 		// echo 'request page: '.(microtime(true) - $job_start).' secs, ';
-
 		$content_crawler = $crawler -> filter('#cols-right');
 		if ($content_crawler -> count() <= 0 ) {
-			ViecLam24HCrawler::AppendStringToFile("No content cols-right:  ".$url
-			, $data_path.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv');
+			ViecLam24HCrawler::AppendStringToFile("Job expired. No content cols-right:  ".$url
+				, $data_path.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv');
+			return 2;
 		} else{
 			$content = $content_crawler -> filter('div.box_chi_tiet_cong_viec');
-			if ($content -> count() > 0){
+			if ($content -> count() <= 0){
+				ViecLam24HCrawler::AppendStringToFile("Job expired. No box_chi_tiet_cong_viec:  ".$url
+					, $data_path.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv');
+				return 3;
+			} else {
 				$content = $content -> first();
 				
 				// $header_start = microtime(true);
@@ -182,6 +193,10 @@ class ViecLam24HCrawler extends Controller{
 				$title_crawler = $crawler -> filter('h1.text_blue');
 				if ($title_crawler -> count() > 0 ) {
 					$job_title = $title_crawler -> first() -> text();
+				} else{
+					ViecLam24HCrawler::AppendStringToFile("Job expired. No title:  ".$url
+						, $data_path.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv');
+					return 5;
 				}
 				// echo 'header: '.(microtime(true) - $header_start).' secs, ';
 				
@@ -239,10 +254,16 @@ class ViecLam24HCrawler extends Controller{
 					ViecLam24HCrawler::AppendStringToFile('Exception on getting salary + soluong: '.$url.': '.$e -> getMessage()
 						, $data_path.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv');
 				}
-			} 
+			}
 
 			//description + contact
 			$detail_crl = $content_crawler -> filter('#ttd_detail > div.job_description');
+			if ($detail_crl -> count() <= 0){
+				ViecLam24HCrawler::AppendStringToFile('Job expired. No job_description: '.$url.': '.$e -> getMessage()
+						, $data_path.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv');
+				return 4;
+			}
+
 			$job_des = "";
 			try{
 				if ($detail_crl -> count() > 0){
@@ -296,7 +317,9 @@ class ViecLam24HCrawler extends Controller{
 				, $url);
 			
 			ViecLam24HCrawler::AppendArrayToFile($job_data , $data_path.self::VIECLAM24H_DATA.'.csv', "|");
+			return 0;
 		}
+		return 1;
 	}
 
 	public function ExtractMobile($contact){
