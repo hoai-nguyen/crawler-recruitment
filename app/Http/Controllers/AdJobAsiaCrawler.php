@@ -9,18 +9,18 @@ use \Exception as Exception;
 use Illuminate\Support\Facades\DB;
 use \DateTime;
 
-class CareerLinkCrawler extends Controller{
+class AdJobAsiaCrawler extends Controller{
 
-	const TABLE = "careerlink";
-	const JOB_NAME = "careerlink";
-	const CAREERLINK_DATA_PATH = 'careerlink'; // CI must create directory in
-	const CAREERLINK_DATA = 'careerlink-data';
-	const CAREERLINK_ERROR = 'careerlink-error-';
-	const CAREERLINK_LINK = 'careerlink-link';
-	const CAREERLINK_HOME = 'https://www.careerlink.vn';
-	const CAREERLINK_PAGE = 'https://www.careerlink.vn/vieclam/list?page=';
-	const LABEL_EMAIL = "Email";
-	const LABEL_MOBILE = 'Điện thoại';
+	const TABLE = "adjobasia";
+	const JOB_NAME = "adjobasia";
+	const ADJOBASIA_DATA_PATH = 'adjobasia'; // CI must create directory in
+	const ADJOBASIA_DATA = 'adjobasia-data';
+	const ADJOBASIA_ERROR = 'adjobasia-error-';
+	const ADJOBASIA_LINK = 'adjobasia-link';
+	const ADJOBASIA_HOME = 'https://adjob.asia';
+	const ADJOBASIA_PAGE = 'https://adjob.asia/?post_type=noo_job&s&category&paged=';
+	const LABEL_CONTACT = "Người liên hệ";
+	const LABEL_ADDRESS = "Địa chỉ liên hệ";
 	const DATE_FORMAT = "Ymd";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
@@ -29,27 +29,32 @@ class CareerLinkCrawler extends Controller{
 	const PHONE_PATTERN = "!\d+!";
 
 	public function CrawlerStarter(){
+		$url = "";
+		$DATA_PATH = public_path('data').self::SLASH.self::ADJOBASIA_DATA_PATH.self::SLASH;
+		$code = AdJobAsiaCrawler::CrawlJob($url, $DATA_PATH);
+
 		$start = microtime(true);
 
 		while (true){
 			try {
-				$new_batch = CareerLinkCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata", self::TABLE);
+				$new_batch = AdJobAsiaCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata", self::TABLE);
 				if ($new_batch == null){
 					break;
 				}
-				$return_code = CareerLinkCrawler::CareerLinkPageCrawler($new_batch -> start_page, $new_batch -> end_page);
+				$return_code = AdJobAsiaCrawler::AdJobAsiaPageCrawler($new_batch -> start_page, $new_batch -> end_page);
 
 				if ($return_code > 1) {
-					CareerLinkCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
+					AdJobAsiaCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
 					break;
 				}
 
 				if ($new_batch -> end_page > 1000){ // du phong
 					break;
 				}
+				dd("STOP");
 			} catch (\Exception $e) {
-				$file_name = public_path('data').self::SLASH.self::CAREERLINK_DATA_PATH.self::SLASH.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv';
-				CareerLinkCrawler::AppendStringToFile('Ex on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
+				$file_name = public_path('data').self::SLASH.self::ADJOBASIA_DATA_PATH.self::SLASH.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv';
+				AdJobAsiaCrawler::AppendStringToFile('Ex on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
 		}
@@ -59,8 +64,8 @@ class CareerLinkCrawler extends Controller{
 		echo "DONE!";
 	}
 
-    public function CareerLinkPageCrawler($start_page, $end_page){
-		$DATA_PATH = public_path('data').self::SLASH.self::CAREERLINK_DATA_PATH.self::SLASH;
+    public function AdJobAsiaPageCrawler($start_page, $end_page){
+		$DATA_PATH = public_path('data').self::SLASH.self::ADJOBASIA_DATA_PATH.self::SLASH;
         $client = new Client;
 		
 		$last_page_is_empty = false;
@@ -72,19 +77,19 @@ class CareerLinkCrawler extends Controller{
 			echo "page = ".$x.": ";
 			
 			try{
-				$pageUrl = self::CAREERLINK_PAGE.$x;
+				$pageUrl = self::ADJOBASIA_PAGE.$x;
 				$crawler = $client -> request('GET', $pageUrl);
 				
 				$jobs = $crawler -> filter('div.list-search-result-group > div.list-group-item > h2.list-group-item-heading > a');
 				if ($jobs -> count() <= 0) {
-					CareerLinkCrawler::AppendStringToFile("No job found on page: ".$pageUrl
-						, $DATA_PATH.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv');
+					AdJobAsiaCrawler::AppendStringToFile("No job found on page: ".$pageUrl
+						, $DATA_PATH.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv');
 					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
 						$return_code = 2;
-						CareerLinkCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
-							, $DATA_PATH.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv');
+						AdJobAsiaCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
+							, $DATA_PATH.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv');
 						break;
 					}
 					$last_page_is_empty = true;
@@ -100,14 +105,14 @@ class CareerLinkCrawler extends Controller{
 									return $job_link;
 								}
 							} catch (\Exception $e) {
-								$file_name = public_path('data').self::SLASH.self::CAREERLINK_DATA_PATH.self::SLASH.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv';
-								CareerLinkCrawler::AppendStringToFile('Ex when getting $job_links: '.substr($e -> getMessage (), 0, 1000), $file_name);
+								$file_name = public_path('data').self::SLASH.self::ADJOBASIA_DATA_PATH.self::SLASH.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv';
+								AdJobAsiaCrawler::AppendStringToFile('Ex when getting $job_links: '.substr($e -> getMessage (), 0, 1000), $file_name);
 							}
 						}
 					);
 
 					// select duplicated records
-					$existing_links = CareerLinkCrawler::CheckLinksExist($jobs_links, env("DATABASE"), $table=self::TABLE);
+					$existing_links = AdJobAsiaCrawler::CheckLinksExist($jobs_links, env("DATABASE"), $table=self::TABLE);
 					$duplicated_links = array();
 					foreach($existing_links as $row){
 						$link = $row -> link;
@@ -117,7 +122,7 @@ class CareerLinkCrawler extends Controller{
 					// deduplicate
 					$new_links = array_diff($jobs_links, $duplicated_links);
 					if (is_array($new_links) and sizeof($new_links) > 0){
-						$inserted = CareerLinkCrawler::InsertLinks($new_links, env("DATABASE"), $table=self::TABLE);
+						$inserted = AdJobAsiaCrawler::InsertLinks($new_links, env("DATABASE"), $table=self::TABLE);
 						if ($inserted){
 							// crawl each link
 							foreach ($new_links as $job_link) {
@@ -126,16 +131,16 @@ class CareerLinkCrawler extends Controller{
 									
 									if ($job_link == null){
 									} else{
-										$full_link = self::CAREERLINK_HOME.$job_link;
-										$crawled = CareerLinkCrawler::CrawlJob($full_link, $DATA_PATH);
+										$full_link = self::ADJOBASIA_HOME.$job_link;
+										$crawled = AdJobAsiaCrawler::CrawlJob($full_link, $DATA_PATH);
 										if ($crawled == 0){
-											CareerLinkCrawler::AppendStringToFile($full_link
-												, $DATA_PATH.self::CAREERLINK_LINK.'.csv');
+											AdJobAsiaCrawler::AppendStringToFile($full_link
+												, $DATA_PATH.self::ADJOBASIA_LINK.'.csv');
 										}
 									}
 								} catch (\Exception $e) {
-									CareerLinkCrawler::AppendStringToFile("Exception on link:".$job_link.": ".substr($e -> getMessage (), 0, 1000)
-										, $DATA_PATH.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv');
+									AdJobAsiaCrawler::AppendStringToFile("Exception on link:".$job_link.": ".substr($e -> getMessage (), 0, 1000)
+										, $DATA_PATH.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv');
 								}
 							}
 							// end for
@@ -144,8 +149,8 @@ class CareerLinkCrawler extends Controller{
 				}
 			} catch (\Exception $e) {
 				$return_code = 1;
-				$file_name = public_path('data').self::SLASH.self::CAREERLINK_DATA_PATH.self::SLASH.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv';
-				CareerLinkCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
+				$file_name = public_path('data').self::SLASH.self::ADJOBASIA_DATA_PATH.self::SLASH.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv';
+				AdJobAsiaCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
 			$x++;
@@ -163,34 +168,39 @@ class CareerLinkCrawler extends Controller{
 	}
 	
     public function CrawlJob($url, $data_path){
+		$url = "https://adjob.asia/jobs/event-planner-4/";
+		$url = "https://careerbuilder.vn/vi/tim-viec-lam/custom-clearance-staff-nhan-vien-thong-quan-logistic-750usd-l5037.35B19B69.html";
+		$url = "https://www.vietnamworks.com/5-machine-learning-1061442-jd/?source=searchResults&searchType=1&placement=4&sortBy=date";
+		$url = "https://careerbuilder.vn/vi/tim-viec-lam/senior-specialist-%E2%80%93-hr-data-and-analytics.35B19B55.html";
+		
 		// $job_start = microtime(true);
 		$client = new Client;
 		// echo 'create client: '.(microtime(true) - $job_start).' secs, ';
 		try{
 			$crawler = $client -> request('GET', $url);
 		} catch (\Exception $e) {
-			CareerLinkCrawler::AppendStringToFile('Exception on crawling job: '.$url.': '.$e -> getMessage()
-				, $data_path.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv');
+			AdJobAsiaCrawler::AppendStringToFile('Exception on crawling job: '.$url.': '.$e -> getMessage()
+				, $data_path.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		}
-		
+		dd($crawler -> filter('ul.DetailJobNew > li > p.fl_right') -> last() -> text());
 		// echo 'request page: '.(microtime(true) - $job_start).' secs, ';
 		// $content_crawler = $crawler -> filter('div.body-container');
 		if ($crawler -> count() <= 0 ) {
-			CareerLinkCrawler::AppendStringToFile("Job expired. No job content:  ".$url
-				, $data_path.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv');
+			AdJobAsiaCrawler::AppendStringToFile("Job expired. No job content:  ".$url
+				, $data_path.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv');
 			return 2;
 		} else{
 			$header_crl = $crawler -> filter('div.body-container > div.job-header');
 			if ($header_crl -> count() <= 0){
-				CareerLinkCrawler::AppendStringToFile("Job expired. No div.job-header:  ".$url
-				, $data_path.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv');
+				AdJobAsiaCrawler::AppendStringToFile("Job expired. No div.job-header:  ".$url
+				, $data_path.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 3;
 			}
 			$title_crl = $header_crl -> filter('h1 > span');
 			if ($title_crl -> count() <= 0){
-				CareerLinkCrawler::AppendStringToFile("Job expired. No title:  ".$url
-				, $data_path.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv');
+				AdJobAsiaCrawler::AppendStringToFile("Job expired. No title:  ".$url
+				, $data_path.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 4;
 			}
 			$job_title = $title_crl -> first() -> text();
@@ -198,8 +208,8 @@ class CareerLinkCrawler extends Controller{
 			
 			$job_data_crl = $crawler -> filter('div.job-data');
 			if($job_data_crl -> count() <= 0){
-				CareerLinkCrawler::AppendStringToFile("No job-data:  ".$url
-				, $data_path.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv');
+				AdJobAsiaCrawler::AppendStringToFile("No job-data:  ".$url
+				, $data_path.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 5;
 			}
 
@@ -253,10 +263,10 @@ class CareerLinkCrawler extends Controller{
 					foreach($li_contact_crl as $li_node){
 						$li_crl = new Crawler($li_node);
 						$li_text = $li_crl -> text();
-						if (strpos($li_text, self::LABEL_EMAIL) !== false){
-							$email = CareerLinkCrawler::ExtractEmailFromText($li_text);
-						} else if (strpos($li_text, self::LABEL_MOBILE) !== false){
-							$mobile = CareerLinkCrawler::ExtractFirstMobile($li_text);
+						if (strpos($li_text, 'Email') !== false){
+							$email = AdJobAsiaCrawler::ExtractEmailFromText($li_text);
+						} else if (strpos($li_text, 'Điện thoại') !== false){
+							$mobile = AdJobAsiaCrawler::ExtractFirstMobile($li_text);
 						}
 					}
 				}
@@ -265,7 +275,7 @@ class CareerLinkCrawler extends Controller{
 			$contact = preg_replace('!\s+!', ' ', $contact);
 			$contact = trim($contact, "\r\n- ");
 			if (strcmp($email,"") == 0){
-				$email = CareerLinkCrawler::ExtractEmailFromText($contact);
+				$email = AdJobAsiaCrawler::ExtractEmailFromText($contact);
 			}
 
 			$date_crl = $job_data_crl -> filter('dl > dd > span');
@@ -296,7 +306,7 @@ class CareerLinkCrawler extends Controller{
 				, $website
 				, $url);
 
-			CareerLinkCrawler::AppendArrayToFile($job_data , $data_path.self::CAREERLINK_DATA.'.csv', "|");
+			AdJobAsiaCrawler::AppendArrayToFile($job_data , $data_path.self::ADJOBASIA_DATA.'.csv', "|");
 			return 0;
 		}
 	}
@@ -438,8 +448,8 @@ class CareerLinkCrawler extends Controller{
 			return $new_batch;
 
 		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::CAREERLINK_DATA_PATH.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv';
-			CareerLinkCrawler::AppendStringToFile('Ex when find new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
+			$file_name = public_path('data').self::SLASH.self::ADJOBASIA_DATA_PATH.self::ADJOBASIA_ERROR.date(self::DATE_FORMAT).'.csv';
+			AdJobAsiaCrawler::AppendStringToFile('Ex when find new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
 		}
 		return null;
 	}
