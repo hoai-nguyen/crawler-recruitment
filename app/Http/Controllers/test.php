@@ -133,7 +133,24 @@
 // print_r (explode("/",$str));
 
 // echo null."d";
-$address = "dia chi xey";
-$arr = explode(":", $address)[1];
-print_r($arr);
+// $salary = "Lương: dia chi xey MONTH";
+// // $arr = explode(":", $address)[1];
+
+
+// $salary = str_replace('MONTH', 'Lương:', '', $salary);
+// print_r($salary);
+// $salary = preg_replace('!\s+!', ' ', $salary);
+// $salary = trim($salary, "\r\n- ");
+// print_r($salary);
+// use \Datetime;
+
+$created = '20/02/2019';
+$dateTime1 = DateTime::createFromFormat('d/m/Y', $created);
+// $dateTime2 = DateTime::createFromFormat('Y/m/dThh:MMz', '2019-03-27T24:00+07:00');
+echo $dateTime1 -> format('Y-m-d');
+
+// $deadline = "2019-03-27x24:00+07:00";
+// $arr = explode("T", $deadline);
+
+// print_r($arr[0]);
 ?>
