@@ -23,7 +23,7 @@ class TopCVCrawler extends Controller{
 	const DATE_FORMAT = "Ymd";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
-	const MAX_PAGE = 1000;
+	const MAX_PAGE = 500;
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
 	const PHONE_PATTERN = "!\d+!";
 
@@ -43,8 +43,7 @@ class TopCVCrawler extends Controller{
 					TopCVCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
 					break;
 				}
-				if($new_batch -> start_page >= 1000) break;
-				
+				if($new_batch -> start_page >= self::MAX_PAGE) break;
 			} catch (\Exception $e) {
 				$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
 				TopCVCrawler::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
@@ -78,10 +77,9 @@ class TopCVCrawler extends Controller{
 					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
-						$return_code = 2;
 						TopCVCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
 							, $DATA_PATH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
-						break;
+						return 2;
 					}
 					$last_page_is_empty = true;
 				} else{
@@ -142,18 +140,14 @@ class TopCVCrawler extends Controller{
 				TopCVCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
-			if ($x > 10) break;
 
 			$x++;
 			if ($x > self::MAX_PAGE){ // du phong
-				$return_code = 3;
-				break;
+				return 3;
 			}
-
 			$page_total_time = microtime(true) - $page_start;
 			echo '<b>Total execution time of page '.$x.":</b> ".$page_total_time.' secs<br>';
 		} 
-
 		return $return_code;
 	}
 
@@ -284,7 +278,7 @@ class TopCVCrawler extends Controller{
 			if ($job_contact_crl -> count() > 0){
 				$contact = $job_contact_crl -> last() -> text();
 				$contact = TopCVCrawler::RemoveTrailingChars($contact);
-				$atag = $job_contact_crl -> filter('a');
+				$atag = $job_contact_crl -> filter('a') -> last();
 				if($atag -> count() > 0){
 					$website = $atag -> attr('href');
 				}
@@ -376,7 +370,7 @@ class TopCVCrawler extends Controller{
 				$mobiles_str = $mobiles[0];
 			}
 		} 
-		if (strlen($mobiles_str) < 10 or strlen($mobiles_str) > 16) return "";
+		if (strlen($mobiles_str) < 8 or strlen($mobiles_str) > 16) return "";
 		return $mobiles_str;
 	}
 
