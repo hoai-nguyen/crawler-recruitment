@@ -116,6 +116,7 @@ class CareerLinkCrawler extends Controller{
 		
 					// deduplicate
 					$new_links = array_diff($jobs_links, $duplicated_links);
+					
 					if (is_array($new_links) and sizeof($new_links) > 0){
 						$inserted = CareerLinkCrawler::InsertLinks($new_links, env("DATABASE"), $table=self::TABLE);
 						if ($inserted){
