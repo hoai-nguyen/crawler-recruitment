@@ -144,13 +144,18 @@
 // print_r($salary);
 // use \Datetime;
 
-$created = '20/02/2019';
-$dateTime1 = DateTime::createFromFormat('d/m/Y', $created);
-// $dateTime2 = DateTime::createFromFormat('Y/m/dThh:MMz', '2019-03-27T24:00+07:00');
-echo $dateTime1 -> format('Y-m-d');
+// $created = '20/02/2019';
+// $dateTime1 = DateTime::createFromFormat('d/m/Y', $created);
+// // $dateTime2 = DateTime::createFromFormat('Y/m/dThh:MMz', '2019-03-27T24:00+07:00');
+// echo $dateTime1 -> format('Y-m-d');
 
 // $deadline = "2019-03-27x24:00+07:00";
 // $arr = explode("T", $deadline);
 
 // print_r($arr[0]);
+
+
+
+// $res = RemoveTrailingChars(null);
+// echo "|".$res."|";
 ?>

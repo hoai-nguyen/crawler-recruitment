@@ -39,7 +39,6 @@ class CareerBuilderCrawler extends Controller{
 					break;
 				}
 				$return_code = CareerBuilderCrawler::CareerBuilderPageCrawler($new_batch -> start_page, $new_batch -> end_page);
-				dd('STOP');
 				if ($return_code > 1) {
 					CareerBuilderCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
 					break;
@@ -223,13 +222,11 @@ class CareerBuilderCrawler extends Controller{
 						if(strpos($text, self::LABEL_SALARY) !== false){
 							$salary = $info_node -> text();
 							$salary = str_replace(self::LABEL_SALARY, '', $salary);
-							$salary = preg_replace('!\s+!', ' ', $salary);
-							$salary = trim($salary, "\r\n- ");
+							$salary = CareerBuilderCrawler::RemoveTrailingChars($salary);
 						} else if(strpos($text, self::LABEL_DEADLINE) !== false){
 							$deadline = $info_node -> text();
 							$deadline = str_replace('Hết hạn nộp:', '', $deadline);
-							$deadline = preg_replace('!\s+!', ' ', $deadline);
-							$deadline = trim($deadline, "\r\n- ");
+							$deadline = CareerBuilderCrawler::RemoveTrailingChars($deadline);
 						}
 					}
 				}
@@ -243,16 +240,14 @@ class CareerBuilderCrawler extends Controller{
 			if ($job_des_crl -> count() > 0){
 				$job_des = $job_des_crl -> first() -> text();
 			}
-			$job_des = preg_replace('!\s+!', ' ', $job_des);
-			$job_des = trim($job_des, "\r\n- ");
+			$job_des = CareerBuilderCrawler::RemoveTrailingChars($job_des);
 
 			$company_info_crl = $content -> filter('p.TitleDetailNew > label');
 			$address = "";
 			if ($company_info_crl -> count() > 0){
 				$address = $company_info_crl -> first() -> text();
 			}
-			$address = preg_replace('!\s+!', ' ', $address);
-			$address = trim($address, "\r\n- ");
+			$address = CareerBuilderCrawler::RemoveTrailingChars($address);
 
 			$contact = "";
 			if ($company_info_crl -> count() > 1){
@@ -267,8 +262,7 @@ class CareerBuilderCrawler extends Controller{
 			if ($website_crl -> count() > 0){
 				$website = $website_crl -> text();
 			}
-			$website = preg_replace('!\s+!', ' ', $website);
-			$website = trim($website, "\r\n- ");
+			$website = CareerBuilderCrawler::RemoveTrailingChars($website);
 
 			$mobile = "";
 			$email = "";
@@ -294,6 +288,9 @@ class CareerBuilderCrawler extends Controller{
 		}
 	}
 
+	public function RemoveTrailingChars($text){
+		return trim(preg_replace('!\s+!', ' ', $text), "\r\n- ");
+	}
 	public function ExtractMobile($contact){
 		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
 
