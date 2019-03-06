@@ -158,4 +158,8 @@
 
 // $res = RemoveTrailingChars(null);
 // echo "|".$res."|";
+$string = "The text you want to filter goes here. http://google.com, https://www.youtube.com/watch?v=K_m7NEDMrV0,https://instagram.com/hellow/";
+preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $string, $match);
+print_r($match[0]); 
+
 ?>
