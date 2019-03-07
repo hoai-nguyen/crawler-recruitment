@@ -30,15 +30,10 @@ class ITViecCrawler extends Controller{
 	const PHONE_PATTERN = "!\d+!";
 
 	public function CrawlerStarter(){
-		$url = "";
-		$DATA_PATH = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::SLASH;
-		$client = new Client();
-		$code = ITViecCrawler::CrawlJob($client, $url, $DATA_PATH);
-		dd($code);
-
 		$start = microtime(true);
 
-		$client = ITViecCrawler::TopCVLogin();
+		// $client = ITViecCrawler::ITViecLogin();
+		$client = new Client();
 		while (true){
 			try {
 				$new_batch = ITViecCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata", self::JOB_NAME);
@@ -46,7 +41,6 @@ class ITViecCrawler extends Controller{
 					break;
 				}
 				$return_code = ITViecCrawler::ITViecCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
-
 				if ($return_code > 1) {
 					ITViecCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
 					break;
@@ -78,7 +72,7 @@ class ITViecCrawler extends Controller{
 			try{
 				$pageUrl = self::ITVIEC_PAGE.$x;
 				$crawler = $client -> request('GET', $pageUrl);
-				$jobs = $crawler -> filter('div.job-list > div.result-job-hover') -> filter('h4.job-title > a');
+				$jobs = $crawler -> filter('div.first-group') -> filter('h2.title > a');
 				if ($jobs -> count() <= 0) {
 					ITViecCrawler::AppendStringToFile("No job found on page: ".$pageUrl
 						, $DATA_PATH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv');
@@ -107,7 +101,7 @@ class ITViecCrawler extends Controller{
 							}
 						}
 					);
-
+					
 					// select duplicated records
 					$existing_links = ITViecCrawler::CheckLinksExist($jobs_links, env("DATABASE"), self::TABLE);
 					$duplicated_links = array();
@@ -128,9 +122,10 @@ class ITViecCrawler extends Controller{
 									
 									if ($job_link == null){
 									} else{
-										$code = ITViecCrawler::CrawlJob($client, $job_link, $DATA_PATH);
+										$full_link = self::ITVIEC_HOME.$job_link;
+										$code = ITViecCrawler::CrawlJob($client, $full_link, $DATA_PATH);
 										if ($code == 0)
-											ITViecCrawler::AppendStringToFile($job_link
+											ITViecCrawler::AppendStringToFile($full_link
 												, $DATA_PATH.self::ITVIEC_LINK.'.csv');
 									}
 								} catch (\Exception $e) {
@@ -208,9 +203,6 @@ class ITViecCrawler extends Controller{
 	}
 
     public function CrawlJob($client, $url, $data_path){
-		$url = "https://itviec.com/it-jobs/tuyen-senior-php-ruby-java-upto-1500-nal-viet-nam-nal-global-career-1507";
-		$url = "https://itviec.com/it-jobs/web-front-end-dev-angular-html5-css-edmicro-4850";
-
 		$job_start = microtime(true);
 		
 		try{
@@ -235,11 +227,6 @@ class ITViecCrawler extends Controller{
 			
 			$job_title = $job_details_crl -> filter('h1.job_title') -> text();
 			$job_title = ITViecCrawler::RemoveTrailingChars($job_title);
-			
-
-			// $deadline = $job_details_crl -> filter('div.job-deadline') -> text();
-			// $deadline = str_replace(self::LABEL_DEADLINE, "", $deadline); 
-			// $deadline = ITViecCrawler::RemoveTrailingChars($deadline);
 			
 			$address_crl = $job_details_crl -> filter('div.address__full-address');
 			if ($address_crl -> count() <= 0){
@@ -299,12 +286,10 @@ class ITViecCrawler extends Controller{
 				, $soluong
 				, $website
 				, $url);
-			dd($job_data);
+			
 			ITViecCrawler::AppendArrayToFile($job_data
 				, $data_path.self::ITVIEC_DATA.'.csv', "|");
 			return 0;
-			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';
-			// echo 'Total 1 job: '.(microtime(true) - $job_start).' secs <br>';
 		}
 	}
 
