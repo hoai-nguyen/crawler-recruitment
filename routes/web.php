@@ -24,5 +24,6 @@ Route::get('findjobs',['uses' => 'MFindJobsCrawler@CrawlerStarter'])->name('find
 Route::get('vieclam24h',['uses' => 'ViecLam24HCrawler@CrawlerStarter'])->name('vieclam24h');
 Route::get('careerlink',['uses' => 'CareerLinkCrawler@CrawlerStarter'])->name('careerlink');
 Route::get('topcv',['uses' => 'TopCVCrawler@CrawlerStarter'])->name('topcv');
+Route::get('itviec',['uses' => 'ITViecCrawler@CrawlerStarter'])->name('itviec');
 Route::get('careerbuilder',['uses' => 'CareerBuilderCrawler@CrawlerStarter'])->name('careerbuilder');
 Route::get('testdb',['uses' => 'DBController@index'])->name('testdb');

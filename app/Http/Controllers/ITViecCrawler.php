@@ -8,19 +8,21 @@ use Symfony\Component\DomCrawler\Crawler;
 use \Exception as Exception;
 use Illuminate\Support\Facades\DB;
 
-class TopCVCrawler extends Controller{
+class ITViecCrawler extends Controller{
 
-	const TABLE = "topcv";
-	const JOB_NAME = "topcv";
-	const TOPCV_DATA_PATH = 'topcv'; // CI must create directory in
-	const TOPCV_DATA = 'topcv-data';
-	const TOPCV_ERROR = 'topcv-error-';
-	const TOPCV_LINK = 'topcv-link';
-	const TOPCV_HOME = 'https://www.topcv.vn/viec-lam/moi-nhat.html?page=';
+	const TABLE = "itviec";
+	const JOB_NAME = "itviec";
+	const ITVIEC_DATA_PATH = 'itviec'; // CI must create directory in
+	const ITVIEC_DATA = 'itviec-data';
+	const ITVIEC_ERROR = 'itviec-error-';
+	const ITVIEC_LINK = 'itviec-link';
+	const ITVIEC_HOME = 'https://itviec.com';
+	const ITVIEC_PAGE = 'https://itviec.com/it-jobs?page=';
 	const LABEL_SALARY = 'Mức lương:';
 	const LABEL_QUANTITY = 'Số lượng cần tuyển:';
 	const LABEL_DEADLINE = "Hạn nộp hồ sơ:";
 	const DATE_FORMAT = "Ymd";
+	const DATA_DATE_FORMAT = "Y-m-d";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 500;
@@ -30,23 +32,23 @@ class TopCVCrawler extends Controller{
 	public function CrawlerStarter(){
 		$start = microtime(true);
 
-		$client = TopCVCrawler::TopCVLogin();
+		// $client = ITViecCrawler::ITViecLogin();
+		$client = new Client();
 		while (true){
 			try {
-				$new_batch = TopCVCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata", self::JOB_NAME);
+				$new_batch = ITViecCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata", self::JOB_NAME);
 				if ($new_batch == null){
 					break;
 				}
-				$return_code = TopCVCrawler::TopCVCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
-
+				$return_code = ITViecCrawler::ITViecCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
 				if ($return_code > 1) {
-					TopCVCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
+					ITViecCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
 					break;
 				}
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
 			} catch (\Exception $e) {
-				$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
-				TopCVCrawler::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
+				$file_name = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::SLASH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv';
+				ITViecCrawler::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
 		}
@@ -56,8 +58,8 @@ class TopCVCrawler extends Controller{
 		echo "DONE!";
 	}
 	
-	public function TopCVCrawlerFunc($client, $start_page, $end_page){
-		$DATA_PATH = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH;
+	public function ITViecCrawlerFunc($client, $start_page, $end_page){
+		$DATA_PATH = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::SLASH;
 
 		$last_page_is_empty = false;
 		$return_code = 0;
@@ -68,17 +70,17 @@ class TopCVCrawler extends Controller{
 			echo "page = ".$x.": ";
 
 			try{
-				$pageUrl = self::TOPCV_HOME.$x;
+				$pageUrl = self::ITVIEC_PAGE.$x;
 				$crawler = $client -> request('GET', $pageUrl);
-				$jobs = $crawler -> filter('div.job-list > div.result-job-hover') -> filter('h4.job-title > a');
+				$jobs = $crawler -> filter('div.first-group') -> filter('h2.title > a');
 				if ($jobs -> count() <= 0) {
-					TopCVCrawler::AppendStringToFile("No job found on page: ".$pageUrl
-						, $DATA_PATH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
+					ITViecCrawler::AppendStringToFile("No job found on page: ".$pageUrl
+						, $DATA_PATH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv');
 					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
-						TopCVCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
-							, $DATA_PATH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
+						ITViecCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
+							, $DATA_PATH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv');
 						return 2;
 					}
 					$last_page_is_empty = true;
@@ -94,14 +96,14 @@ class TopCVCrawler extends Controller{
 									return $job_link;
 								}
 							} catch (\Exception $e) {
-								$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
-								TopCVCrawler::AppendStringToFile('Exception on getting job_link: '.substr($e -> getMessage (), 0, 1000), $file_name);
+								$file_name = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::SLASH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv';
+								ITViecCrawler::AppendStringToFile('Exception on getting job_link: '.substr($e -> getMessage (), 0, 1000), $file_name);
 							}
 						}
 					);
-
+					
 					// select duplicated records
-					$existing_links = TopCVCrawler::CheckLinksExist($jobs_links, env("DATABASE"), self::TABLE);
+					$existing_links = ITViecCrawler::CheckLinksExist($jobs_links, env("DATABASE"), self::TABLE);
 					$duplicated_links = array();
 					foreach($existing_links as $row){
 						$link = $row -> link;
@@ -111,7 +113,7 @@ class TopCVCrawler extends Controller{
 					// deduplicate
 					$new_links = array_diff($jobs_links, $duplicated_links);
 					if (is_array($new_links) and sizeof($new_links) > 0){
-						$inserted = TopCVCrawler::InsertLinks($new_links, env("DATABASE"), self::TABLE);
+						$inserted = ITViecCrawler::InsertLinks($new_links, env("DATABASE"), self::TABLE);
 						if ($inserted){
 							// crawl each link
 							foreach ($new_links as $job_link) {
@@ -120,14 +122,15 @@ class TopCVCrawler extends Controller{
 									
 									if ($job_link == null){
 									} else{
-										$code = TopCVCrawler::CrawlJob($client, $job_link, $DATA_PATH);
+										$full_link = self::ITVIEC_HOME.$job_link;
+										$code = ITViecCrawler::CrawlJob($client, $full_link, $DATA_PATH);
 										if ($code == 0)
-											TopCVCrawler::AppendStringToFile($job_link
-												, $DATA_PATH.self::TOPCV_LINK.'.csv');
+											ITViecCrawler::AppendStringToFile($full_link
+												, $DATA_PATH.self::ITVIEC_LINK.'.csv');
 									}
 								} catch (\Exception $e) {
-									TopCVCrawler::AppendStringToFile("Exception on crawling link: ".$job_link.": ".substr($e -> getMessage (), 0, 1000)
-										, $DATA_PATH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
+									ITViecCrawler::AppendStringToFile("Exception on crawling link: ".$job_link.": ".substr($e -> getMessage (), 0, 1000)
+										, $DATA_PATH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv');
 								}
 							}
 							// end for
@@ -136,8 +139,8 @@ class TopCVCrawler extends Controller{
 				}
 			} catch (\Exception $e) {
 				$return_code = 1;
-				$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
-				TopCVCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
+				$file_name = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::SLASH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv';
+				ITViecCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
 
@@ -193,8 +196,8 @@ class TopCVCrawler extends Controller{
 
 			return $client;
 		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
-			TopCVCrawler::AppendStringToFile('Exception on login: '.($e -> getMessage ()), $file_name);
+			$file_name = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::SLASH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv';
+			ITViecCrawler::AppendStringToFile('Exception on login: '.($e -> getMessage ()), $file_name);
 		}
 		return $client;
 	}
@@ -205,92 +208,70 @@ class TopCVCrawler extends Controller{
 		try{
 			$crawler = $client -> request('GET', $url);
 		} catch (\Exception $e) {
-			TopCVCrawler::AppendStringToFile("Cannot request page: ".$url.": ".substr($e -> getMessage (), 0, 1000)
-				, $data_path.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
+			ITViecCrawler::AppendStringToFile("Cannot request page: ".$url.": ".substr($e -> getMessage (), 0, 1000)
+				, $data_path.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		}
 
 		if ($crawler -> count() <= 0 ) {
-			TopCVCrawler::AppendStringToFile("Cannot request page: ".$url
-				, $data_path.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
+			ITViecCrawler::AppendStringToFile("Cannot request page: ".$url
+				, $data_path.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		} else{
-			$general_infos = $crawler -> filter('#row-job-title');
-			if($general_infos -> count() <= 0){
-				TopCVCrawler::AppendStringToFile("No #row-job-title: ".$url
-					, $data_path.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
+			$job_details_crl = $crawler -> filter('div.job-detail');
+			if($job_details_crl -> count() <= 0){
+				ITViecCrawler::AppendStringToFile("No div.job-detail: ".$url
+					, $data_path.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 1;
 			}
 			
-			$job_title = $general_infos -> filter('h1.job-title') -> text();
-			$company = $general_infos -> filter('div.company-title') -> text();
-			$company = TopCVCrawler::RemoveTrailingChars($company);
-
+			$job_title = $job_details_crl -> filter('h1.job_title') -> text();
+			$job_title = ITViecCrawler::RemoveTrailingChars($job_title);
 			
-			$deadline = $general_infos -> filter('div.job-deadline') -> text();
-			$deadline = str_replace(self::LABEL_DEADLINE, "", $deadline); 
-			$deadline = TopCVCrawler::RemoveTrailingChars($deadline);
-			
-			$address_crl = $general_infos -> filter('div.text-dark-gray');
+			$address_crl = $job_details_crl -> filter('div.address__full-address');
 			if ($address_crl -> count() <= 0){
-				TopCVCrawler::AppendStringToFile("No div.text-dark-gray: ".$url
-					, $data_path.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
+				ITViecCrawler::AppendStringToFile("No div.text-dark-gray: ".$url
+					, $data_path.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 1;
 			}
 			$address = $address_crl -> first() -> text();
-			$address = TopCVCrawler::RemoveTrailingChars($address);
+			$address = ITViecCrawler::RemoveTrailingChars($address);
 			
-			$job_infos_crl = $crawler -> filter('#tab-info');
-			if ($job_infos_crl -> count() <= 0){
-				TopCVCrawler::AppendStringToFile("No #tab-info: ".$url
-					, $data_path.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
+			$job_des_crl = $crawler -> filter('div.job_description > div.description');
+			if ($job_des_crl -> count() <= 0){
+				ITViecCrawler::AppendStringToFile("No job_description: ".$url
+					, $data_path.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 1;
 			}
-			$job_des = $crawler -> filter('#col-job-left > div.content-tab') -> text();
-			$job_des = TopCVCrawler::RemoveTrailingChars($job_des);
+			$job_des = $job_des_crl -> first() -> text();
+			$job_des = ITViecCrawler::RemoveTrailingChars($job_des);
 
-			$job_details_crl = $job_infos_crl -> filter('#col-job-right > #box-info-job > div.job-info-item');
-			$count = 0;
-			$salary = "";
-			$soluong = "";
-			foreach($job_details_crl as $info){
-				$info_node = new Crawler($info);
-				$text = $info_node -> text();
-				if ($count >= 2){
-					break;
-				} else if (strpos($text, self::LABEL_SALARY) !== false){
-					$salary = $text;
-					$count++;
-				} else if (strpos($text, self::LABEL_QUANTITY) !== false){ 
-					$soluong = $text;
-					$count++;
-				}
-			}
-			$salary = str_replace(self::LABEL_SALARY, "", $salary);
-			$salary = TopCVCrawler::RemoveTrailingChars($salary);
-			$soluong = str_replace(self::LABEL_QUANTITY, "", $soluong);
-			$soluong = TopCVCrawler::RemoveTrailingChars($soluong);
 			
-			$job_contact_crl = $crawler -> filter('#tab-info-company') -> filter('#col-job-left > div.content-tab');
-			$contact = "";
-			$mobile = "";
-			$website = "";
-			if ($job_contact_crl -> count() > 0){
-				$contact = $job_contact_crl -> last() -> text();
-				$contact = TopCVCrawler::RemoveTrailingChars($contact);
-				$atag = $job_contact_crl -> filter('a') -> last();
-				if($atag -> count() > 0){
-					$website = $atag -> attr('href');
-				}
-				$ptag = $job_contact_crl -> filter('p');
-				if($ptag -> count() > 1){
-					$mobile = $ptag -> last() -> text();
-					$mobile = TopCVCrawler::ExtractFirstMobile($mobile);
-				}
+			$company_crl = $crawler -> filter('div.employer-info > h3.name');
+			if ($company_crl -> count() <= 0){
+				ITViecCrawler::AppendStringToFile("No employer-info: ".$url
+					, $data_path.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv');
+				return 1;
 			}
-			
-			$email = "";
+			$company = $company_crl -> first() -> text();
+			$company = ITViecCrawler::RemoveTrailingChars($company);
+			$website = $company_crl -> filter('a') -> first() -> attr('href');
+			$website = self::ITVIEC_HOME.$website;
+
 			$created = "";
+			$created_crl = $job_details_crl -> filter('div.distance-time-job-posted');
+			if ($created_crl -> count() > 0){
+				$date_text = $created_crl -> first() -> text();
+				$date_text = ITViecCrawler::RemoveTrailingChars($date_text);
+				$created = ITViecCrawler::GetDateFromInterval($date_text);
+			}
+
+			$mobile = "";
+			$email = "";
+			$soluong = "";
+			$deadline = "";
+			$contact = "";
+			$salary = "";
 			
 			$job_data = array($mobile
 				, $email
@@ -306,11 +287,9 @@ class TopCVCrawler extends Controller{
 				, $website
 				, $url);
 			
-			TopCVCrawler::AppendArrayToFile($job_data
-				, $data_path.self::TOPCV_DATA.'.csv', "|");
+			ITViecCrawler::AppendArrayToFile($job_data
+				, $data_path.self::ITVIEC_DATA.'.csv', "|");
 			return 0;
-			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';
-			// echo 'Total 1 job: '.(microtime(true) - $job_start).' secs <br>';
 		}
 	}
 
@@ -454,14 +433,24 @@ class TopCVCrawler extends Controller{
 			return $new_batch;
 
 		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
-			TopCVCrawler::AppendStringToFile('Ex on finding new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
+			$file_name = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv';
+			ITViecCrawler::AppendStringToFile('Ex on finding new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
 		}
 		return null;
 	}
 	
 	public function RemoveTrailingChars($text){
 		return trim(preg_replace('!\s+!', ' ', $text), "\r\n- ");
+	}
+	
+	public function GetDateFromInterval($interval){
+		try{
+			return date(self::DATA_DATE_FORMAT, strtotime($interval, strtotime("now")));
+		} catch (\Exception $e) {
+			$file_name = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv';
+			ITViecCrawler::AppendStringToFile('Ex on get date: '.substr($e -> getMessage (), 0, 1000), $file_name);
+		}
+		return null;
 	}
 
 	public function GithubLogin(){

@@ -158,8 +158,35 @@
 
 // $res = RemoveTrailingChars(null);
 // echo "|".$res."|";
-$string = "The text you want to filter goes here. http://google.com, https://www.youtube.com/watch?v=K_m7NEDMrV0,https://instagram.com/hellow/";
-preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $string, $match);
-print_r($match[0]); 
+// $string = "The text you want to filter goes here. http://google.com, https://www.youtube.com/watch?v=K_m7NEDMrV0,https://instagram.com/hellow/";
+// preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $string, $match);
+// print_r($match[0]); 
+
+// $str1 = "42 days ago";
+// $str2 = "1 day ago";
+// $str3 = "1 hour ago";
+// $str4 = "12 hours ago";
+// $str5 = "8 minutes ago";
+// $str5 = "1 minute ago";
+
+// function get_created_date($text){
+//     if (strpos($text, 'minute') !== false){
+//         return date();
+//     } else if (strpos($text, 'hour') !== false){
+//         return date(); //minus-hour
+//     } else if (strpos($text, 'day') !== false){
+//         return date(); //minus-day
+//     }
+// }
+
+// $date=date_create("2019-03-15");
+// date_sub($date, date_interval_create_from_date_string("2 hour"));
+// echo date_format($date,"Y-m-d");
+
+// $days_ago = date('Y-m-d', strtotime('-2 day', strtotime('2019-12-02')));
+
+print_r( $days_ago ) ; 
+
+
 
 ?>
