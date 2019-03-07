@@ -158,9 +158,11 @@
 
 // $res = RemoveTrailingChars(null);
 // echo "|".$res."|";
-// $string = "The text you want to filter goes here. http://google.com, https://www.youtube.com/watch?v=K_m7NEDMrV0,https://instagram.com/hellow/";
-// preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $string, $match);
-// print_r($match[0]); 
+$string = "The text you want to filter goes here. http://google.com, https://www.youtube.com/watch?v=K_m7NEDMrV0,https://instagram.com/hellow/";
+$string = "The text you want to filter goes here. hsttp://google.com";
+$string = "Website: https://hsntech.com/";
+preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $string, $match);
+print_r($match[0]); 
 
 // $str1 = "42 days ago";
 // $str2 = "1 day ago";
@@ -185,7 +187,7 @@
 
 // $days_ago = date('Y-m-d', strtotime('-2 day', strtotime('2019-12-02')));
 
-print_r( $days_ago ) ; 
+// print_r( $days_ago ) ; 
 
 
 
