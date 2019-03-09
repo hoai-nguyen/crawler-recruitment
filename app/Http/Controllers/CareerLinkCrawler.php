@@ -39,10 +39,10 @@ class CareerLinkCrawler extends Controller{
 				}
 				$return_code = CareerLinkCrawler::CareerLinkPageCrawler($new_batch -> start_page, $new_batch -> end_page);
 
-				// if ($return_code > 1) {
-				// 	CareerLinkCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
-				// 	break;
-				// }
+				if ($return_code > 1) {
+					// CareerLinkCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
+					break;
+				}
 
 				if ($new_batch -> end_page > 1000){ // du phong
 					break;

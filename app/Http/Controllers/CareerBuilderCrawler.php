@@ -44,10 +44,10 @@ class CareerBuilderCrawler extends Controller{
 				error_log("Batch: ".$new_batch->start_page." - ".$new_batch->end_page);
 				$return_code = $this->CareerBuilderPageCrawler($new_batch -> start_page, $new_batch -> end_page);
 				
-				// if ($return_code > 1) {
-				// 	 $this->ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
-				// 	break;
-				// }
+				if ($return_code > 1) {
+					//  $this->ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
+					break;
+				}
 
 				if ($new_batch -> end_page > self::MAX_PAGE){ // du phong
 					break;

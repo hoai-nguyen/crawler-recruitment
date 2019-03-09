@@ -37,10 +37,10 @@ class ViecLam24HCrawler extends Controller{
 				}
 				$return_code = ViecLam24HCrawler::ViecLam24HPageCrawler($new_batch -> start_page, $new_batch -> end_page);
 
-				// if ($return_code > 1) {
-				// 	ViecLam24HCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "vieclam24h");
-				// 	break;
-				// }
+				if ($return_code > 1) {
+					// ViecLam24HCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "vieclam24h");
+					break;
+				}
 
 				if ($new_batch -> end_page > 500){ // du phong
 					break;

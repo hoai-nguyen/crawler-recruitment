@@ -47,10 +47,10 @@ class TopDevCrawler extends Controller{
 					break;
 				}
 				$return_code = TopDevCrawler::TopDevCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
-				// if ($return_code > 1) {
-				// 	TopDevCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
-				// 	break;
-				// }
+				if ($return_code > 1) {
+					// TopDevCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
+					break;
+				}
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
 			} catch (\Exception $e) {
 				$file_name = public_path('data').self::SLASH.self::TOPDEV_DATA_PATH.self::SLASH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv';
@@ -207,9 +207,6 @@ class TopDevCrawler extends Controller{
 	}
 
     public function CrawlJob($client, $url, $data_path){
-		// $url = "https://topdev.vn/detail-jobs/hcm-front-end-developer-giggedin-11419";
-		// $url = "https://topdev.vn/detail-jobs/hn-03-juniorsenior-netc-developers-grapecity-11379";
-		
 		$job_start = microtime(true);
 		
 		try{

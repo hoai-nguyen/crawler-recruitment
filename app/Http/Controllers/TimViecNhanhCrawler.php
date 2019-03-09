@@ -40,10 +40,10 @@ class TimViecNhanhCrawler extends Controller{
 
 				$return_code = TimViecNhanhCrawler::TimViecNhanhCrawlerFunc($new_batch -> start_page, $new_batch -> end_page);
 
-				// if ($return_code > 1) {
-				// 	TimViecNhanhCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "timviecnhanh");
-				// 	break;
-				// }
+				if ($return_code > 1) {
+					// TimViecNhanhCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "timviecnhanh");
+					break;
+				}
 			} catch (\Exception $e) {
 				$file_name = public_path('data').self::SLASH.self::TIMVIECNHANH_DATA_PATH.self::SLASH.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv';
 				TimViecNhanhCrawler::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);

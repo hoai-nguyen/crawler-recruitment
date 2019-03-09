@@ -39,10 +39,10 @@ class MyWorkCrawler extends Controller{
 
 				$return_code = MyWorkCrawler::MyWorkCrawler($new_batch -> start_page, $new_batch -> end_page);
 
-				// if ($return_code > 1) {
-				// 	MyWorkCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "mywork");
-				// 	break;
-				// }
+				if ($return_code > 1) {
+					// MyWorkCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "mywork");
+					break;
+				}
 			} catch (\Exception $e) {
 				$file_name = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH.self::MYWORK_ERROR.date(self::DATE_FORMAT).'.csv';
 				MyWorkCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);

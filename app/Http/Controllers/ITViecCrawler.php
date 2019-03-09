@@ -41,10 +41,10 @@ class ITViecCrawler extends Controller{
 					break;
 				}
 				$return_code = ITViecCrawler::ITViecCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
-				// if ($return_code > 1) {
-				// 	ITViecCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
-				// 	break;
-				// }
+				if ($return_code > 1) {
+					// ITViecCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
+					break;
+				}
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
 			} catch (\Exception $e) {
 				$file_name = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::SLASH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv';
