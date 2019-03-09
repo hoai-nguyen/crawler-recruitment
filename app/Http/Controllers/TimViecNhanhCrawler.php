@@ -23,12 +23,14 @@ class TimViecNhanhCrawler extends Controller{
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 1000;
+	const MAX_BATCH = 300;
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
 	const PHONE_PATTERN = "!\d+!";
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
 
+		$x = 0;
 		while (true){
 			try {
 				$new_batch = TimViecNhanhCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata");
@@ -38,15 +40,19 @@ class TimViecNhanhCrawler extends Controller{
 
 				$return_code = TimViecNhanhCrawler::TimViecNhanhCrawlerFunc($new_batch -> start_page, $new_batch -> end_page);
 
-				if ($return_code > 1) {
-					TimViecNhanhCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "timviecnhanh");
-					break;
-				}
+				// if ($return_code > 1) {
+				// 	TimViecNhanhCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "timviecnhanh");
+				// 	break;
+				// }
 			} catch (\Exception $e) {
 				$file_name = public_path('data').self::SLASH.self::TIMVIECNHANH_DATA_PATH.self::SLASH.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv';
 				TimViecNhanhCrawler::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
+			if ($x >= self::MAX_BATCH){
+				break;
+			}
+			$x++;
 		}
 
 		$time_elapsed_secs = microtime(true) - $start;
@@ -463,7 +469,7 @@ class TimViecNhanhCrawler extends Controller{
 			return $new_batch;
 
 		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::TIMVIECNHANH_DATA_PATH.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv';
+			$file_name = public_path('data').self::SLASH.self::TIMVIECNHANH_DATA_PATH.self::SLASH.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv';
 			TimViecNhanhCrawler::AppendStringToFile('Ex on finding new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
 		}
 		return null;

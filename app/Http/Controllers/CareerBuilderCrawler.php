@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Goutte\Client;
+// use GuzzleHttp\Client;
 use Symfony\Component\DomCrawler\Crawler;
 use \Exception as Exception;
 use Illuminate\Support\Facades\DB;
@@ -30,26 +31,38 @@ class CareerBuilderCrawler extends Controller{
 	const PHONE_PATTERN = "!\d+!";
 
 	public function CrawlerStarter(){
-		$start = microtime(true);
+		error_log('Start crawling...');
 
+		$start = microtime(true);
+		$x = 0;
 		while (true){
 			try {
-				$new_batch = CareerBuilderCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata", self::JOB_NAME);
+				$new_batch = $this->FindNewBatchToProcess("phpmyadmin", "job_metadata", self::JOB_NAME);
 				if ($new_batch == null){
 					break;
 				}
-				$return_code = CareerBuilderCrawler::CareerBuilderPageCrawler($new_batch -> start_page, $new_batch -> end_page);
-				if ($return_code > 1) {
-					CareerBuilderCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
-					break;
-				}
+				error_log("Batch: ".$new_batch->start_page." - ".$new_batch->end_page);
+				$return_code = $this->CareerBuilderPageCrawler($new_batch -> start_page, $new_batch -> end_page);
+				
+				// if ($return_code > 1) {
+				// 	 $this->ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
+				// 	break;
+				// }
 
 				if ($new_batch -> end_page > self::MAX_PAGE){ // du phong
 					break;
 				}
-			} catch (\Exception $e) {
+			} catch (\FatalErrorException $e) {
 				$file_name = public_path('data').self::SLASH.self::CAREERBUILDER_DATA_PATH.self::SLASH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv';
-				CareerBuilderCrawler::AppendStringToFile('Ex on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
+				 $this->AppendStringToFile('Ex on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
+				break;
+			} catch (\Throwable $e) {
+				$file_name = public_path('data').self::SLASH.self::CAREERBUILDER_DATA_PATH.self::SLASH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv';
+				 $this->AppendStringToFile('Ex on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
+				break;
+			}
+			$x++;
+			if ($x > 500){
 				break;
 			}
 		}
@@ -61,13 +74,18 @@ class CareerBuilderCrawler extends Controller{
 
     public function CareerBuilderPageCrawler($start_page, $end_page){
 		$DATA_PATH = public_path('data').self::SLASH.self::CAREERBUILDER_DATA_PATH.self::SLASH;
-        $client = new Client;
+		$client = new Client();
+		$guzzleClient = new \GuzzleHttp\Client(array(
+			'timeout' => 15,
+		));
+		$client->setClient($guzzleClient);
 		
 		$last_page_is_empty = false;
 		$return_code = 0;
 		$x = (int) $start_page; 
-		$$end_page = (int) $end_page;
+		$end_page = (int) $end_page;
         while($x <= $end_page) {
+			error_log("Crawling page=".$x.": START");
 			$page_start = microtime(true);
 			echo "page = ".$x.": ";
 			
@@ -81,13 +99,13 @@ class CareerBuilderCrawler extends Controller{
 					$jobs = $grid -> filter('h3.job > a');
 				}
 				if ($jobs == null or $jobs -> count() <= 0) {
-					CareerBuilderCrawler::AppendStringToFile("No job found on page: ".$pageUrl
+					 $this->AppendStringToFile("No job found on page: ".$pageUrl
 						, $DATA_PATH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv');
 					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
 						$return_code = 2;
-						CareerBuilderCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
+						 $this->AppendStringToFile("Quit because two consecutive pages are empty."
 							, $DATA_PATH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv');
 						break;
 					}
@@ -104,12 +122,12 @@ class CareerBuilderCrawler extends Controller{
 								}
 							} catch (\Exception $e) {
 								$file_name = public_path('data').self::SLASH.self::CAREERBUILDER_DATA_PATH.self::SLASH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv';
-								CareerBuilderCrawler::AppendStringToFile('Ex when getting $job_links: '.substr($e -> getMessage (), 0, 1000), $file_name);
+								 $this->AppendStringToFile('Ex when getting $job_links: '.substr($e -> getMessage (), 0, 1000), $file_name);
 							}
 						}
 					);
 					// select duplicated records
-					$existing_links = CareerBuilderCrawler::CheckLinksExist($jobs_links, env("DATABASE"), $table=self::TABLE);
+					$existing_links =  $this->CheckLinksExist($jobs_links, env("DATABASE"), $table=self::TABLE);
 					$duplicated_links = array();
 					foreach($existing_links as $row){
 						$link = $row -> link;
@@ -118,44 +136,57 @@ class CareerBuilderCrawler extends Controller{
 		
 					// deduplicate
 					$new_links = array_diff($jobs_links, $duplicated_links);
+					error_log("Page=".$x.": new_link count=".sizeof($new_links));
 					if (is_array($new_links) and sizeof($new_links) > 0){
-						$inserted = CareerBuilderCrawler::InsertLinks($new_links, env("DATABASE"), $table=self::TABLE);
+						$inserted =  $this->InsertLinks($new_links, env("DATABASE"), $table=self::TABLE);
 						if ($inserted){
 							// crawl each link
 							foreach ($new_links as $job_link) {
+								error_log("Page=".$x.": link=".$job_link);
 								try {
-									ini_set('max_execution_time', 10000000);				
+									ini_set('max_execution_time', 20);				
 									
 									if ($job_link == null){
 									} else{
-										$crawled = CareerBuilderCrawler::CrawlJob($job_link, $DATA_PATH);
+										$crawled =  $this->CrawlJob($client, $job_link, $DATA_PATH);
 										if ($crawled == 0){
-											CareerBuilderCrawler::AppendStringToFile($job_link
+											 $this->AppendStringToFile($job_link
 												, $DATA_PATH.self::CAREERBUILDER_LINK.'.csv');
 										}
 									}
-								} catch (\Exception $e) {
-									CareerBuilderCrawler::AppendStringToFile("Exception on link:".$job_link.": ".substr($e -> getMessage (), 0, 1000)
+								} catch (\FatalErrorException $e) {
+									 $this->AppendStringToFile("Exception on link:".$job_link.": ".substr($e -> getMessage (), 0, 1000)
 										, $DATA_PATH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv');
-								}
+								} catch (\Throwable $e) {
+									$this->AppendStringToFile("Exception on link:".$job_link.": ".substr($e -> getMessage (), 0, 1000)
+									   , $DATA_PATH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv');
+							   }
 							}
 							// end for
 						}
 					}
 				}
-			} catch (\Exception $e) {
+			} catch (\FatalErrorException $e) {
 				$return_code = 1;
 				$file_name = public_path('data').self::SLASH.self::CAREERBUILDER_DATA_PATH.self::SLASH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv';
-				CareerBuilderCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
+				 $this->AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
+				break;
+			} catch (\Throwable $e) {
+				$return_code = 1;
+				$file_name = public_path('data').self::SLASH.self::CAREERBUILDER_DATA_PATH.self::SLASH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv';
+				 $this->AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
+
+			error_log("Crawling page=".$x.": END");
+
 			$x++;
 			
 			if ($x > self::MAX_PAGE){ // du phong
 				$return_code = 3;
 				break;
 			}
-
+			
 			$page_total_time = microtime(true) - $page_start;
 			echo '<b>Total execution time of page '.$x.":</b> ".$page_total_time.' secs<br>';
 		} 
@@ -163,34 +194,43 @@ class CareerBuilderCrawler extends Controller{
 		return $return_code;
 	}
 	
-    public function CrawlJob($url, $data_path){
-		// $job_start = microtime(true);
-		$client = new Client;
-		// echo 'create client: '.(microtime(true) - $job_start).' secs, ';
+    public function CrawlJob($client, $url, $data_path){
+		error_log("CrawlJob: START");
+
+		$job_start = microtime(true);
+	
+		// $client = new Client();
+		// $guzzleClient = new \GuzzleHttp\Client(array(
+		// 	'timeout' => 5,
+		// ));
+		// $client->setClient($guzzleClient);
+		
 		try{
 			$crawler = $client -> request('GET', $url);
 		} catch (\Exception $e) {
-			CareerBuilderCrawler::AppendStringToFile('Exception on crawling job: '.$url.': '.$e -> getMessage()
+			 $this->AppendStringToFile('Exception on crawling job: '.$url.': '.$e -> getMessage()
 				, $data_path.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		}
-		
+		// dd($crawler);
+		error_log("Page requested. ");
+		$after_request = microtime(true);
 		// echo 'request page: '.(microtime(true) - $job_start).' secs, ';
 		if ($crawler -> count() <= 0 ) {
-			CareerBuilderCrawler::AppendStringToFile("Job expired. No job content:  ".$url
+			 $this->AppendStringToFile("Job expired. No job content:  ".$url
 				, $data_path.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv');
 			return 2;
 		} else{
 			$content = $crawler -> filter('div.LeftJobCB');
 
 			if ($content -> count() <= 0){
-				CareerBuilderCrawler::AppendStringToFile("Job expired. No div.LeftJobCB:  ".$url
+				 $this->AppendStringToFile("Job expired. No div.LeftJobCB:  ".$url
 				, $data_path.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 3;
 			}
 			$title_crl = $content -> filter('div.top-job-info > h1');
 			if ($title_crl -> count() <= 0){
-				CareerBuilderCrawler::AppendStringToFile("Job expired. No title:  ".$url
+				 $this->AppendStringToFile("Job expired. No title:  ".$url
 				, $data_path.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 4;
 			}
@@ -222,11 +262,11 @@ class CareerBuilderCrawler extends Controller{
 						if(strpos($text, self::LABEL_SALARY) !== false){
 							$salary = $info_node -> text();
 							$salary = str_replace(self::LABEL_SALARY, '', $salary);
-							$salary = CareerBuilderCrawler::RemoveTrailingChars($salary);
+							$salary =  $this->RemoveTrailingChars($salary);
 						} else if(strpos($text, self::LABEL_DEADLINE) !== false){
 							$deadline = $info_node -> text();
 							$deadline = str_replace('Hết hạn nộp:', '', $deadline);
-							$deadline = CareerBuilderCrawler::RemoveTrailingChars($deadline);
+							$deadline =  $this->RemoveTrailingChars($deadline);
 						}
 					}
 				}
@@ -240,14 +280,14 @@ class CareerBuilderCrawler extends Controller{
 			if ($job_des_crl -> count() > 0){
 				$job_des = $job_des_crl -> first() -> text();
 			}
-			$job_des = CareerBuilderCrawler::RemoveTrailingChars($job_des);
+			$job_des =  $this->RemoveTrailingChars($job_des);
 
 			$company_info_crl = $content -> filter('p.TitleDetailNew > label');
 			$address = "";
 			if ($company_info_crl -> count() > 0){
 				$address = $company_info_crl -> first() -> text();
 			}
-			$address = CareerBuilderCrawler::RemoveTrailingChars($address);
+			$address =  $this->RemoveTrailingChars($address);
 
 			$contact = "";
 			if ($company_info_crl -> count() > 1){
@@ -262,10 +302,10 @@ class CareerBuilderCrawler extends Controller{
 			if ($website_crl -> count() > 0){
 				$website = $website_crl -> text();
 			}
-			$website = CareerBuilderCrawler::RemoveTrailingChars($website);
+			$website =  $this->RemoveTrailingChars($website);
 
-			$mobile = "";
-			$email = "";
+			$mobile = $this->ExtractFirstMobile($contact);
+			$email = $this->ExtractEmailFromText($contact);
 			$soluong = "";
 
 			// $file_start = microtime(true);
@@ -283,7 +323,12 @@ class CareerBuilderCrawler extends Controller{
 				, $website
 				, $url);
 
-			CareerBuilderCrawler::AppendArrayToFile($job_data , $data_path.self::CAREERBUILDER_DATA.'.csv', "|");
+			// echo 'from start: '.(microtime(true) - $job_start).' secs <br>';
+			// echo 'after request: '.(microtime(true) - $after_request).' secs ';
+			// dd($job_data);
+
+			$this->AppendArrayToFile($job_data , $data_path.self::CAREERBUILDER_DATA.'.csv', "|");
+			error_log("Page saved. ");
 			return 0;
 		}
 	}
@@ -428,8 +473,8 @@ class CareerBuilderCrawler extends Controller{
 			return $new_batch;
 
 		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::CAREERBUILDER_DATA_PATH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv';
-			CareerBuilderCrawler::AppendStringToFile('Ex when find new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
+			$file_name = public_path('data').self::SLASH.self::CAREERBUILDER_DATA_PATH.self::SLASH.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv';
+			 $this->AppendStringToFile('Ex when find new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
 		}
 		return null;
 	}
