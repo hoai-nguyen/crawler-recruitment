@@ -1,0 +1,63 @@
+## ENVIRONMENT SETTING UP
+
+Step 1. Install xampp; set xampp to environment variable; link xampp php
+download xampp-linux-x64-7.3.2-1-installer.run
+chmod +x xampp-linux-x64-7.3.2-1-installer.run
+sudo ./xampp-linux-x64-7.3.2-1-installer.run
+export PATH="$PATH:/opt/lampp/bin"
+source ~/.bashrc
+sudo ln -s /opt/lampp/bin/php /usr/bin/php
+
+
+Step 2. Install composer => copy to /usr/local/bin/composer; require php, net-tools
+cd ~
+sudo apt install net-tools
+curl -sS https://getcomposer.org/installer -o composer-setup.php
+sudo mv composer.phar /usr/local/bin/composer
+
+
+Step 3. Clone repository; require git, php, composer
+git clone https://github.com/hoai-nguyen/crawler-recruitment.git
+cd crawler-recruitment
+composer install
+cp .env.example .env 
+php artisan key:generate
+
+
+## USAGES
+UC0. Start application server From project directory, execute: 
+	chmod +x uc_0_start_app_servers.sh
+	./uc_0_start_app_servers.sh
+
+UC1. From very start, init or reset data for all pages: From project directory, execute: 
+	chmod +X uc_1_init_or_reset_data_all_pages.sh
+	./uc_1_init_or_reset_data_all_pages.sh
+	
+UC2. Crawl one page from begin or continue to crawl that page from last run: From project directory, execute: 
+	chmod +x uc_2_crawl_one_page.sh
+	./uc_2_crawl_one_page.sh page_name
+		+ Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
+		+ Example: ./uc_2_crawl_one_page.sh topdev
+		
+	Output data will be placed in public/data/page_name. For example: public/data/topdev/topdev-data.csv
+
+UC3. If we want to crawl a page from start, we reset data of the page: From project directory, execute: 
+	chmod +x uc_2_crawl_one_page.sh
+	./uc_3_reset_one_page.sh page_name
+		+ Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
+		+ Example: ./uc_3_reset_one_page.sh topdev
+	
+UC4. Merge data of all pages into one file. From project directory, execute: 
+	chmod +x uc_4_merge_all_pages.sh
+	./uc_4_merge_all_pages.sh
+		
+	Output data will be placed in public/data/recruitment_data_<datetime>.csv. For example: recruitment_data_2019-03-09_23:48:50.csv
+
+UC5: Monitor crawling. We can see logs from application servers or data written to public/data/page_name.
+	From project directory, execute: 
+		chmod +x uc_5_monitor_crawling_one_page.sh
+		./uc_5_monitor_crawling_one_page.sh page_name
+			+ Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
+			+ Example: ./uc_5_monitor_crawling_one_page.sh topdev
+	
+
