@@ -92,7 +92,7 @@ Step 2. Install composer => copy to /usr/local/bin/composer; require php, net-to
 Step 3. Clone repository; require git, php, composer: <br>
 - <code>git clone https://github.com/hoai-nguyen/crawler-recruitment.git</code>
 - <code>cd crawler-recruitment</code>
-- <code><code>composer install</code>
+- <code>composer install</code>
 - <code>cp .env.example .env </code>
 - <code>php artisan key:generate</code>
 <br>
@@ -110,7 +110,7 @@ UC1. From very start, init or reset data for all pages. From project directory, 
 	
 UC2. Crawl one page from begin or continue to crawl that page from last run. From project directory, execute: <br>
 - <code>chmod +x uc_2_crawl_one_page.sh</code>
-- <code>./uc_2_crawl_one_page.sh page_name</code></code>
+- <code>./uc_2_crawl_one_page.sh page_name</code>
     + Where page_name in: <code>topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink</code>
     + Example: <code>./uc_2_crawl_one_page.sh topdev</code>
 - Output data will be placed in <code>public/data/page_name<code>. For example: <code>public/data/topdev/topdev-data.csv</code>
