@@ -9,7 +9,11 @@ if [[ ! " ${array[@]} " =~ "$job_name" ]] || [ "$job_name" = "" ]; then
     exit 1
 fi
 
+echo "public/data/$job_name"
+
 if [ -d "public/data/$job_name" ]; then
 	tail -f "public/data/$job_name"/*-link.csv
+else
+	echo "wrong dir!"
 fi
 

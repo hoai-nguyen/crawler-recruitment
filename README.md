@@ -77,7 +77,7 @@ Step 1. Install xampp; set xampp to environment variable; link xampp php
 download xampp-linux-x64-7.3.2-1-installer.run
 chmod +x xampp-linux-x64-7.3.2-1-installer.run
 sudo ./xampp-linux-x64-7.3.2-1-installer.run
-export PATH="$PATH:/opt/lampp/bin"
+echo 'export PATH="$PATH:/opt/lampp/bin"' >> ~/.bashrc
 source ~/.bashrc
 sudo ln -s /opt/lampp/bin/php /usr/bin/php
 
