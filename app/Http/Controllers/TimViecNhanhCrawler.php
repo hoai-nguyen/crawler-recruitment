@@ -22,7 +22,7 @@ class TimViecNhanhCrawler extends Controller{
 	const DATE_FORMAT = "Ymd";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
-	const MAX_PAGE = 1000;
+	const MAX_PAGE = 700;
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
 	const PHONE_PATTERN = "!\d+!";
 
@@ -41,6 +41,9 @@ class TimViecNhanhCrawler extends Controller{
 
 				if ($return_code > 1) {
 					// TimViecNhanhCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "timviecnhanh");
+					break;
+				}
+                if ($new_batch -> start_page > self::MAX_PAGE) {
 					break;
 				}
 			} catch (\Exception $e) {
