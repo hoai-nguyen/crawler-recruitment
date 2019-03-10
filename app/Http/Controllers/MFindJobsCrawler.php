@@ -35,7 +35,7 @@ class MFindJobsCrawler extends Controller{
 				$return_code = MFindJobsCrawler::MFindJobsCrawler($new_batch -> start_page, $new_batch -> end_page);
 
 				if ($return_code > 1) {
-					MFindJobsCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "findjobs");
+					// MFindJobsCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "findjobs");
 					break;
 				}
 			} catch (\Exception $e) {
@@ -389,7 +389,7 @@ class MFindJobsCrawler extends Controller{
 			return $new_batch;
 
 		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::FINDJOBS_DATA_PATH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv';
+			$file_name = public_path('data').self::SLASH.self::FINDJOBS_DATA_PATH.self::SLASH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv';
 			MFindJobsCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);
 		}
 		return null;

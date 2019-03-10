@@ -42,7 +42,7 @@ class ITViecCrawler extends Controller{
 				}
 				$return_code = ITViecCrawler::ITViecCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
 				if ($return_code > 1) {
-					ITViecCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
+					// ITViecCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
 					break;
 				}
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
@@ -433,7 +433,7 @@ class ITViecCrawler extends Controller{
 			return $new_batch;
 
 		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv';
+			$file_name = public_path('data').self::SLASH.self::ITVIEC_DATA_PATH.self::SLASH.self::ITVIEC_ERROR.date(self::DATE_FORMAT).'.csv';
 			ITViecCrawler::AppendStringToFile('Ex on finding new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
 		}
 		return null;

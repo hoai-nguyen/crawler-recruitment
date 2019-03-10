@@ -38,7 +38,7 @@ class ViecLam24HCrawler extends Controller{
 				$return_code = ViecLam24HCrawler::ViecLam24HPageCrawler($new_batch -> start_page, $new_batch -> end_page);
 
 				if ($return_code > 1) {
-					ViecLam24HCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "vieclam24h");
+					// ViecLam24HCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "vieclam24h");
 					break;
 				}
 
@@ -459,7 +459,7 @@ class ViecLam24HCrawler extends Controller{
 			return $new_batch;
 
 		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::VIECLAM24H_DATA_PATH.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv';
+			$file_name = public_path('data').self::SLASH.self::VIECLAM24H_DATA_PATH.self::SLASH.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv';
 			ViecLam24HCrawler::AppendStringToFile('Ex when find new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
 		}
 		return null;

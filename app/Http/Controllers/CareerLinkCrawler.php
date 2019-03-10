@@ -40,7 +40,7 @@ class CareerLinkCrawler extends Controller{
 				$return_code = CareerLinkCrawler::CareerLinkPageCrawler($new_batch -> start_page, $new_batch -> end_page);
 
 				if ($return_code > 1) {
-					CareerLinkCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
+					// CareerLinkCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::TABLE);
 					break;
 				}
 
@@ -439,7 +439,7 @@ class CareerLinkCrawler extends Controller{
 			return $new_batch;
 
 		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::CAREERLINK_DATA_PATH.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv';
+			$file_name = public_path('data').self::SLASH.self::CAREERLINK_DATA_PATH.self::SLASH.self::CAREERLINK_ERROR.date(self::DATE_FORMAT).'.csv';
 			CareerLinkCrawler::AppendStringToFile('Ex when find new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
 		}
 		return null;

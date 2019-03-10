@@ -48,7 +48,7 @@ class TopDevCrawler extends Controller{
 				}
 				$return_code = TopDevCrawler::TopDevCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
 				if ($return_code > 1) {
-					TopDevCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
+					// TopDevCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
 					break;
 				}
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
@@ -448,7 +448,7 @@ class TopDevCrawler extends Controller{
 			return $new_batch;
 
 		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::TOPDEV_DATA_PATH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv';
+			$file_name = public_path('data').self::SLASH.self::TOPDEV_DATA_PATH.self::SLASH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv';
 			TopDevCrawler::AppendStringToFile('Ex on finding new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
 		}
 		return null;
