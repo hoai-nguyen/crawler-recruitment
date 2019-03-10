@@ -28,6 +28,7 @@ class ViecLam24HCrawler extends Controller{
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
+		error_log("Start crawling ViecLam24H ...");
 
 		while (true){
 			try {
@@ -42,9 +43,8 @@ class ViecLam24HCrawler extends Controller{
 					break;
 				}
 
-				if ($new_batch -> end_page > 500){ // du phong
-					break;
-				}
+				if($new_batch -> start_page >= self::MAX_PAGE) break;
+
 			} catch (\Exception $e) {
 				$file_name = public_path('data').self::SLASH.self::VIECLAM24H_DATA_PATH.self::SLASH.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv';
 				ViecLam24HCrawler::AppendStringToFile('Ex on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
@@ -53,6 +53,9 @@ class ViecLam24HCrawler extends Controller{
 		}
 
 		$time_elapsed_secs = microtime(true) - $start;
+		error_log('Total Execution Time: '.$time_elapsed_secs.' secs');
+		error_log("DONE!");
+
 		echo '<b>Total Execution Time:</b> '.$time_elapsed_secs.' secs<br>';
 		echo "DONE!";
 	}
@@ -67,6 +70,7 @@ class ViecLam24HCrawler extends Controller{
 		$$end_page = (int) $end_page;
         while($x <= $end_page) {
 			$page_start = microtime(true);
+			error_log("Page = ".$x);
 			echo "page = ".$x.": ";
 
 			try{
@@ -116,6 +120,8 @@ class ViecLam24HCrawler extends Controller{
 					$new_links = array_diff($jobs_links, $duplicated_links);
 
 					if (is_array($new_links) and sizeof($new_links) > 0){
+						error_log(sizeof($new_links)." new links.");
+						
 						$inserted = ViecLam24HCrawler::InsertLinks($new_links, env("DATABASE"), $table="vieclam24h");
 						if ($inserted){
 							// crawl each link

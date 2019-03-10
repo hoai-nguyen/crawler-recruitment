@@ -29,6 +29,7 @@ class MyWorkCrawler extends Controller{
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
+		error_log("Start crawling MyWork ...");
 
 		while (true){
 			try {
@@ -37,7 +38,7 @@ class MyWorkCrawler extends Controller{
 					break;
 				}
 
-				$return_code = MyWorkCrawler::MyWorkCrawler($new_batch -> start_page, $new_batch -> end_page);
+				$return_code = MyWorkCrawler::MyWorkPageCrawler($new_batch -> start_page, $new_batch -> end_page);
 
 				if ($return_code > 1) {
 					// MyWorkCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "mywork");
@@ -51,11 +52,14 @@ class MyWorkCrawler extends Controller{
 		}
 
 		$time_elapsed_secs = microtime(true) - $start;
+		error_log('Total Execution Time: '.$time_elapsed_secs.' secs');
+		error_log("DONE!");
+
 		echo '<b>Total Execution Time:</b> '.$time_elapsed_secs.' secs<br>';
 		echo "DONE!";
 	}
 
-    public function MyWorkCrawler($start_page, $end_page){
+    public function MyWorkPageCrawler($start_page, $end_page){
 		$DATA_PATH = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH;
         $client = new Client;
 		
@@ -66,6 +70,7 @@ class MyWorkCrawler extends Controller{
         while($x <= $end_page) {
 			$page_start = microtime(true);
 			echo "page = ".$x.": ";
+			error_log("Page = ".$x);
 
 			try{
 				$pageUrl = self::MYWORK_HOME.'/tuyen-dung/trang/'.$x;
@@ -157,12 +162,10 @@ class MyWorkCrawler extends Controller{
 			$page_total_time = microtime(true) - $page_start;
 			echo '<b>Total execution time of page '.$x.":</b> ".$page_total_time.' secs<br>';
 		} 
-
 		return $return_code;
 	}
 	
     public function CrawlJob($url, $data_path){
-
 		// $job_start = microtime(true);
 		$client = new Client;
 		// echo 'create client: '.(microtime(true) - $job_start).' secs, ';
@@ -319,9 +322,6 @@ class MyWorkCrawler extends Controller{
 			
 			MyWorkCrawler::AppendArrayToFile($job_data
 			, $data_path.self::MYWORK_DATA.'.csv', "|");
-
-			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';
-			// echo 'Total 1 job: '.(microtime(true) - $job_start).' secs <br>';
 		}
 	}
 
