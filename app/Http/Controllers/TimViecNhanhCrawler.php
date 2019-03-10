@@ -28,6 +28,7 @@ class TimViecNhanhCrawler extends Controller{
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
+		error_log("Start crawling TimViecNhanh ...");
 
 		while (true){
 			try {
@@ -50,6 +51,9 @@ class TimViecNhanhCrawler extends Controller{
 		}
 
 		$time_elapsed_secs = microtime(true) - $start;
+		error_log('Total Execution Time: '.$time_elapsed_secs.' secs');
+		error_log("DONE!");
+
 		echo '<b>Total Execution Time:</b> '.$time_elapsed_secs.' secs<br>';
 		echo "DONE!";
 	}
@@ -65,6 +69,7 @@ class TimViecNhanhCrawler extends Controller{
 		$end_page = (int) $end_page;
         while($x <= $end_page) {
 			$page_start = microtime(true);
+			error_log("Page = ".$x);
 			echo "page = ".$x.": ";
 
 			try{
@@ -114,6 +119,8 @@ class TimViecNhanhCrawler extends Controller{
 					$new_links = array_diff($jobs_links, $duplicated_links);
 
 					if (is_array($new_links) and sizeof($new_links) > 0){
+						error_log(sizeof($new_links)." new links.");
+						
 						$inserted = TimViecNhanhCrawler::InsertLinks($new_links, env("DATABASE"), $table="timviecnhanh");
 						if ($inserted){
 							// crawl each link
@@ -318,8 +325,6 @@ class TimViecNhanhCrawler extends Controller{
 
 			TimViecNhanhCrawler::AppendArrayToFile($job_data
 				, $data_path.self::TIMVIECNHANH_DATA.'.csv', "|");
-			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';
-			// echo 'Total 1 job: '.(microtime(true) - $job_start).' secs <br>';
 		}
 	}
 
@@ -469,20 +474,4 @@ class TimViecNhanhCrawler extends Controller{
 		return null;
 	}
 	
-	public function GithubLogin(){
-    	$client = new Client;
-
-    	$crawler = $client->request('GET', 'https://github.com/login');
-		// $crawler = $client->click($crawler->selectLink('Sign in')->link());
-		
-		$form = $crawler->selectButton('Sign in')->form();
-		$crawler = $client->submit($form, array('login' => 'hoai-nguyen', 'password' => 'vanhoai1#'));
-
-		// $test = $crawler->filter('h4.f5 text-bold mb-1') -> text()."<br>";
-		var_dump($crawler);
-
-		// $crawler->filter('h4.f5 text-bold mb-1')->each(function ($node) {
-		//     var_dump($node->text()."<br>");
-		// });
-	}
 }

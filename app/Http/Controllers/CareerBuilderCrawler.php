@@ -31,6 +31,7 @@ class CareerBuilderCrawler extends Controller{
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
+		error_log("Start crawling CareerBuilder ...");
 
 		while (true){
 			try {
@@ -55,6 +56,9 @@ class CareerBuilderCrawler extends Controller{
 		}
 
 		$time_elapsed_secs = microtime(true) - $start;
+		error_log('Total Execution Time: '.$time_elapsed_secs.' secs');
+		error_log("DONE!");
+
 		echo '<b>Total Execution Time:</b> '.$time_elapsed_secs.' secs<br>';
 		echo "DONE!";
 	}
@@ -70,6 +74,7 @@ class CareerBuilderCrawler extends Controller{
         while($x <= $end_page) {
 			$page_start = microtime(true);
 			echo "page = ".$x.": ";
+			error_log("Page = ".$x);
 			
 			try{
 				$pageUrl = self::CAREERBUILDER_PAGE.$x.self::CAREERBUILDER_PAGE_END;
@@ -119,6 +124,8 @@ class CareerBuilderCrawler extends Controller{
 					// deduplicate
 					$new_links = array_diff($jobs_links, $duplicated_links);
 					if (is_array($new_links) and sizeof($new_links) > 0){
+						error_log(sizeof($new_links)." new links.");
+						
 						$inserted = CareerBuilderCrawler::InsertLinks($new_links, env("DATABASE"), $table=self::TABLE);
 						if ($inserted){
 							// crawl each link

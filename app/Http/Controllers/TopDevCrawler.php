@@ -31,13 +31,8 @@ class TopDevCrawler extends Controller{
 	const PHONE_PATTERN = "!\d+!";
 
 	public function CrawlerStarter(){
-		// $client = new Client();
-		// $url = "";
-		// $DATA_PATH = public_path('data').self::SLASH.self::TOPDEV_DATA_PATH.self::SLASH;
-		// TopDevCrawler::CrawlJob($client, $url, $DATA_PATH);
-		// dd();
-		
 		$start = microtime(true);
+		error_log("Start crawling TOPDEV ...");
 
 		$client = new Client();
 		while (true){
@@ -58,8 +53,11 @@ class TopDevCrawler extends Controller{
 				break;
 			}
 		}
-
+		
 		$time_elapsed_secs = microtime(true) - $start;
+		error_log('Total Execution Time: '.$time_elapsed_secs.' secs');
+		error_log("DONE!");
+
 		echo '<b>Total Execution Time:</b> '.$time_elapsed_secs.' secs<br>';
 		echo "DONE!";
 	}
@@ -72,6 +70,7 @@ class TopDevCrawler extends Controller{
 		$x = (int) $start_page; 
 		$end_page = (int) $end_page;
         while($x <= $end_page) {
+			error_log("Page = ".$x);
 			$page_start = microtime(true);
 			echo "page = ".$x.": ";
 
@@ -117,7 +116,10 @@ class TopDevCrawler extends Controller{
 		
 					// deduplicate
 					$new_links = array_diff($jobs_links, $duplicated_links);
+					
 					if (is_array($new_links) and sizeof($new_links) > 0){
+						error_log(sizeof($new_links)." new links.");
+
 						$inserted = TopDevCrawler::InsertLinks($new_links, env("DATABASE"), self::TABLE);
 						if ($inserted){
 							// crawl each link
@@ -158,58 +160,7 @@ class TopDevCrawler extends Controller{
 		return $return_code;
 	}
 
-	public function ITViecLogin(){
-    	$client = new Client;
-    	$client1 = new Client;
-
-    	$crawler = $client -> request('GET', 'https://itviec.com/');
-		// $crawler = $client->click($crawler->selectLink('Sign in')->link());
-
-		$modal_crl = $crawler -> filter('a.pageMenu__link');
-		$modal = $client -> click($modal_crl -> link());
-		// $form = $modal -> filter('#form-login') -> form();
-		$form = $modal -> selectButton('Sign in')->form();
-		$page = $client -> submit($form, array('user[email]' => 'truongdinhanh.telcs@gmail.com', 'user[password]' => 'vanhoai1@'));
-		dd($page -> text());
-		
-		
-		$form = $crawler -> filter('#form-login') -> form();
-		$form_crl = $client -> submit($form, array('email' => 'nguyenvanhoai.cs@gmail.com', 'password' => 'vanhoai1@'));
-
-		$url1 = "https://www.topcv.vn/viec-lam/nhan-vien-kinh-doanh-website-ho-chi-minh/86194.html";
-		$job_crawler1 = $client -> request('GET', $url1);
-		$salary_crl1 = $job_crawler1 -> filter('div.job-info-item');
-		echo $salary_crl1 -> text();
-		echo '<br>';
-
-		$url2 = "https://www.topcv.vn/viec-lam/ke-toan-thue/86786.html";
-		$job_crawler2 = $client -> request('GET', $url2);
-		$salary_crl2 = $job_crawler2 -> filter('div.job-info-item');
-		dd($salary_crl2 -> text());
-
-	}
-
-	public function TopCVLogin(){
-		$client = new Client;
-		try{
-			$crawler = $client -> request('GET', 'https://www.topcv.vn/login');
-			// $crawler = $client->click($crawler->selectLink('Sign in')->link());
-			
-			$form = $crawler -> filter('#form-login') -> form();
-			$form_crl = $client -> submit($form, array('email' => 'nguyenvanhoai.cs@gmail.com', 'password' => 'vanhoai1@'));
-
-			return $client;
-		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::TOPDEV_DATA_PATH.self::SLASH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv';
-			TopDevCrawler::AppendStringToFile('Exception on login: '.($e -> getMessage ()), $file_name);
-		}
-		return $client;
-	}
-
     public function CrawlJob($client, $url, $data_path){
-		// $url = "https://topdev.vn/detail-jobs/hcm-front-end-developer-giggedin-11419";
-		// $url = "https://topdev.vn/detail-jobs/hn-03-juniorsenior-netc-developers-grapecity-11379";
-		
 		$job_start = microtime(true);
 		
 		try{
@@ -468,20 +419,4 @@ class TopDevCrawler extends Controller{
 		return null;
 	}
 
-	public function GithubLogin(){
-    	$client = new Client;
-
-    	$crawler = $client->request('GET', 'https://github.com/login');
-		// $crawler = $client->click($crawler->selectLink('Sign in')->link());
-		
-		$form = $crawler->selectButton('Sign in')->form();
-		$crawler = $client->submit($form, array('login' => 'hoai-nguyen', 'password' => 'vanhoai1#'));
-
-		// $test = $crawler->filter('h4.f5 text-bold mb-1') -> text()."<br>";
-		var_dump($crawler);
-
-		// $crawler->filter('h4.f5 text-bold mb-1')->each(function ($node) {
-		//     var_dump($node->text()."<br>");
-		// });
-	}
 }
