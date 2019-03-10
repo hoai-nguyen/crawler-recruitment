@@ -74,62 +74,62 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 A. ENVIRONMENT SETTING UP FOR LINUX USER
 
 Step 1. Install xampp; set xampp to environment variable; link xampp php: <br>
-- <code>download xampp-linux-x64-7.3.2-1-installer.run
-- chmod +x xampp-linux-x64-7.3.2-1-installer.run
-- sudo ./xampp-linux-x64-7.3.2-1-installer.run
-- echo 'export PATH="$PATH:/opt/lampp/bin"' >> ~/.bashrc
-- source ~/.bashrc
-- sudo ln -s /opt/lampp/bin/php /usr/bin/php</code>
+- <code>download xampp-linux-x64-7.3.2-1-installer.run</code>
+- <code>chmod +x xampp-linux-x64-7.3.2-1-installer.run</code>
+- <code>sudo ./xampp-linux-x64-7.3.2-1-installer.run</code>
+- <code>echo 'export PATH="$PATH:/opt/lampp/bin"' >> ~/.bashrc</code>
+- <code>source ~/.bashrc</code>
+- <code>sudo ln -s /opt/lampp/bin/php /usr/bin/php</code>
 
 
 Step 2. Install composer => copy to /usr/local/bin/composer; require php, net-tools: <br>
-- cd ~
-- sudo apt install net-tools
-- curl -sS https://getcomposer.org/installer -o composer-setup.php
-- sudo mv composer.phar /usr/local/bin/composer
+- <code>cd ~</code>
+- <code>sudo apt install net-tools</code>
+- <code>curl -sS https://getcomposer.org/installer -o composer-setup.php</code>
+- <code>sudo mv composer.phar /usr/local/bin/composer</code>
 
 
 Step 3. Clone repository; require git, php, composer: <br>
-- git clone https://github.com/hoai-nguyen/crawler-recruitment.git
-- cd crawler-recruitment
-- composer install
-- cp .env.example .env 
-- php artisan key:generate
+- <code>git clone https://github.com/hoai-nguyen/crawler-recruitment.git</code>
+- <code>cd crawler-recruitment</code>
+- <code><code>composer install</code>
+- <code>cp .env.example .env </code>
+- <code>php artisan key:generate</code>
 <br>
 
 
 B. USAGES <br>
 
 UC0. Start application server. From project directory, execute: <br> 
-- chmod +x uc_0_start_app_servers.sh
-- ./uc_0_start_app_servers.sh
+- <code>chmod +x uc_0_start_app_servers.sh</code>
+- <code>./uc_0_start_app_servers.sh</code>
 
 UC1. From very start, init or reset data for all pages. From project directory, execute:  <br>
-- chmod +X uc_1_init_or_reset_data_all_pages.sh
-- ./uc_1_init_or_reset_data_all_pages.sh
+- <code>chmod +X uc_1_init_or_reset_data_all_pages.sh</code>
+- <code>./uc_1_init_or_reset_data_all_pages.sh</code>
 	
 UC2. Crawl one page from begin or continue to crawl that page from last run. From project directory, execute: <br>
-- chmod +x uc_2_crawl_one_page.sh
-- ./uc_2_crawl_one_page.sh page_name
-    + Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
-    + Example: ./uc_2_crawl_one_page.sh topdev
-- Output data will be placed in public/data/page_name. For example: public/data/topdev/topdev-data.csv
+- <code>chmod +x uc_2_crawl_one_page.sh</code>
+- <code>./uc_2_crawl_one_page.sh page_name</code></code>
+    + Where page_name in: <code>topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink</code>
+    + Example: <code>./uc_2_crawl_one_page.sh topdev</code>
+- Output data will be placed in <code>public/data/page_name<code>. For example: <code>public/data/topdev/topdev-data.csv</code>
 
 UC3. If we want to crawl a page from start, we reset data of the page. From project directory, execute: 
-- chmod +x uc_2_crawl_one_page.sh
-- ./uc_3_reset_one_page.sh page_name
-    + Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
-    + Example: ./uc_3_reset_one_page.sh topdev
+- <code>chmod +x uc_2_crawl_one_page.sh</code>
+- <code>./uc_3_reset_one_page.sh page_name</code>
+    + Where page_name in: <code>topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink</code>
+    + Example: <code>./uc_3_reset_one_page.sh topdev</code>
 	
 UC4. Merge data of all pages into one file. From project directory, execute: 
-- chmod +x uc_4_merge_all_pages.sh
-- ./uc_4_merge_all_pages.sh
-- Output data will be placed in public/data/recruitment_data_<datetime>.csv. For example: recruitment_data_2019-03-09_23:48:50.csv
+- <code>chmod +x uc_4_merge_all_pages.sh</code>
+- <code>./uc_4_merge_all_pages.sh</code>
+- Output data will be placed in <code>public/data/recruitment_data_<datetime>.csv. For example: <code>recruitment_data_2019-03-09_23:48:50.csv</code>
 
-UC5: Monitor crawling. We can see logs from application servers or data written to public/data/page_name. From project directory, execute: <br>
-- chmod +x uc_5_monitor_crawling_one_page.sh
-- ./uc_5_monitor_crawling_one_page.sh page_name
-    + Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
-    + Example: ./uc_5_monitor_crawling_one_page.sh topdev
+UC5: Monitor crawling. We can see logs from application servers or data written to <code>public/data/page_name. From project directory, execute: <br>
+- <code>chmod +x uc_5_monitor_crawling_one_page.sh</code>
+- <code>./uc_5_monitor_crawling_one_page.sh page_name</code>
+    + Where page_name in: <code>topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink</code>
+    + Example: <code>./uc_5_monitor_crawling_one_page.sh topdev</code>
 	
 
