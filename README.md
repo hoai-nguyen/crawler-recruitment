@@ -74,12 +74,12 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 A. ENVIRONMENT SETTING UP FOR LINUX USER
 
 Step 1. Install xampp; set xampp to environment variable; link xampp php: <br>
-- <code>download xampp-linux-x64-7.3.2-1-installer.run</code>
+- <code>download xampp-linux-x64-7.3.2-1-installer.run
 - chmod +x xampp-linux-x64-7.3.2-1-installer.run
 - sudo ./xampp-linux-x64-7.3.2-1-installer.run
 - echo 'export PATH="$PATH:/opt/lampp/bin"' >> ~/.bashrc
 - source ~/.bashrc
-- sudo ln -s /opt/lampp/bin/php /usr/bin/php
+- sudo ln -s /opt/lampp/bin/php /usr/bin/php</code>
 
 
 Step 2. Install composer => copy to /usr/local/bin/composer; require php, net-tools: <br>
