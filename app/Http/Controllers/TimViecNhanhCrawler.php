@@ -83,7 +83,6 @@ class TimViecNhanhCrawler extends Controller{
 				if ($jobs -> count() <= 0) {
 					TimViecNhanhCrawler::AppendStringToFile("No job found on page: ".$pageUrl
 						, $DATA_PATH.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
-					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
 						$return_code = 2;
@@ -153,7 +152,6 @@ class TimViecNhanhCrawler extends Controller{
 				TimViecNhanhCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
-			if ($x > 10) break;
 
 			$x++;
 			if ($x > self::MAX_PAGE){ // du phong
