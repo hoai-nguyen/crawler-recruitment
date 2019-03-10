@@ -24,7 +24,7 @@ class CareerLinkCrawler extends Controller{
 	const DATE_FORMAT = "Ymd";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
-	const MAX_PAGE = 1000;
+	const MAX_PAGE = 500;
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
 	const PHONE_PATTERN = "!\d+!";
 
