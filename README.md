@@ -74,7 +74,7 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 A. ENVIRONMENT SETTING UP FOR LINUX USER
 
 Step 1. Install xampp; set xampp to environment variable; link xampp php: <br>
-- download xampp-linux-x64-7.3.2-1-installer.run
+- <code>download xampp-linux-x64-7.3.2-1-installer.run</code>
 - chmod +x xampp-linux-x64-7.3.2-1-installer.run
 - sudo ./xampp-linux-x64-7.3.2-1-installer.run
 - echo 'export PATH="$PATH:/opt/lampp/bin"' >> ~/.bashrc
@@ -95,26 +95,27 @@ Step 3. Clone repository; require git, php, composer: <br>
 - composer install
 - cp .env.example .env 
 - php artisan key:generate
+<br>
 
 
 B. USAGES <br>
 
-UC0. Start application server From project directory, execute: <br> 
+UC0. Start application server. From project directory, execute: <br> 
 - chmod +x uc_0_start_app_servers.sh
 - ./uc_0_start_app_servers.sh
 
-UC1. From very start, init or reset data for all pages: From project directory, execute:  <br>
+UC1. From very start, init or reset data for all pages. From project directory, execute:  <br>
 - chmod +X uc_1_init_or_reset_data_all_pages.sh
 - ./uc_1_init_or_reset_data_all_pages.sh
 	
-UC2. Crawl one page from begin or continue to crawl that page from last run: From project directory, execute: <br>
+UC2. Crawl one page from begin or continue to crawl that page from last run. From project directory, execute: <br>
 - chmod +x uc_2_crawl_one_page.sh
 - ./uc_2_crawl_one_page.sh page_name
     + Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
     + Example: ./uc_2_crawl_one_page.sh topdev
 - Output data will be placed in public/data/page_name. For example: public/data/topdev/topdev-data.csv
 
-UC3. If we want to crawl a page from start, we reset data of the page: From project directory, execute: 
+UC3. If we want to crawl a page from start, we reset data of the page. From project directory, execute: 
 - chmod +x uc_2_crawl_one_page.sh
 - ./uc_3_reset_one_page.sh page_name
     + Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
