@@ -97,37 +97,38 @@ Step 3. Clone repository; require git, php, composer: <br>
 - php artisan key:generate
 
 
-B. USAGES
+B. USAGES <br>
+
 UC0. Start application server From project directory, execute: <br> 
-	- chmod +x uc_0_start_app_servers.sh
-	- ./uc_0_start_app_servers.sh
+- chmod +x uc_0_start_app_servers.sh
+- ./uc_0_start_app_servers.sh
 
 UC1. From very start, init or reset data for all pages: From project directory, execute:  <br>
-	- chmod +X uc_1_init_or_reset_data_all_pages.sh
-	- ./uc_1_init_or_reset_data_all_pages.sh
+- chmod +X uc_1_init_or_reset_data_all_pages.sh
+- ./uc_1_init_or_reset_data_all_pages.sh
 	
 UC2. Crawl one page from begin or continue to crawl that page from last run: From project directory, execute: <br>
-	- chmod +x uc_2_crawl_one_page.sh
-	- ./uc_2_crawl_one_page.sh page_name
-		+ Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
-		+ Example: ./uc_2_crawl_one_page.sh topdev
-	- Output data will be placed in public/data/page_name. For example: public/data/topdev/topdev-data.csv
+- chmod +x uc_2_crawl_one_page.sh
+- ./uc_2_crawl_one_page.sh page_name
+    + Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
+    + Example: ./uc_2_crawl_one_page.sh topdev
+- Output data will be placed in public/data/page_name. For example: public/data/topdev/topdev-data.csv
 
 UC3. If we want to crawl a page from start, we reset data of the page: From project directory, execute: 
-	- chmod +x uc_2_crawl_one_page.sh
-	- ./uc_3_reset_one_page.sh page_name
-		+ Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
-		+ Example: ./uc_3_reset_one_page.sh topdev
+- chmod +x uc_2_crawl_one_page.sh
+- ./uc_3_reset_one_page.sh page_name
+    + Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
+    + Example: ./uc_3_reset_one_page.sh topdev
 	
 UC4. Merge data of all pages into one file. From project directory, execute: 
-	- chmod +x uc_4_merge_all_pages.sh
-	- ./uc_4_merge_all_pages.sh
-	- Output data will be placed in public/data/recruitment_data_<datetime>.csv. For example: recruitment_data_2019-03-09_23:48:50.csv
+- chmod +x uc_4_merge_all_pages.sh
+- ./uc_4_merge_all_pages.sh
+- Output data will be placed in public/data/recruitment_data_<datetime>.csv. For example: recruitment_data_2019-03-09_23:48:50.csv
 
 UC5: Monitor crawling. We can see logs from application servers or data written to public/data/page_name. From project directory, execute: <br>
-	- chmod +x uc_5_monitor_crawling_one_page.sh
-	- ./uc_5_monitor_crawling_one_page.sh page_name
-		+ Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
-		+ Example: ./uc_5_monitor_crawling_one_page.sh topdev
+- chmod +x uc_5_monitor_crawling_one_page.sh
+- ./uc_5_monitor_crawling_one_page.sh page_name
+    + Where page_name in: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink
+    + Example: ./uc_5_monitor_crawling_one_page.sh topdev
 	
 
