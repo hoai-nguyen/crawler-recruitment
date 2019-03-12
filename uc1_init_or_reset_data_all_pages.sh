@@ -8,6 +8,7 @@ echo "Prepare to run from start."
 ./scripts/start_db_server.sh
 ./scripts/init_db.sh
 ./scripts/create_data_dir.sh
+#./scripts/init_data.sh
 
 # when we want to run from begining, just clean data and metadata:
 ./scripts/clean_data_dir.sh all 
