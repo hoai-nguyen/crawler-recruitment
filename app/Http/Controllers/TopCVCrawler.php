@@ -6,13 +6,15 @@ use Illuminate\Http\Request;
 use Goutte\Client;
 use Symfony\Component\DomCrawler\Crawler;
 use \Exception as Exception;
-use Illuminate\Support\Facades\DB;
+
+use App\Http\Controllers\Common;
 
 class TopCVCrawler extends Controller{
 
 	const TABLE = "topcv";
+	const TABLE_METADATA = "job_metadata";
 	const JOB_NAME = "topcv";
-	const TOPCV_DATA_PATH = 'topcv'; // CI must create directory in
+	const TOPCV_DATA_PATH = 'topcv';
 	const TOPCV_DATA = 'topcv-data';
 	const TOPCV_ERROR = 'topcv-error-';
 	const TOPCV_LINK = 'topcv-link';
@@ -21,11 +23,10 @@ class TopCVCrawler extends Controller{
 	const LABEL_QUANTITY = 'Số lượng cần tuyển:';
 	const LABEL_DEADLINE = "Hạn nộp hồ sơ:";
 	const DATE_FORMAT = "Ymd";
+	const INPUT_DATE_FORMAT = "d/m/Y";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 500;
-	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
-	const PHONE_PATTERN = "!\d+!";
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
@@ -34,20 +35,21 @@ class TopCVCrawler extends Controller{
 		$client = TopCVCrawler::TopCVLogin();
 		while (true){
 			try {
-				$new_batch = TopCVCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata", self::JOB_NAME);
-				if ($new_batch == null){
-					break;
-				}
-				$return_code = TopCVCrawler::TopCVCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
+				$database = env("DB_DATABASE");
+				if ($database == null)  $database = Common::DB_DEFAULT;
+				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
+				if ($new_batch == null) break;
+				
+				$return_code = $this->TopCVCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
 
-				if ($return_code > 1) {
-					// TopCVCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
-					break;
-				}
+				if ($return_code > 1) break;
+
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
+
 			} catch (\Exception $e) {
+				error_log($e -> getMessage());
 				$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
-				TopCVCrawler::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
+				Common::AppendStringToFile('Exception on starter: '.substr($e -> getMessage(), 0, 1000), $file_name);
 				break;
 			}
 		}
@@ -77,12 +79,12 @@ class TopCVCrawler extends Controller{
 				$crawler = $client -> request('GET', $pageUrl);
 				$jobs = $crawler -> filter('div.job-list > div.result-job-hover') -> filter('h4.job-title > a');
 				if ($jobs -> count() <= 0) {
-					TopCVCrawler::AppendStringToFile("No job found on page: ".$pageUrl
+					Common::AppendStringToFile("No job found on page: ".$pageUrl
 						, $DATA_PATH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
 					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
-						TopCVCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
+						Common::AppendStringToFile("Quit because two consecutive pages are empty."
 							, $DATA_PATH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
 						return 2;
 					}
@@ -100,13 +102,13 @@ class TopCVCrawler extends Controller{
 								}
 							} catch (\Exception $e) {
 								$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
-								TopCVCrawler::AppendStringToFile('Exception on getting job_link: '.substr($e -> getMessage (), 0, 1000), $file_name);
+								Common::AppendStringToFile('Exception on getting job_link: '.substr($e -> getMessage (), 0, 1000), $file_name);
 							}
 						}
 					);
 
 					// select duplicated records
-					$existing_links = TopCVCrawler::CheckLinksExist($jobs_links, env("DATABASE"), self::TABLE);
+					$existing_links = Common::CheckLinksExist($jobs_links, env("DB_DATABASE"), self::TABLE);
 					$duplicated_links = array();
 					foreach($existing_links as $row){
 						$link = $row -> link;
@@ -119,7 +121,7 @@ class TopCVCrawler extends Controller{
 					if (is_array($new_links) and sizeof($new_links) > 0){
 						error_log(sizeof($new_links)." new links.");
 
-						$inserted = TopCVCrawler::InsertLinks($new_links, env("DATABASE"), self::TABLE);
+						$inserted = Common::InsertLinks($new_links, env("DB_DATABASE"), self::TABLE);
 						if ($inserted){
 							// crawl each link
 							foreach ($new_links as $job_link) {
@@ -128,13 +130,14 @@ class TopCVCrawler extends Controller{
 									
 									if ($job_link == null){
 									} else{
-										$code = TopCVCrawler::CrawlJob($client, $job_link, $DATA_PATH);
+										$code = $this->CrawlJob($client, $job_link, $DATA_PATH);
 										if ($code == 0)
-											TopCVCrawler::AppendStringToFile($job_link
+											Common::AppendStringToFile($job_link
 												, $DATA_PATH.self::TOPCV_LINK.'.csv');
 									}
 								} catch (\Exception $e) {
-									TopCVCrawler::AppendStringToFile("Exception on crawling link: ".$job_link.": ".substr($e -> getMessage (), 0, 1000)
+									error_log('Crawl each link: '.($e -> getMessage ()));
+									Common::AppendStringToFile("Exception on crawling link: ".$job_link.": ".substr($e -> getMessage (), 0, 1000)
 										, $DATA_PATH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
 								}
 							}
@@ -144,8 +147,9 @@ class TopCVCrawler extends Controller{
 				}
 			} catch (\Exception $e) {
 				$return_code = 1;
+				error_log('TopCVCrawlerFunc: '.($e -> getMessage ()));
 				$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
-				TopCVCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
+				Common::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
 
@@ -170,8 +174,9 @@ class TopCVCrawler extends Controller{
 
 			return $client;
 		} catch (\Exception $e) {
+			error_log('TopCVLogin: '.($e -> getMessage ()));
 			$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
-			TopCVCrawler::AppendStringToFile('Exception on login: '.($e -> getMessage ()), $file_name);
+			Common::AppendStringToFile('Exception on login: '.($e -> getMessage ()), $file_name);
 		}
 		return $client;
 	}
@@ -182,49 +187,50 @@ class TopCVCrawler extends Controller{
 		try{
 			$crawler = $client -> request('GET', $url);
 		} catch (\Exception $e) {
-			TopCVCrawler::AppendStringToFile("Cannot request page: ".$url.": ".substr($e -> getMessage (), 0, 1000)
+			Common::AppendStringToFile("Cannot request page: ".$url.": ".substr($e -> getMessage (), 0, 1000)
 				, $data_path.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		}
 
 		if ($crawler -> count() <= 0 ) {
-			TopCVCrawler::AppendStringToFile("Cannot request page: ".$url
+			Common::AppendStringToFile("Cannot request page: ".$url
 				, $data_path.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		} else{
 			$general_infos = $crawler -> filter('#row-job-title');
 			if($general_infos -> count() <= 0){
-				TopCVCrawler::AppendStringToFile("No #row-job-title: ".$url
+				Common::AppendStringToFile("No #row-job-title: ".$url
 					, $data_path.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 1;
 			}
 			
 			$job_title = $general_infos -> filter('h1.job-title') -> text();
 			$company = $general_infos -> filter('div.company-title') -> text();
-			$company = TopCVCrawler::RemoveTrailingChars($company);
+			$company = Common::RemoveTrailingChars($company);
 
 			
 			$deadline = $general_infos -> filter('div.job-deadline') -> text();
 			$deadline = str_replace(self::LABEL_DEADLINE, "", $deadline); 
-			$deadline = TopCVCrawler::RemoveTrailingChars($deadline);
+			$deadline = Common::RemoveTrailingChars($deadline);
+			// $deadline = Common::ConvertDateFormat($deadline, self::INPUT_DATE_FORMAT, Common::DATE_DATA_FORMAT);
 			
 			$address_crl = $general_infos -> filter('div.text-dark-gray');
 			if ($address_crl -> count() <= 0){
-				TopCVCrawler::AppendStringToFile("No div.text-dark-gray: ".$url
+				Common::AppendStringToFile("No div.text-dark-gray: ".$url
 					, $data_path.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 1;
 			}
 			$address = $address_crl -> first() -> text();
-			$address = TopCVCrawler::RemoveTrailingChars($address);
+			$address = Common::RemoveTrailingChars($address);
 			
 			$job_infos_crl = $crawler -> filter('#tab-info');
 			if ($job_infos_crl -> count() <= 0){
-				TopCVCrawler::AppendStringToFile("No #tab-info: ".$url
+				Common::AppendStringToFile("No #tab-info: ".$url
 					, $data_path.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 1;
 			}
 			$job_des = $crawler -> filter('#col-job-left > div.content-tab') -> text();
-			$job_des = TopCVCrawler::RemoveTrailingChars($job_des);
+			$job_des = Common::RemoveTrailingChars($job_des);
 
 			$job_details_crl = $job_infos_crl -> filter('#col-job-right > #box-info-job > div.job-info-item');
 			$count = 0;
@@ -244,9 +250,9 @@ class TopCVCrawler extends Controller{
 				}
 			}
 			$salary = str_replace(self::LABEL_SALARY, "", $salary);
-			$salary = TopCVCrawler::RemoveTrailingChars($salary);
+			$salary = Common::RemoveTrailingChars($salary);
 			$soluong = str_replace(self::LABEL_QUANTITY, "", $soluong);
-			$soluong = TopCVCrawler::RemoveTrailingChars($soluong);
+			$soluong = Common::RemoveTrailingChars($soluong);
 			
 			$job_contact_crl = $crawler -> filter('#tab-info-company') -> filter('#col-job-left > div.content-tab');
 			$contact = "";
@@ -254,15 +260,15 @@ class TopCVCrawler extends Controller{
 			$website = "";
 			if ($job_contact_crl -> count() > 0){
 				$contact = $job_contact_crl -> last() -> text();
-				$contact = TopCVCrawler::RemoveTrailingChars($contact);
+				$contact = Common::RemoveTrailingChars($contact);
 				$atag = $job_contact_crl -> filter('a') -> last();
 				if($atag -> count() > 0){
 					$website = $atag -> attr('href');
 				}
-				$ptag = $job_contact_crl -> filter('p');
+				$ptag = $job_contact_crl -> last() -> filter('p');
 				if($ptag -> count() > 1){
 					$mobile = $ptag -> last() -> text();
-					$mobile = TopCVCrawler::ExtractFirstMobile($mobile);
+					$mobile = Common::ExtractFirstMobile($mobile);
 				}
 			}
 			
@@ -271,7 +277,7 @@ class TopCVCrawler extends Controller{
 			
 			$job_data = array($mobile
 				, $email
-				, $contact
+				// , $contact
 				, $company
 				, $address
 				, $job_title
@@ -281,162 +287,13 @@ class TopCVCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				, $url);
+				// , $url
+			);
 			
-			TopCVCrawler::AppendArrayToFile($job_data
+			Common::AppendArrayToFile($job_data
 				, $data_path.self::TOPCV_DATA.'.csv', "|");
 			return 0;
 		}
-	}
-
-	public function ExtractMobile($contact){
-		if ($contact == null) return "";
-		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
-
-		$mobiles_str = "";
-		$len = count($matches[0]);
-		if ($len > 0){
-			$nums = $matches[0];
-			$mobiles = array();
-			$mobile_tmp = "";
-			for ($x = 0; $x < $len; $x++) {
-				$num = $nums[$x];
-				if (strlen($mobile_tmp.$num) <= 12){
-					$mobile_tmp = $mobile_tmp.$num;
-				} else {
-					array_push($mobiles, $mobile_tmp);
-					$mobile_tmp = $num;
-				}
-				if ($x == $len - 1){
-					array_push($mobiles, $mobile_tmp);
-				}
-			} 
-			$mobiles_str = implode(",", $mobiles);
-		} 
-		return $mobiles_str;
-	}
-
-	public function ExtractFirstMobile($contact){
-		if ($contact == null) return "";
-		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
-
-		$mobiles_str = "";
-		$len = count($matches[0]);
-		if ($len > 0){
-			$nums = $matches[0];
-			$mobiles = array();
-			$mobile_tmp = "";
-			for ($x = 0; $x < $len; $x++) {
-				$num = $nums[$x];
-				if (strlen($mobile_tmp.$num) <= 12){
-					$mobile_tmp = $mobile_tmp.$num;
-				} else {
-					array_push($mobiles, $mobile_tmp);
-					$mobile_tmp = $num;
-				}
-				if ($x == $len - 1){
-					array_push($mobiles, $mobile_tmp);
-				}
-			} 
-			if (sizeof($mobiles) > 0 ){
-				if (sizeof($mobiles) > 1 and strlen($mobiles[1]) < 5){
-					$mobiles_str = $mobiles[0].'/'.$mobiles[1];
-				} 
-				$mobiles_str = $mobiles[0];
-			}
-		} 
-		if (strlen($mobiles_str) < 8 or strlen($mobiles_str) > 16) return "";
-		return $mobiles_str;
-	}
-
-	public function ExtractEmailFromText($text){
-		if ($text == null) return "";
-		preg_match_all(self::EMAIL_PATTERN, $text, $matches);
-		if (sizeof($matches[0]) > 0){
-			return $matches[0][0];
-		} else{
-			return "";
-		}
-	}
-
-	public function AppendArrayToFile($arr, $file_name, $limiter="|"){
-		$fp = fopen($file_name, 'a');
-		fputcsv($fp, $arr, $delimiter = $limiter);
-		fclose($fp);
-	}
-
-	public function AppendStringToFile($str, $file_name){
-		$fp = fopen($file_name, 'a');
-		fputcsv($fp, array($str));
-		fclose($fp);
-	}
-
-	public function CheckLinksExist($jobs_links, $database="phpmyadmin", $table){
-		if (env("DATABASE") == null) $database="phpmyadmin";
-
-		$select_param = "('".implode("','", $jobs_links)."')";
-		$select_dialect = "select link from ".$database.".".$table." where link in ";
-		$select_query = $select_dialect.$select_param;
-		$existing_links = DB::select($select_query);
-
-		return $existing_links;
-	}
-
-	public function ResetJobMetadata($database, $table, $job_name){
-		DB::delete("delete from ".$database.".".$table." where job_name=? ", array($job_name));
-	}
-
-	public function InsertLinks($new_links, $database="phpmyadmin", $table){
-		if (env("DATABASE") == null) $database="phpmyadmin";
-
-		$insert_links = array();
-		foreach($new_links as $el){
-			array_push($insert_links, "('".$el."')");
-		}
-		$insert_param = implode(",", $insert_links);
-		$insert_dialect = "insert into ".$database.".".$table."(link) values ";
-		$insert_query = $insert_dialect.$insert_param;
-		$insert_results = DB::insert($insert_query);
-		
-		return $insert_results;
-	}
-
-	public function FindNewBatchToProcess($database="phpmyadmin", $table, $job_name){
-		try {
-			// find latest batch: id, job_name, start_page, end_page, timestamp
-			$select_query = "select * from ".$database.".".$table." where job_name='".$job_name."' order by end_page desc limit 1 ";
-			$select_result = DB::select($select_query);
-
-			// find new batch
-			$latest_batch = null;
-			$new_batch = null;
-			if (sizeof($select_result) < 1){
-				$new_batch = (object) array("job_name" => $job_name, "start_page" => 1, "end_page" => self::BATCH_SIZE);
-			} else{
-				$latest_batch = $select_result[0];
-				$new_batch = (object) array("job_name" => $latest_batch -> job_name
-					, "start_page" => $latest_batch -> end_page + 1
-					, "end_page" => $latest_batch -> end_page + self::BATCH_SIZE);
-			}
-
-			// save batch to db
-			$insert_query = "insert into ".$database.".".$table."(job_name, start_page, end_page) values (?, ?, ?) ";
-			$insert_result = DB::insert(
-				$insert_query
-				, array($new_batch -> job_name, $new_batch -> start_page, $new_batch -> end_page)
-			);
-
-			return $new_batch;
-
-		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
-			TopCVCrawler::AppendStringToFile('Ex on finding new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
-		}
-		return null;
-	}
-	
-	public function RemoveTrailingChars($text){
-		return trim(preg_replace('!\s+!', ' ', $text), "\r\n- ");
 	}
 
 }

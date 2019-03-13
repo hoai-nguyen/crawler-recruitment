@@ -6,22 +6,25 @@ use Illuminate\Http\Request;
 use Goutte\Client;
 use Symfony\Component\DomCrawler\Crawler;
 use \Exception as Exception;
-use Illuminate\Support\Facades\DB;
 
-class MFindJobsCrawler extends Controller{
+use App\Http\Controllers\Common;
+
+class FindJobsCrawler extends Controller{
 
 	const TABLE = "findjobs";
-	const FINDJOBS_DATA_PATH = 'findjobs'; // CI must create directory in
+	const TABLE_METADATA = "job_metadata";
+	const JOB_NAME = "findjobs";
+	const FINDJOBS_DATA_PATH = 'findjobs';
 	const FINDJOBS_DATA = 'findjobs-data';
 	const FINDJOBS_ERROR = 'findjobs-error-';
 	const FINDJOBS_LINK = 'findjobs-link';
 	const FINDJOBS_HOME = 'https://www.findjobs.vn/viec-lam-vi?page=';
+	const LABEL_ADDRESS = 'address';
 	const DATE_FORMAT = "Ymd";
+	const INPUT_DATE_FORMAT = "d-m-Y";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 1000;
-	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
-	const PHONE_PATTERN = "!\d+!";
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
@@ -29,19 +32,21 @@ class MFindJobsCrawler extends Controller{
 
 		while (true){
 			try {
-				$new_batch = MFindJobsCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata");
-				if ($new_batch == null){
-					break;
-				}
-				$return_code = MFindJobsCrawler::MFindJobsCrawler($new_batch -> start_page, $new_batch -> end_page);
+				$database = env("DB_DATABASE");
+				if ($database == null)  $database = Common::DB_DEFAULT;
+				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
+				if ($new_batch == null) break;
+				
+				$return_code = $this->FindJobsCrawlerFunc($new_batch -> start_page, $new_batch -> end_page);
 
-				if ($return_code > 1) {
-					// MFindJobsCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", "findjobs");
-					break;
-				}
+				if ($return_code > 1) break;
+
+				if($new_batch -> start_page >= self::MAX_PAGE) break;
+
 			} catch (\Exception $e) {
+				error_log($e -> getMessage());
 				$file_name = public_path('data').self::SLASH.self::FINDJOBS_DATA_PATH.self::SLASH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv';
-				MFindJobsCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);
+				Common::AppendStringToFile('Exception on starter: '.substr($e -> getMessage(), 0, 1000), $file_name);
 				break;
 			}
 		}
@@ -54,18 +59,18 @@ class MFindJobsCrawler extends Controller{
 		echo "DONE!";
 	}
 
-    public function MFindJobsCrawler($start_page, $end_page){
+    public function FindJobsCrawlerFunc($start_page, $end_page){
 		$DATA_PATH = public_path('data').self::SLASH.self::FINDJOBS_DATA_PATH.self::SLASH;
         $client = new Client;
 		
 		$last_page_is_empty = false;
 		$return_code = 0;
 		$x = (int) $start_page; 
-		$$end_page = (int) $end_page;
+		$end_page = (int) $end_page;
         while($x <= $end_page) {
 			$page_start = microtime(true);
-			echo "page = ".$x.": ";
 			error_log("Page = ".$x);
+			echo "page = ".$x.": ";
 
 			try{
 				$pageUrl = self::FINDJOBS_HOME.$x;
@@ -73,15 +78,14 @@ class MFindJobsCrawler extends Controller{
 				$jobs = $crawler -> filter('#job_list > li.row');
 
 				if ($jobs -> count() <= 0) {
-					MFindJobsCrawler::AppendStringToFile("No job found on page: ".$pageUrl
+					Common::AppendStringToFile("No job found on page: ".$pageUrl
 						, $DATA_PATH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv');
 					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
-						$return_code = 2;
-						MFindJobsCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
+						Common::AppendStringToFile("Quit because two consecutive pages are empty."
 							, $DATA_PATH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv');
-						break;
+						return 2;
 					}
 					$last_page_is_empty = true;
 				} else{
@@ -104,11 +108,11 @@ class MFindJobsCrawler extends Controller{
 							if ($job_link == null or strcmp($job_link, 'https://www.findjobs.vn') < 0){
 							} else if(strcmp('https://www.findjobs.vn/viec-lam-vi', $job_link) == 0) {
 								$return_code = 4;
-								MFindJobsCrawler::AppendStringToFile("Running out of job: ", $DATA_PATH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv');
+								Common::AppendStringToFile("Running out of job: ", $DATA_PATH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv');
 								break;
 							} else{
 								// select duplicated records
-								$existing_links = MFindJobsCrawler::CheckLinksExist(array($job_link), env("DATABASE"), $table="findjobs");
+								$existing_links = Common::CheckLinksExist(array($job_link), env("DB_DATABASE"), self::TABLE);
 								$duplicated_links = array();
 								foreach($existing_links as $row){
 									$link = $row -> link;
@@ -121,7 +125,7 @@ class MFindJobsCrawler extends Controller{
 								if (is_array($new_links) and sizeof($new_links) > 0){
 									error_log(sizeof($new_links)." new links.");
 									
-									$inserted = MFindJobsCrawler::InsertLinks($new_links, env("DATABASE"), $table="findjobs");
+									$inserted = Common::InsertLinks($new_links, env("DB_DATABASE"), self::TABLE);
 									if ($inserted){
 										foreach ($new_links as $link) {
 											ini_set('max_execution_time', 10000000);		
@@ -129,11 +133,11 @@ class MFindJobsCrawler extends Controller{
 												$created = $node -> filter("span.activedate") -> text();
 												$created = trim($created, "\r\n\t");
 
-												MFindJobsCrawler::CrawlJob($link, $created, $DATA_PATH);
+												$this->CrawlJob($link, $created, $DATA_PATH);
 												
-												MFindJobsCrawler::AppendStringToFile($link , $DATA_PATH.self::FINDJOBS_LINK.'.csv');
+												Common::AppendStringToFile($link , $DATA_PATH.self::FINDJOBS_LINK.'.csv');
 											} catch (\Exception $e) {
-												MFindJobsCrawler::AppendStringToFile("Exception on link:".$link.": ".substr($e -> getMessage (), 0, 1000)
+												Common::AppendStringToFile("Exception on link:".$link.": ".substr($e -> getMessage (), 0, 1000)
 													, $DATA_PATH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv');
 											}
 										}
@@ -142,15 +146,16 @@ class MFindJobsCrawler extends Controller{
 								}
 							}
 						} catch (\Exception $e) {
-							MFindJobsCrawler::AppendStringToFile('Exception on $node: '.substr($e -> getMessage (), 0, 1000)
+							Common::AppendStringToFile('Exception on $node: '.substr($e -> getMessage (), 0, 1000)
 								, $DATA_PATH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv');
 						}
 					}
 				}
 			} catch (\Exception $e) {
 				$return_code = 2;
+				error_log('FindJobsCrawlerFunc: '.($e -> getMessage ()));
 				$file_name = public_path('data').self::SLASH.self::FINDJOBS_DATA_PATH.self::SLASH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv';
-				MFindJobsCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
+				Common::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
 
@@ -175,7 +180,7 @@ class MFindJobsCrawler extends Controller{
 
 		$content_crawler = $crawler -> filter('#job_detail');
 		if ($content_crawler -> count() <= 0 ) {
-			MFindJobsCrawler::AppendStringToFile("ERROR: Failed to crawl ".$url
+			Common::AppendStringToFile("ERROR: Failed to crawl ".$url
 			, $data_path.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv');
 		} else{
 			$content = $content_crawler -> first();
@@ -203,7 +208,7 @@ class MFindJobsCrawler extends Controller{
 					$comd_crawler = new Crawler($node);
 					$itemprop = $comd_crawler -> attr('itemprop');
 					$atag = $comd_crawler -> filter('a');
-					if (strpos($itemprop, 'address') !== false){
+					if (strpos($itemprop, self::LABEL_ADDRESS) !== false){ 
 						$address = $comd_crawler -> text();
 					} 
 					if ($atag -> count() > 0){
@@ -236,11 +241,12 @@ class MFindJobsCrawler extends Controller{
 			$soluong = "";
 			$deadline = "";
 			$contact = "";
+			$created = Common::ConvertDateFormat($created, self::INPUT_DATE_FORMAT, Common::DATE_DATA_FORMAT);
 
 			// $file_start = microtime(true);
 			$job_data = array($mobile
 				, $email
-				, $contact
+				// , $contact
 				, $company
 				, $address
 				, $job_title
@@ -250,154 +256,10 @@ class MFindJobsCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				, $url);
-			
-			MFindJobsCrawler::AppendArrayToFile($job_data, $data_path.self::FINDJOBS_DATA.'.csv', "|");
-			// echo 'write file: '.(microtime(true) - $file_start).' secs <br>';
-			// echo 'Total 1 job: '.(microtime(true) - $job_start).' secs <br>';
-		}
-	}
-
-	public function ExtractMobile($contact){
-		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
-
-		$mobiles_str = "";
-		$len = count($matches[0]);
-		if ($len > 0){
-			$nums = $matches[0];
-			$mobiles = array();
-			$mobile_tmp = "";
-			for ($x = 0; $x < $len; $x++) {
-				$num = $nums[$x];
-				if (strlen($mobile_tmp.$num) <= 12){
-					$mobile_tmp = $mobile_tmp.$num;
-				} else {
-					array_push($mobiles, $mobile_tmp);
-					$mobile_tmp = $num;
-				}
-				if ($x == $len - 1){
-					array_push($mobiles, $mobile_tmp);
-				}
-			} 
-			$mobiles_str = implode(",", $mobiles);
-		} 
-		return $mobiles_str;
-	}
-
-	public function ExtractFirstMobile($contact){
-		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
-
-		$mobiles_str = "";
-		$len = count($matches[0]);
-		if ($len > 0){
-			$nums = $matches[0];
-			$mobiles = array();
-			$mobile_tmp = "";
-			for ($x = 0; $x < $len; $x++) {
-				$num = $nums[$x];
-				if (strlen($mobile_tmp.$num) <= 12){
-					$mobile_tmp = $mobile_tmp.$num;
-				} else {
-					array_push($mobiles, $mobile_tmp);
-					$mobile_tmp = $num;
-				}
-				if ($x == $len - 1){
-					array_push($mobiles, $mobile_tmp);
-				}
-			} 
-			if (sizeof($mobiles) > 0 ){
-				if (sizeof($mobiles) > 1 and strlen($mobiles[1]) < 5){
-					$mobiles_str = $mobiles[0].'/'.$mobiles[1];
-				} 
-				$mobiles_str = $mobiles[0];
-			}
-		} 
-		if (strlen($mobiles_str) < 10 or strlen($mobiles_str) > 16) return "";
-		return $mobiles_str;
-	}
-
-	public function ExtractEmailFromText($text){
-		preg_match_all(self::EMAIL_PATTERN, $text, $matches);
-		if (sizeof($matches[0]) > 0){
-			return $matches[0][0];
-		} else{
-			return "";
-		}
-	}
-
-	public function AppendArrayToFile($arr, $file_name, $limiter="|"){
-		$fp = fopen($file_name, 'a');
-		fputcsv($fp, $arr, $delimiter = $limiter);
-		fclose($fp);
-	}
-
-	public function AppendStringToFile($str, $file_name){
-		$fp = fopen($file_name, 'a');
-		fputcsv($fp, array($str));
-		fclose($fp);
-	}
-
-	public function CheckLinksExist($jobs_links, $database="phpmyadmin", $table){
-		if (env("DATABASE") == null) $database="phpmyadmin";
-
-		$select_param = "('".implode("','", $jobs_links)."')";
-		$select_dialect = "select link from ".$database.".".$table." where link in ";
-		$select_query = $select_dialect.$select_param;
-		$existing_links = DB::select($select_query);
-
-		return $existing_links;
-	}
-
-	public function ResetJobMetadata($database, $table, $job_name){
-		DB::delete("delete from ".$database.".".$table." where job_name=? ", array($job_name));
-	}
-
-	public function InsertLinks($new_links, $database="phpmyadmin", $table){
-		if (env("DATABASE") == null) $database="phpmyadmin";
-
-		$insert_links = array();
-		foreach($new_links as $el){
-			array_push($insert_links, "('".$el."')");
-		}
-		$insert_param = implode(",", $insert_links);
-		$insert_dialect = "insert into ".$database.".".$table."(link) values ";
-		$insert_query = $insert_dialect.$insert_param;
-		$insert_results = DB::insert($insert_query);
-		
-		return $insert_results;
-	}
-
-	public function FindNewBatchToProcess($database="phpmyadmin", $table){
-		try {
-			// find latest batch: id, job_name, start_page, end_page, timestamp
-			$select_query = "select * from ".$database.".".$table." where job_name='findjobs' order by end_page desc limit 1 ";
-			$select_result = DB::select($select_query);
-
-			// find new batch
-			$latest_batch = null;
-			$new_batch = null;
-			if (sizeof($select_result) < 1){
-				$new_batch = (object) array("job_name" => "findjobs", "start_page" => 1, "end_page" => self::BATCH_SIZE);
-			} else{
-				$latest_batch = $select_result[0];
-				$new_batch = (object) array("job_name" => $latest_batch -> job_name
-					, "start_page" => $latest_batch -> end_page + 1
-					, "end_page" => $latest_batch -> end_page + self::BATCH_SIZE);
-			}
-
-			// save batch to db
-			$insert_query = "insert into ".$database.".".$table."(job_name, start_page, end_page) values (?, ?, ?) ";
-			$insert_result = DB::insert(
-				$insert_query
-				, array($new_batch -> job_name, $new_batch -> start_page, $new_batch -> end_page)
+				// , $url
 			);
-
-			return $new_batch;
-
-		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::FINDJOBS_DATA_PATH.self::SLASH.self::FINDJOBS_ERROR.date(self::DATE_FORMAT).'.csv';
-			MFindJobsCrawler::AppendStringToFile(substr($e -> getMessage (), 0, 1000), $file_name);
+			Common::AppendArrayToFile($job_data, $data_path.self::FINDJOBS_DATA.'.csv', "|");
 		}
-		return null;
 	}
+	
 }
