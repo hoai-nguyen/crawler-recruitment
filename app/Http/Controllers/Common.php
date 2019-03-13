@@ -11,6 +11,7 @@ class Common extends Controller{
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
+	const WEBSITE_PATTERN = "#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#";
 	const PHONE_PATTERN = "!\d+!";
 	const PHONE_CODE_VN = "84";
 	const PHONE_START = "0";
@@ -230,5 +231,20 @@ class Common extends Controller{
 			error_log('Exception on ConvertDateFormat: '.($e -> getMessage()));
 		}
 		return $new_date_str;
+	}
+
+	public static function ExtractWebsiteFromText($text){
+		if ($text == null) return "";
+		try{
+			preg_match_all(self::WEBSITE_PATTERN, $text, $matches);
+			if (sizeof($matches[0]) > 0){
+				return $matches[0][0];
+			} else{
+				return "";
+			}
+		} catch (\Throwable $e) {
+			error_log('Exception on ExtractWebsiteFromText: '.($e -> getMessage()));
+		}
+		return "";
 	}
 }

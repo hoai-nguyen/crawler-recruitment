@@ -8,11 +8,14 @@ use Symfony\Component\DomCrawler\Crawler;
 use \Exception as Exception;
 use Illuminate\Support\Facades\DB;
 
+use App\Http\Controllers\Common;
+
 class TopDevCrawler extends Controller{
 
 	const TABLE = "topdev";
+	const TABLE_METADATA = "job_metadata";
 	const JOB_NAME = "topdev";
-	const TOPDEV_DATA_PATH = 'topdev'; // CI must create directory in
+	const TOPDEV_DATA_PATH = 'topdev';
 	const TOPDEV_DATA = 'topdev-data';
 	const TOPDEV_ERROR = 'topdev-error-';
 	const TOPDEV_LINK = 'topdev-link';
@@ -26,9 +29,6 @@ class TopDevCrawler extends Controller{
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 500;
-	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
-	const WEBSITE_PATTERN = "#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#";
-	const PHONE_PATTERN = "!\d+!";
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
@@ -37,19 +37,20 @@ class TopDevCrawler extends Controller{
 		$client = new Client();
 		while (true){
 			try {
-				$new_batch = TopDevCrawler::FindNewBatchToProcess("phpmyadmin", "job_metadata", self::JOB_NAME);
-				if ($new_batch == null){
-					break;
-				}
-				$return_code = TopDevCrawler::TopDevCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
+				$database = env("DB_DATABASE");
+				if ($database == null)  $database = Common::DB_DEFAULT;
+				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
+				if ($new_batch == null) break;
+				
+				$return_code = $this->TopDevCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
 				if ($return_code > 1) {
-					// TopDevCrawler::ResetJobMetadata("phpmyadmin", "job_metadata", self::JOB_NAME);
 					break;
 				}
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
 			} catch (\Exception $e) {
+				error_log($e -> getMessage());
 				$file_name = public_path('data').self::SLASH.self::TOPDEV_DATA_PATH.self::SLASH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv';
-				TopDevCrawler::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
+				Common::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
 		}
@@ -70,8 +71,8 @@ class TopDevCrawler extends Controller{
 		$x = (int) $start_page; 
 		$end_page = (int) $end_page;
         while($x <= $end_page) {
-			error_log("Page = ".$x);
 			$page_start = microtime(true);
+			error_log("Page = ".$x);
 			echo "page = ".$x.": ";
 
 			try{
@@ -79,12 +80,12 @@ class TopDevCrawler extends Controller{
 				$crawler = $client -> request('GET', $pageUrl);
 				$jobs = $crawler -> filter('#job-list') -> filter('a.job-title');
 				if ($jobs -> count() <= 0) {
-					TopDevCrawler::AppendStringToFile("No job found on page: ".$pageUrl
+					Common::AppendStringToFile("No job found on page: ".$pageUrl
 						, $DATA_PATH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv');
 					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
-						TopDevCrawler::AppendStringToFile("Quit because two consecutive pages are empty."
+						Common::AppendStringToFile("Quit because two consecutive pages are empty."
 							, $DATA_PATH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv');
 						return 2;
 					}
@@ -102,12 +103,12 @@ class TopDevCrawler extends Controller{
 								}
 							} catch (\Exception $e) {
 								$file_name = public_path('data').self::SLASH.self::TOPDEV_DATA_PATH.self::SLASH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv';
-								TopDevCrawler::AppendStringToFile('Exception on getting job_link: '.substr($e -> getMessage (), 0, 1000), $file_name);
+								Common::AppendStringToFile('Exception on getting job_link: '.substr($e -> getMessage (), 0, 1000), $file_name);
 							}
 						}
 					);
 					// select duplicated records
-					$existing_links = TopDevCrawler::CheckLinksExist($jobs_links, env("DATABASE"), self::TABLE);
+					$existing_links = Common::CheckLinksExist($jobs_links, env("DATABASE"), self::TABLE);
 					$duplicated_links = array();
 					foreach($existing_links as $row){
 						$link = $row -> link;
@@ -120,7 +121,7 @@ class TopDevCrawler extends Controller{
 					if (is_array($new_links) and sizeof($new_links) > 0){
 						error_log(sizeof($new_links)." new links.");
 
-						$inserted = TopDevCrawler::InsertLinks($new_links, env("DATABASE"), self::TABLE);
+						$inserted = Common::InsertLinks($new_links, env("DB_DATABASE"), self::TABLE);
 						if ($inserted){
 							// crawl each link
 							foreach ($new_links as $job_link) {
@@ -129,13 +130,14 @@ class TopDevCrawler extends Controller{
 									
 									if ($job_link == null){
 									} else{
-										$code = TopDevCrawler::CrawlJob($client, $job_link, $DATA_PATH);
+										$code = $this->CrawlJob($client, $job_link, $DATA_PATH);
 										if ($code == 0)
-											TopDevCrawler::AppendStringToFile($job_link
+											Common::AppendStringToFile($job_link
 												, $DATA_PATH.self::TOPDEV_LINK.'.csv');
 									}
 								} catch (\Exception $e) {
-									TopDevCrawler::AppendStringToFile("Exception on crawling link: ".$job_link.": ".substr($e -> getMessage (), 0, 1000)
+									error_log('Crawl each link: '.($e -> getMessage ()));
+									Common::AppendStringToFile("Exception on crawling link: ".$job_link.": ".substr($e -> getMessage (), 0, 1000)
 										, $DATA_PATH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv');
 								}
 							}
@@ -145,8 +147,9 @@ class TopDevCrawler extends Controller{
 				}
 			} catch (\Exception $e) {
 				$return_code = 1;
+				error_log('TopCVCrawlerFunc: '.($e -> getMessage ()));
 				$file_name = public_path('data').self::SLASH.self::TOPDEV_DATA_PATH.self::SLASH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv';
-				TopDevCrawler::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
+				Common::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
 
@@ -166,19 +169,19 @@ class TopDevCrawler extends Controller{
 		try{
 			$crawler = $client -> request('GET', $url);
 		} catch (\Exception $e) {
-			TopDevCrawler::AppendStringToFile("Cannot request page: ".$url.": ".substr($e -> getMessage (), 0, 1000)
+			Common::AppendStringToFile("Cannot request page: ".$url.": ".substr($e -> getMessage (), 0, 1000)
 				, $data_path.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		}
 
 		if ($crawler -> count() <= 0 ) {
-			TopDevCrawler::AppendStringToFile("Cannot request page: ".$url
+			Common::AppendStringToFile("Cannot request page: ".$url
 				, $data_path.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		} else{
 			$job_details_crl = $crawler -> filter('#image-employer');
 			if($job_details_crl -> count() <= 0){
-				TopDevCrawler::AppendStringToFile("No #image-employer: ".$url
+				Common::AppendStringToFile("No #image-employer: ".$url
 					, $data_path.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 1;
 			}
@@ -186,39 +189,39 @@ class TopDevCrawler extends Controller{
 			$job_title = $job_details_crl -> filter('h1.job-title') -> text();
 			
 			$company = $job_details_crl -> filter('div.job-header-info > span.company-name') -> text();
-			$company = TopDevCrawler::RemoveTrailingChars($company);
+			$company = Common::RemoveTrailingChars($company);
 
 			$address_crl = $job_details_crl -> filter('span.company-address');
 			if ($address_crl -> count() <= 0){
-				TopDevCrawler::AppendStringToFile("No div.text-dark-gray: ".$url
+				Common::AppendStringToFile("No div.text-dark-gray: ".$url
 					, $data_path.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 1;
 			}
 			$address = $address_crl -> first() -> text();
-			$address = TopDevCrawler::RemoveTrailingChars($address);
+			$address = Common::RemoveTrailingChars($address);
 
 			$salary = "";
 			$salary_crl = $job_details_crl -> filter('div.row-salary') -> filter('span.orange');
 			if ($salary_crl -> count() <= 0){
-				TopDevCrawler::AppendStringToFile("No div.row-salary: ".$url
+				Common::AppendStringToFile("No div.row-salary: ".$url
 					, $data_path.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv');
 				return 1;
 			}
 			$salary = $salary_crl -> first() -> text();
-			$salary = TopDevCrawler::RemoveTrailingChars($salary);
+			$salary = Common::RemoveTrailingChars($salary);
 			
 			$job_des_crl = $crawler -> filter('#job-description');
 			$job_des = "";
 			if ($job_des_crl -> count() > 0){
 				$job_des = $job_des_crl -> text();
-				$job_des = TopDevCrawler::RemoveTrailingChars($job_des);
+				$job_des = Common::RemoveTrailingChars($job_des);
 			}
 
 			$company_info_crl = $crawler -> filter('div.basic-info');
 			$website = "";
 			if ($company_info_crl -> count() > 0){
 				$company_info = $company_info_crl -> first() -> text();
-				$website = TopDevCrawler::ExtractWebsiteFromText($company_info);
+				$website = Common::ExtractWebsiteFromText($company_info);
 			}
 
 			$created = "";
@@ -226,12 +229,12 @@ class TopDevCrawler extends Controller{
 			$email = "";
 			$soluong = "";
 			$deadline = "";
-			$contact = "";
+			// $contact = "";
 			
 			
 			$job_data = array($mobile
 				, $email
-				, $contact
+				// , $contact
 				, $company
 				, $address
 				, $job_title
@@ -241,182 +244,13 @@ class TopDevCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				, $url);
+				// , $url
+			);
 
-			TopDevCrawler::AppendArrayToFile($job_data
+			Common::AppendArrayToFile($job_data
 				, $data_path.self::TOPDEV_DATA.'.csv', "|");
 			return 0;
 		}
 	}
-
-	public function ExtractMobile($contact){
-		if ($contact == null) return "";
-		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
-
-		$mobiles_str = "";
-		$len = count($matches[0]);
-		if ($len > 0){
-			$nums = $matches[0];
-			$mobiles = array();
-			$mobile_tmp = "";
-			for ($x = 0; $x < $len; $x++) {
-				$num = $nums[$x];
-				if (strlen($mobile_tmp.$num) <= 12){
-					$mobile_tmp = $mobile_tmp.$num;
-				} else {
-					array_push($mobiles, $mobile_tmp);
-					$mobile_tmp = $num;
-				}
-				if ($x == $len - 1){
-					array_push($mobiles, $mobile_tmp);
-				}
-			} 
-			$mobiles_str = implode(",", $mobiles);
-		} 
-		return $mobiles_str;
-	}
-
-	public function ExtractFirstMobile($contact){
-		if ($contact == null) return "";
-		preg_match_all(self::PHONE_PATTERN, $contact, $matches);
-
-		$mobiles_str = "";
-		$len = count($matches[0]);
-		if ($len > 0){
-			$nums = $matches[0];
-			$mobiles = array();
-			$mobile_tmp = "";
-			for ($x = 0; $x < $len; $x++) {
-				$num = $nums[$x];
-				if (strlen($mobile_tmp.$num) <= 12){
-					$mobile_tmp = $mobile_tmp.$num;
-				} else {
-					array_push($mobiles, $mobile_tmp);
-					$mobile_tmp = $num;
-				}
-				if ($x == $len - 1){
-					array_push($mobiles, $mobile_tmp);
-				}
-			} 
-			if (sizeof($mobiles) > 0 ){
-				if (sizeof($mobiles) > 1 and strlen($mobiles[1]) < 5){
-					$mobiles_str = $mobiles[0].'/'.$mobiles[1];
-				} 
-				$mobiles_str = $mobiles[0];
-			}
-		} 
-		if (strlen($mobiles_str) < 8 or strlen($mobiles_str) > 16) return "";
-		return $mobiles_str;
-	}
-
-	public function ExtractEmailFromText($text){
-		if ($text == null) return "";
-		preg_match_all(self::EMAIL_PATTERN, $text, $matches);
-		if (sizeof($matches[0]) > 0){
-			return $matches[0][0];
-		} else{
-			return "";
-		}
-	}
-
-	public function ExtractWebsiteFromText($text){
-		if ($text == null) return "";
-		preg_match_all(self::WEBSITE_PATTERN, $text, $matches);
-		if (sizeof($matches[0]) > 0){
-			return $matches[0][0];
-		} else{
-			return "";
-		}
-	}
-
-	public function AppendArrayToFile($arr, $file_name, $limiter="|"){
-		$fp = fopen($file_name, 'a');
-		fputcsv($fp, $arr, $delimiter = $limiter);
-		fclose($fp);
-	}
-
-	public function AppendStringToFile($str, $file_name){
-		$fp = fopen($file_name, 'a');
-		fputcsv($fp, array($str));
-		fclose($fp);
-	}
-
-	public function CheckLinksExist($jobs_links, $database="phpmyadmin", $table){
-		if (env("DATABASE") == null) $database="phpmyadmin";
-
-		$select_param = "('".implode("','", $jobs_links)."')";
-		$select_dialect = "select link from ".$database.".".$table." where link in ";
-		$select_query = $select_dialect.$select_param;
-		$existing_links = DB::select($select_query);
-
-		return $existing_links;
-	}
-
-	public function ResetJobMetadata($database, $table, $job_name){
-		DB::delete("delete from ".$database.".".$table." where job_name=? ", array($job_name));
-	}
-
-	public function InsertLinks($new_links, $database="phpmyadmin", $table){
-		if (env("DATABASE") == null) $database="phpmyadmin";
-
-		$insert_links = array();
-		foreach($new_links as $el){
-			array_push($insert_links, "('".$el."')");
-		}
-		$insert_param = implode(",", $insert_links);
-		$insert_dialect = "insert into ".$database.".".$table."(link) values ";
-		$insert_query = $insert_dialect.$insert_param;
-		$insert_results = DB::insert($insert_query);
-		
-		return $insert_results;
-	}
-
-	public function FindNewBatchToProcess($database="phpmyadmin", $table, $job_name){
-		try {
-			// find latest batch: id, job_name, start_page, end_page, timestamp
-			$select_query = "select * from ".$database.".".$table." where job_name='".$job_name."' order by end_page desc limit 1 ";
-			$select_result = DB::select($select_query);
-
-			// find new batch
-			$latest_batch = null;
-			$new_batch = null;
-			if (sizeof($select_result) < 1){
-				$new_batch = (object) array("job_name" => $job_name, "start_page" => 1, "end_page" => self::BATCH_SIZE);
-			} else{
-				$latest_batch = $select_result[0];
-				$new_batch = (object) array("job_name" => $latest_batch -> job_name
-					, "start_page" => $latest_batch -> end_page + 1
-					, "end_page" => $latest_batch -> end_page + self::BATCH_SIZE);
-			}
-
-			// save batch to db
-			$insert_query = "insert into ".$database.".".$table."(job_name, start_page, end_page) values (?, ?, ?) ";
-			$insert_result = DB::insert(
-				$insert_query
-				, array($new_batch -> job_name, $new_batch -> start_page, $new_batch -> end_page)
-			);
-
-			return $new_batch;
-
-		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::TOPDEV_DATA_PATH.self::SLASH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv';
-			TopDevCrawler::AppendStringToFile('Ex on finding new batch: '.substr($e -> getMessage (), 0, 1000), $file_name);
-		}
-		return null;
-	}
 	
-	public function RemoveTrailingChars($text){
-		return trim(preg_replace('!\s+!', ' ', $text), "\r\n- ");
-	}
-	
-	public function GetDateFromInterval($interval){
-		try{
-			return date(self::DATA_DATE_FORMAT, strtotime($interval, strtotime("now")));
-		} catch (\Exception $e) {
-			$file_name = public_path('data').self::SLASH.self::TOPDEV_DATA_PATH.self::TOPDEV_ERROR.date(self::DATE_FORMAT).'.csv';
-			TopDevCrawler::AppendStringToFile('Ex on get date: '.substr($e -> getMessage (), 0, 1000), $file_name);
-		}
-		return null;
-	}
-
 }
