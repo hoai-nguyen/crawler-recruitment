@@ -42,10 +42,10 @@ class TopCVCrawler extends Controller{
 				
 				$return_code = $this->TopCVCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
 
-				if ($return_code > 1) {
-					break;
-				}
+				if ($return_code > 1) break;
+
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
+
 			} catch (\Exception $e) {
 				error_log($e -> getMessage());
 				$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
@@ -130,7 +130,7 @@ class TopCVCrawler extends Controller{
 									
 									if ($job_link == null){
 									} else{
-										$code = TopCVCrawler::CrawlJob($client, $job_link, $DATA_PATH);
+										$code = $this->CrawlJob($client, $job_link, $DATA_PATH);
 										if ($code == 0)
 											Common::AppendStringToFile($job_link
 												, $DATA_PATH.self::TOPCV_LINK.'.csv');
@@ -212,7 +212,7 @@ class TopCVCrawler extends Controller{
 			$deadline = $general_infos -> filter('div.job-deadline') -> text();
 			$deadline = str_replace(self::LABEL_DEADLINE, "", $deadline); 
 			$deadline = Common::RemoveTrailingChars($deadline);
-			$deadline = Common::ConvertDateFormat($deadline, self::INPUT_DATE_FORMAT, Common::DATE_DATA_FORMAT);
+			// $deadline = Common::ConvertDateFormat($deadline, self::INPUT_DATE_FORMAT, Common::DATE_DATA_FORMAT);
 			
 			$address_crl = $general_infos -> filter('div.text-dark-gray');
 			if ($address_crl -> count() <= 0){

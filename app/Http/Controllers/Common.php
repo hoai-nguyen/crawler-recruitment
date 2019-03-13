@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 class Common extends Controller{
 
 	const DATE_FORMAT = "Ymd";
-	const DATE_DATA_FORMAT = "Y-m-d";
+	const DATE_DATA_FORMAT = "d/m/Y";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
@@ -42,7 +42,7 @@ class Common extends Controller{
 				$mobiles_str = implode(",", $mobiles);
 			} 
 		} catch (\Throwable $e) {
-			error_log('Exception on ExtractMobile: '.($e -> getMessage ()));
+			// error_log('Exception on ExtractMobile: '.($e -> getMessage ()));
 		}
 		return $mobiles_str;		
 	}
@@ -79,7 +79,7 @@ class Common extends Controller{
 			if (strlen($mobiles_str) < 8 or strlen($mobiles_str) > 16) return "";
 			return Common::PhoneCleasing($mobiles_str);
 		} catch (\Throwable $e) {
-			error_log('Exception on ExtractFirstMobile: '.($e -> getMessage ()));
+			// error_log('Exception on ExtractFirstMobile: '.($e -> getMessage ()));
 		}
 		return $mobiles_str;		
 	}
@@ -89,7 +89,7 @@ class Common extends Controller{
 			$len = strlen($startString); 
 			return (substr($string, 0, $len) === $startString); 
 		} catch (\Throwable $e) {
-			error_log('Exception on startsWith: '.($e -> getMessage ()));
+			// error_log('Exception on startsWith: '.($e -> getMessage ()));
 		}
 		return false;
 	} 
@@ -108,7 +108,7 @@ class Common extends Controller{
 				$cleaned_phone = "0".$cleaned_phone;
 			}
 		} catch (\Throwable $e) {
-			error_log('Exception on PhoneCleasing: '.($e -> getMessage ()));
+			// error_log('Exception on PhoneCleasing: '.($e -> getMessage ()));
 		}
 		return $cleaned_phone;
 	}
@@ -123,7 +123,7 @@ class Common extends Controller{
 				return "";
 			}
 		} catch (\Throwable $e) {
-			error_log('Exception on ExtractEmailFromText: '.($e -> getMessage ()));
+			// error_log('Exception on ExtractEmailFromText: '.($e -> getMessage ()));
 		}
 		return "";
 	}
@@ -228,7 +228,7 @@ class Common extends Controller{
 			$new_date = \DateTime::createFromFormat($input_format, $input_date);
 			$new_date_str = $new_date->format($output_format);
 		} catch (\Throwable $e) {
-			error_log('Exception on ConvertDateFormat: '.($e -> getMessage()));
+			// error_log('Exception on ConvertDateFormat: '.($e -> getMessage()));
 		}
 		return $new_date_str;
 	}
@@ -243,7 +243,7 @@ class Common extends Controller{
 				return "";
 			}
 		} catch (\Throwable $e) {
-			error_log('Exception on ExtractWebsiteFromText: '.($e -> getMessage()));
+			// error_log('Exception on ExtractWebsiteFromText: '.($e -> getMessage()));
 		}
 		return "";
 	}

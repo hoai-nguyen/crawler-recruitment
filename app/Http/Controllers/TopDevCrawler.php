@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Goutte\Client;
 use Symfony\Component\DomCrawler\Crawler;
 use \Exception as Exception;
-use Illuminate\Support\Facades\DB;
 
 use App\Http\Controllers\Common;
 
