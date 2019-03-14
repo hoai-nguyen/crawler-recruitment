@@ -28,5 +28,6 @@ Route::get('itviec',['uses' => 'ITViecCrawler@CrawlerStarter'])->name('itviec');
 Route::get('topdev',['uses' => 'TopDevCrawler@CrawlerStarter'])->name('topdev');
 Route::get('laodong',['uses' => 'LaoDongCrawler@CrawlerStarter'])->name('laodong');
 Route::get('timviec365',['uses' => 'TimViec365Crawler@CrawlerStarter'])->name('timviec365');
+Route::get('tuyencongnhan',['uses' => 'TuyenCongNhanCrawler@CrawlerStarter'])->name('tuyencongnhan');
 Route::get('careerbuilder',['uses' => 'CareerBuilderCrawler@CrawlerStarter'])->name('careerbuilder');
 Route::get('testdb',['uses' => 'DBController@index'])->name('testdb');

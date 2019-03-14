@@ -58,4 +58,9 @@ if [ ! -d $timviec365 ]; then
 	mkdir -p $timviec365
 fi
 
+tuyencongnhan=$dir'/tuyencongnhan'
+if [ ! -d $tuyencongnhan ]; then
+	mkdir -p $tuyencongnhan
+fi
+
 echo "DONE creating data directories!"
