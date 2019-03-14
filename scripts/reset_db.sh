@@ -61,6 +61,11 @@ if [ $job_type = 'continue' ]; then
 		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='careerbuilder';"
 		echo "DONE"
 		;;
+	laodong)
+		echo "RESET laodong!"
+		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='laodong';"
+		echo "DONE"
+		;;
 	all)
 		echo "RESET all!"
 		#mysql -u root -p  phpmyadmin < scripts/reset_careerbuilder.sql
@@ -72,7 +77,7 @@ if [ $job_type = 'continue' ]; then
 		echo ""
 		echo "Usage: ./reset_db.sh option1 option2"
 		echo "Available options 1: continue, reset"
-		echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink"
+		echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink, laodong"
 		echo "Example: To continue crawling from last run for topdev, we use: ./reset_db.sh continue topdev"
 		echo ""
 		;;
@@ -133,6 +138,11 @@ elif [ $job_type = 'reset' ]; then
 		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='careerbuilder';TRUNCATE TABLE phpmyadmin.careerbuilder;"
 		echo "DONE"
 		;;
+	laodong)
+		echo "RESET laodong!"
+		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='laodong';TRUNCATE TABLE phpmyadmin.crawler_laodong;"
+		echo "DONE"
+		;;
 	all)
 		echo "RESET all!"
 		#mysql -u root -p  phpmyadmin < scripts/reset_careerbuilder.sql
@@ -144,7 +154,7 @@ elif [ $job_type = 'reset' ]; then
 		echo ""
 		echo "Usage: ./reset_db.sh option1 option2"
 		echo "Available options 1: continue, reset"
-		echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink"
+		echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink, laodong"
 		echo "Example: To start crawling from beginning for topdev, we use: ./reset_db.sh reset topdev"
 		echo ""
 		;;
@@ -154,7 +164,7 @@ else
 	echo ""
 	echo "Usage: ./reset_db.sh option1 option2"
 	echo "Available options 1: continue, reset"
-	echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink"
+	echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink, laodong"
 	echo "Example: To start crawling from beginning for topdev, we use: ./reset_db.sh reset topdev"
 	echo "Example: To continue crawling from last run for topdev, we use: ./reset_db.sh continue topdev"
 	echo ""
