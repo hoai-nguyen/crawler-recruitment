@@ -81,7 +81,7 @@ class TimViec365Crawler extends Controller{
 			try{
 				$pageUrl = self::TIMVIEC365_PAGE.$x;
 				$crawler = $client -> request('GET', $pageUrl);
-				$jobs = $crawler -> filter('div.main_cate > div.item_cate > div.center_cate')  -> filter('a.title_cate');
+				$jobs = $crawler -> filter('div.main_cate') -> filter('a.title_cate');
 				if ($jobs -> count() <= 0) {
 					Common::AppendStringToFile("No job found on page: ".$pageUrl
 						, $DATA_PATH.self::TIMVIEC365_ERROR.date(self::DATE_FORMAT).'.csv');
@@ -111,7 +111,7 @@ class TimViec365Crawler extends Controller{
 						}
 					);
 					// select duplicated records
-					$existing_links = Common::CheckLinksExist($jobs_links, env("DATABASE"), self::TABLE);
+					$existing_links = Common::CheckLinksExist($jobs_links, env("DB_DATABASE"), self::TABLE);
 					$duplicated_links = array();
 					foreach($existing_links as $row){
 						$link = $row -> link;
