@@ -107,7 +107,7 @@ class TopDevCrawler extends Controller{
 						}
 					);
 					// select duplicated records
-					$existing_links = Common::CheckLinksExist($jobs_links, env("DATABASE"), self::TABLE);
+					$existing_links = Common::CheckLinksExist($jobs_links, env("DB_DATABASE"), self::TABLE);
 					$duplicated_links = array();
 					foreach($existing_links as $row){
 						$link = $row -> link;

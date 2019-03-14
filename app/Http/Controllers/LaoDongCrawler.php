@@ -107,7 +107,7 @@ class LaoDongCrawler extends Controller{
 						}
 					);
 					// select duplicated records
-					$existing_links = Common::CheckLinksExist($jobs_links, env("DATABASE"), self::TABLE);
+					$existing_links = Common::CheckLinksExist($jobs_links, env("DB_DATABASE"), self::TABLE);
 					$duplicated_links = array();
 					foreach($existing_links as $row){
 						$link = $row -> link;
@@ -188,33 +188,38 @@ class LaoDongCrawler extends Controller{
 				return 1;
 			}
 
-			$job_title = $featured_info_crl -> filter('#cphMainContent_lblTitle');
-			if ($job_title->count() > 0){
-				$job_title = $job_title -> text();
+			$job_title = "";
+			$job_title_crl = $featured_info_crl -> filter('#cphMainContent_lblTitle');
+			if ($job_title_crl->count() > 0){
+				$job_title = $job_title_crl -> text();
 			}
 
-			$company = $featured_info_crl -> filter('p.building > strong');
-			if ($company->count() > 0){
-				$company = $company -> text();
+			$company = "";
+			$company_crl = $featured_info_crl -> filter('p.building > strong');
+			if ($company_crl->count() > 0){
+				$company = $company_crl -> text();
 			}
 			$company = Common::RemoveTrailingChars($company);
 
-			$address = $featured_info_crl -> filter('p.addres > span');
-			if ($address->count() > 0){
-				$address = $address -> text();
+			$address = "";
+			$address_crl = $featured_info_crl -> filter('p.addres > span');
+			if ($address_crl->count() > 0){
+				$address = $address_crl -> text();
 			}
 			$address = Common::RemoveTrailingChars($address);
 
-			$mobile = $featured_info_crl -> filter('p.phone > span');
-			if ($mobile->count() > 0){
-				$mobile = $mobile -> text();
+			$mobile = "";
+			$mobile_crl = $featured_info_crl -> filter('p.phone > span');
+			if ($mobile_crl->count() > 0){
+				$mobile = $mobile_crl -> text();
 			}
 			$mobile = Common::RemoveTrailingChars($mobile);
 			$mobile = Common::ExtractFirstMobile($mobile);
 
-			$website = $featured_info_crl -> filter('p.website > a');
-			if ($website->count() > 0){
-				$website = $website -> text();
+			$website = "";
+			$website_crl = $featured_info_crl -> filter('p.website > a');
+			if ($website_crl->count() > 0){
+				$website = $website_crl -> text();
 			}
 
 			$basic_info_crl = $crawler -> filter('div.basic-info');

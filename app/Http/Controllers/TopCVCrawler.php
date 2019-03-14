@@ -174,6 +174,7 @@ class TopCVCrawler extends Controller{
 
 			return $client;
 		} catch (\Exception $e) {
+			$client = new Client;
 			error_log('TopCVLogin: '.($e -> getMessage ()));
 			$file_name = public_path('data').self::SLASH.self::TOPCV_DATA_PATH.self::SLASH.self::TOPCV_ERROR.date(self::DATE_FORMAT).'.csv';
 			Common::AppendStringToFile('Exception on login: '.($e -> getMessage ()), $file_name);

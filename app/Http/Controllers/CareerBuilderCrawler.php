@@ -114,7 +114,7 @@ class CareerBuilderCrawler extends Controller{
 						}
 					);
 					// select duplicated records
-					$existing_links = CareerBuilderCrawler::CheckLinksExist($jobs_links, env("DATABASE"), $table=self::TABLE);
+					$existing_links = CareerBuilderCrawler::CheckLinksExist($jobs_links, env("DB_DATABASE"), $table=self::TABLE);
 					$duplicated_links = array();
 					foreach($existing_links as $row){
 						$link = $row -> link;
@@ -126,7 +126,7 @@ class CareerBuilderCrawler extends Controller{
 					if (is_array($new_links) and sizeof($new_links) > 0){
 						error_log(sizeof($new_links)." new links.");
 						
-						$inserted = CareerBuilderCrawler::InsertLinks($new_links, env("DATABASE"), $table=self::TABLE);
+						$inserted = CareerBuilderCrawler::InsertLinks($new_links, env("DB_DATABASE"), $table=self::TABLE);
 						if ($inserted){
 							// crawl each link
 							foreach ($new_links as $job_link) {
@@ -378,7 +378,7 @@ class CareerBuilderCrawler extends Controller{
 	}
 
 	public function CheckLinksExist($jobs_links, $database="phpmyadmin", $table){
-		if (env("DATABASE") == null) $database="phpmyadmin";
+		if (env("DB_DATABASE") == null) $database="phpmyadmin";
 
 		$select_param = "('".implode("','", $jobs_links)."')";
 		$select_dialect = "select link from ".$database.".".$table." where link in ";
@@ -393,7 +393,7 @@ class CareerBuilderCrawler extends Controller{
 	}
 
 	public function InsertLinks($new_links, $database="phpmyadmin", $table){
-		if (env("DATABASE") == null) $database="phpmyadmin";
+		if (env("DB_DATABASE") == null) $database="phpmyadmin";
 
 		$insert_links = array();
 		foreach($new_links as $el){

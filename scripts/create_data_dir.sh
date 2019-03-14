@@ -53,4 +53,9 @@ if [ ! -d $findjobs ]; then
 	mkdir -p $findjobs
 fi
 
+timviec365=$dir'/timviec365'
+if [ ! -d $timviec365 ]; then
+	mkdir -p $timviec365
+fi
+
 echo "DONE creating data directories!"
