@@ -82,6 +82,13 @@ class TimViec365Crawler extends Controller{
 				$pageUrl = self::TIMVIEC365_PAGE.$x;
 				$crawler = $client -> request('GET', $pageUrl);
 				$jobs = $crawler -> filter('div.main_cate') -> filter('a.title_cate');
+				
+				if ($jobs -> count() <= 0) {
+					$client = $this->TimViec365Login();
+					$crawler = $client -> request('GET', $pageUrl);
+					$jobs = $crawler -> filter('div.main_cate') -> filter('a.title_cate');
+				}
+
 				if ($jobs -> count() <= 0) {
 					Common::AppendStringToFile("No job found on page: ".$pageUrl
 						, $DATA_PATH.self::TIMVIEC365_ERROR.date(self::DATE_FORMAT).'.csv');

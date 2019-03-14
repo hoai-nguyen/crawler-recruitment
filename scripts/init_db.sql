@@ -76,3 +76,9 @@ CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_timviec365`(
 	`link` varchar(2000) DEFAULT NULL,
 	PRIMARY KEY(`id`)
 );
+
+CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_tuyencongnhan`(
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`link` varchar(2000) DEFAULT NULL,
+	PRIMARY KEY(`id`)
+);
