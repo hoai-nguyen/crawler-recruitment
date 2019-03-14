@@ -48,4 +48,9 @@ if [ ! -d $findjobs ]; then
 	mkdir -p $findjobs
 fi
 
+findjobs=$dir'/laodong'
+if [ ! -d $findjobs ]; then
+	mkdir -p $findjobs
+fi
+
 echo "DONE creating data directories!"
