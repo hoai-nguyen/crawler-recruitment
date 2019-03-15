@@ -98,6 +98,14 @@ case $1 in
 		fi
 		echo "DONE"
 		;;
+	tuyendungsinhvien)
+		echo "RESET tuyendungsinhvien!"
+		timviec365='public/data/tuyendungsinhvien'
+		if [ -d $tuyendungsinhvien ]; then
+		  rm -rf $tuyendungsinhvien/*.csv
+		fi
+		echo "DONE"
+		;;
 	all)
 		echo "RESET all!"
 		alldata='public/data'
