@@ -247,4 +247,19 @@ class Common extends Controller{
 		}
 		return "";
 	}
+
+	public static function ExtractDateFromText($regex, $text){
+		if ($text == null) return "";
+		try{
+			preg_match_all($regex, $text, $matches);
+			if (sizeof($matches[0]) > 0){
+				return $matches[0][0];
+			} else{
+				return "";
+			}
+		} catch (\Throwable $e) {
+			// error_log('Exception on ExtractDateFromText: '.($e -> getMessage()));
+		}
+		return "";
+	}
 }
