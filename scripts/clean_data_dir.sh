@@ -106,6 +106,22 @@ case $1 in
 		fi
 		echo "DONE"
 		;;
+	tuyendungcomvn)
+		echo "RESET tuyendungcomvn!"
+		timviec365='public/data/tuyendungcomvn'
+		if [ -d $tuyendungcomvn ]; then
+		  rm -rf $tuyendungcomvn/*.csv
+		fi
+		echo "DONE"
+		;;
+	itguru)
+		echo "RESET itguru!"
+		timviec365='public/data/itguru'
+		if [ -d $itguru ]; then
+		  rm -rf $itguru/*.csv
+		fi
+		echo "DONE"
+		;;
 	all)
 		echo "RESET all!"
 		alldata='public/data'
@@ -119,7 +135,7 @@ case $1 in
 		echo "Sorry, there is no directory name: $1"
 		echo ""
 		echo "Usage: ./script/clean_data_dir.sh [option]"
-		echo "Available options: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink, laodong, timviec365, tuyencongnhan"
+		echo "Available options: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink, laodong, timviec365, tuyencongnhan, tuyendungcomvn, itguru"
 		echo "Example: To clean crawled data for topdev crawler, we use: ./script/clean_data_dir.sh topdev"
 		echo ""
 		;;

@@ -68,4 +68,14 @@ if [ ! -d $tuyendungsinhvien ]; then
 	mkdir -p $tuyendungsinhvien
 fi
 
+tuyendungcomvn=$dir'/tuyendungcomvn'
+if [ ! -d $tuyendungcomvn ]; then
+	mkdir -p $tuyendungcomvn
+fi
+
+itguru=$dir'/itguru'
+if [ ! -d $itguru ]; then
+	mkdir -p $itguru
+fi
+
 echo "DONE creating data directories!"
