@@ -204,6 +204,8 @@ class TuyenDungComVnCrawler extends Controller{
 			$job_title_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblJobPosition');
 			if ($job_title_crl->count() > 0){
 				$job_title = $job_title_crl -> text();
+			} else {
+				return -1;
 			}
 
 			$soluong = "";
