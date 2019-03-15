@@ -63,4 +63,9 @@ if [ ! -d $tuyencongnhan ]; then
 	mkdir -p $tuyencongnhan
 fi
 
+tuyendungsinhvien=$dir'/tuyendungsinhvien'
+if [ ! -d $tuyendungsinhvien ]; then
+	mkdir -p $tuyendungsinhvien
+fi
+
 echo "DONE creating data directories!"

@@ -223,12 +223,11 @@ class TuyenDungSinhVienCrawler extends Controller{
 			if ($job_details_crl -> count() > 0){
 				foreach($job_details_crl as $item){
 					$node = new Crawler($item);
-					echo $node->text().": ";
 					$label = $node -> filter('td.dynamic_form_field');
 					if ($label -> count() > 0){
 						$text = $label -> first() -> text();
 						$value = $node -> filter('td.dynamic_form_value') -> text();
-						echo $value."<br>";
+					
 						if (strpos($text, self::LABEL_DESCRIPTION) !== false){
 							$job_des = $value;
 							$job_des = Common::RemoveTrailingChars($job_des);
