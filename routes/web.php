@@ -30,5 +30,6 @@ Route::get('laodong',['uses' => 'LaoDongCrawler@CrawlerStarter'])->name('laodong
 Route::get('timviec365',['uses' => 'TimViec365Crawler@CrawlerStarter'])->name('timviec365');
 Route::get('tuyencongnhan',['uses' => 'TuyenCongNhanCrawler@CrawlerStarter'])->name('tuyencongnhan');
 Route::get('tuyendungsinhvien',['uses' => 'TuyenDungSinhVienCrawler@CrawlerStarter'])->name('tuyendungsinhvien');
+Route::get('tuyendungcomvn',['uses' => 'TuyenDungComVnCrawler@CrawlerStarter'])->name('tuyendungcomvn');
 Route::get('careerbuilder',['uses' => 'CareerBuilderCrawler@CrawlerStarter'])->name('careerbuilder');
 Route::get('testdb',['uses' => 'DBController@index'])->name('testdb');
