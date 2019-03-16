@@ -3,7 +3,7 @@ echo "Start initializing data."
 
 header="Phone|Email|Company Name|Address|Job Name|Salary|Job Description|Posted Date|Application Deadline|Quantity|Website"
 
-declare -a pages=("topdev" "topcv" "itviec" "mywork" "timviecnhanh" "vieclam24h" "findjobs" "careerlink" "laodong" "timviec365")
+declare -a pages=("topdev" "topcv" "itviec" "mywork" "timviecnhanh" "vieclam24h" "findjobs" "careerlink" "laodong" "timviec365" "tuyencongnhan" "tuyendungsinhvien" "tuyendungcomvn" "itguru")
 
 for page in "${pages[@]}"
 do

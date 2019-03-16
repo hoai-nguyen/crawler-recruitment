@@ -191,7 +191,7 @@ elif [ $job_type = 'reset' ]; then
 		;;
 	all)
 		echo "RESET all!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; TRUNCATE TABLE phpmyadmin.job_metadata;TRUNCATE TABLE phpmyadmin.careerbuilder;TRUNCATE TABLE phpmyadmin.careerlink;TRUNCATE TABLE phpmyadmin.findjobs;TRUNCATE TABLE phpmyadmin.mywork;TRUNCATE TABLE phpmyadmin.timviecnhanh;TRUNCATE TABLE phpmyadmin.vieclam24h;TRUNCATE TABLE phpmyadmin.itviec;TRUNCATE TABLE phpmyadmin.topcv;TRUNCATE TABLE phpmyadmin.topdev;TRUNCATE TABLE phpmyadmin.crawler_laodong;TRUNCATE TABLE phpmyadmin.crawler_timviec365;TRUNCATE TABLE phpmyadmin.crawler_tuyendungsinhvien;TRUNCATE TABLE phpmyadmin.crawler_tuyendungcomvn;TRUNCATE TABLE phpmyadmin.crawler_itguru;"
+		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; TRUNCATE TABLE phpmyadmin.job_metadata;TRUNCATE TABLE phpmyadmin.careerbuilder;TRUNCATE TABLE phpmyadmin.careerlink;TRUNCATE TABLE phpmyadmin.findjobs;TRUNCATE TABLE phpmyadmin.mywork;TRUNCATE TABLE phpmyadmin.timviecnhanh;TRUNCATE TABLE phpmyadmin.vieclam24h;TRUNCATE TABLE phpmyadmin.itviec;TRUNCATE TABLE phpmyadmin.topcv;TRUNCATE TABLE phpmyadmin.topdev;TRUNCATE TABLE phpmyadmin.crawler_laodong;TRUNCATE TABLE phpmyadmin.crawler_timviec365;TRUNCATE TABLE phpmyadmin.crawler_tuyendungsinhvien;TRUNCATE TABLE phpmyadmin.crawler_tuyendungcomvn;TRUNCATE TABLE phpmyadmin.crawler_tuyencongnhan;;TRUNCATE TABLE phpmyadmin.crawler_itguru;"
 		echo "DONE"
 		;;
 	*)
