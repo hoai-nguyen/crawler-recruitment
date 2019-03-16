@@ -268,6 +268,6 @@ class Common extends Controller{
 	}
 
 	public static function isNotMobile($mobile){
-		return Common::startsWith($mobile, "02") or strlen($mobile) < 9;
+		return strlen($mobile) < 9 or Common::startsWith($mobile, "02") or Common::startsWith($mobile, "04") or Common::startsWith($mobile, "06");
 	}
 }
