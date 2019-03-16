@@ -8,6 +8,7 @@ use Symfony\Component\DomCrawler\Crawler;
 use \Exception as Exception;
 use Illuminate\Support\Facades\DB;
 use \DateTime;
+use App\Http\Controllers\Common;
 
 class CareerBuilderCrawler extends Controller{
 
@@ -15,6 +16,7 @@ class CareerBuilderCrawler extends Controller{
 	const JOB_NAME = "careerbuilder";
 	const CAREERBUILDER_DATA_PATH = 'careerbuilder'; // CI must create directory in
 	const CAREERBUILDER_DATA = 'careerbuilder-data';
+	const CAREERBUILDER_DATA_NO_CONTACT = 'careerbuilder-data-no-contact';
 	const CAREERBUILDER_ERROR = 'careerbuilder-error-';
 	const CAREERBUILDER_LINK = 'careerbuilder-link';
 	const CAREERBUILDER_HOME = 'https://www.careerbuilder.vn';
@@ -289,8 +291,12 @@ class CareerBuilderCrawler extends Controller{
 				, $soluong
 				, $website
 				, $url);
-
-			CareerBuilderCrawler::AppendArrayToFile($job_data , $data_path.self::CAREERBUILDER_DATA.'.csv', "|");
+			
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::CAREERBUILDER_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data , $data_path.self::CAREERBUILDER_DATA.'.csv', "|");
+			}
 			return 0;
 		}
 	}

@@ -16,6 +16,7 @@ class LaoDongCrawler extends Controller{
 	const JOB_NAME = "laodong";
 	const LAODONG_DATA_PATH = 'laodong';
 	const LAODONG_DATA = 'laodong-data';
+	const LAODONG_DATA_NO_CONTACT = 'laodong-data-no-contact';
 	const LAODONG_ERROR = 'laodong-error-';
 	const LAODONG_LINK = 'laodong-link';
 	const LAODONG_HOME = 'http://vieclam.laodong.com.vn';
@@ -292,8 +293,11 @@ class LaoDongCrawler extends Controller{
 				, $website
 				// , $url
 			);
-			Common::AppendArrayToFile($job_data
-				, $data_path.self::LAODONG_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::LAODONG_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::LAODONG_DATA.'.csv', "|");
+			}
 			return 0;
 		}
 	}

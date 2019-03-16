@@ -16,6 +16,7 @@ class CareerLinkCrawler extends Controller{
 	const JOB_NAME = "careerlink";
 	const CAREERLINK_DATA_PATH = 'careerlink';
 	const CAREERLINK_DATA = 'careerlink-data';
+	const CAREERLINK_DATA_NO_CONTACT = 'careerlink-data-no-contact';
 	const CAREERLINK_ERROR = 'careerlink-error-';
 	const CAREERLINK_LINK = 'careerlink-link';
 	const CAREERLINK_HOME = 'https://www.careerlink.vn';
@@ -299,8 +300,11 @@ class CareerLinkCrawler extends Controller{
 				, $website
 				// , $url
 			);
-
-			Common::AppendArrayToFile($job_data , $data_path.self::CAREERLINK_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::CAREERLINK_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data , $data_path.self::CAREERLINK_DATA.'.csv', "|");
+			}
 			return 0;
 		}
 	}

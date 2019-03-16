@@ -16,6 +16,7 @@ class TopCVCrawler extends Controller{
 	const JOB_NAME = "topcv";
 	const TOPCV_DATA_PATH = 'topcv';
 	const TOPCV_DATA = 'topcv-data';
+	const TOPCV_DATA_NO_CONTACT = 'topcv-data-no-contact';
 	const TOPCV_ERROR = 'topcv-error-';
 	const TOPCV_LINK = 'topcv-link';
 	const TOPCV_HOME = 'https://www.topcv.vn/viec-lam/moi-nhat.html?page=';
@@ -290,9 +291,11 @@ class TopCVCrawler extends Controller{
 				, $website
 				// , $url
 			);
-			
-			Common::AppendArrayToFile($job_data
-				, $data_path.self::TOPCV_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::TOPCV_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::TOPCV_DATA.'.csv', "|");
+			}
 			return 0;
 		}
 	}

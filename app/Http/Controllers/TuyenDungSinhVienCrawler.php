@@ -16,6 +16,7 @@ class TuyenDungSinhVienCrawler extends Controller{
 	const JOB_NAME = "tuyendungsinhvien";
 	const TUYENDUNGSINHVIEN_DATA_PATH = 'tuyendungsinhvien';
 	const TUYENDUNGSINHVIEN_DATA = 'tuyendungsinhvien-data';
+	const TUYENDUNGSINHVIEN_DATA_NO_CONTACT = 'tuyendungsinhvien-data-no-contact';
 	const TUYENDUNGSINHVIEN_ERROR = 'tuyendungsinhvien-error-';
 	const TUYENDUNGSINHVIEN_LINK = 'tuyendungsinhvien-link';
 	const TUYENDUNGSINHVIEN_HOME = 'http://tuyendungsinhvien.com';
@@ -278,7 +279,12 @@ class TuyenDungSinhVienCrawler extends Controller{
 				, $website
 				// , $url
 			);
-			Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGSINHVIEN_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGSINHVIEN_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGSINHVIEN_DATA.'.csv', "|");
+			}
+			
 			return 0;
 		}
 	}

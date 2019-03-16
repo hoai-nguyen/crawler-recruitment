@@ -16,6 +16,7 @@ class TuyenDungComVnCrawler extends Controller{
 	const JOB_NAME = "tuyendungcomvn";
 	const TUYENDUNGCOMVN_DATA_PATH = 'tuyendungcomvn';
 	const TUYENDUNGCOMVN_DATA = 'tuyendungcomvn-data';
+	const TUYENDUNGCOMVN_DATA_NO_CONTACT = 'tuyendungcomvn-data-no-contact';
 	const TUYENDUNGCOMVN_ERROR = 'tuyendungcomvn-error-';
 	const TUYENDUNGCOMVN_LINK = 'tuyendungcomvn-link';
 	const TUYENDUNGCOMVN_HOME = 'https://tuyendung.com.vn';
@@ -271,8 +272,11 @@ class TuyenDungComVnCrawler extends Controller{
 				, $website
 				// , $url
 			);
-
-			Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA.'.csv', "|");
+			}
 			return 0;
 		}
 	}

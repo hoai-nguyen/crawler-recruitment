@@ -16,6 +16,7 @@ class TuyenCongNhanCrawler extends Controller{
 	const JOB_NAME = "tuyencongnhan";
 	const TUYENCONGNHAN_DATA_PATH = 'tuyencongnhan';
 	const TUYENCONGNHAN_DATA = 'tuyencongnhan-data';
+	const TUYENCONGNHAN_DATA_NO_CONTACT = 'tuyencongnhan-data-no-contact';
 	const TUYENCONGNHAN_ERROR = 'tuyencongnhan-error-';
 	const TUYENCONGNHAN_LINK = 'tuyencongnhan-link';
 	const TUYENCONGNHAN_HOME = 'https://tuyencongnhan.vn';
@@ -292,7 +293,11 @@ class TuyenCongNhanCrawler extends Controller{
 				, $website
 				// , $url
 			);
-			Common::AppendArrayToFile($job_data, $data_path.self::TUYENCONGNHAN_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::TUYENCONGNHAN_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::TUYENCONGNHAN_DATA.'.csv', "|");
+			}
 			return 0;
 		}
 	}

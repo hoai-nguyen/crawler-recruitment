@@ -16,6 +16,7 @@ class TimViec365Crawler extends Controller{
 	const JOB_NAME = "timviec365";
 	const TIMVIEC365_DATA_PATH = 'timviec365';
 	const TIMVIEC365_DATA = 'timviec365-data';
+	const TIMVIEC365_DATA_NO_CONTACT = 'timviec365-data-no-contact';
 	const TIMVIEC365_ERROR = 'timviec365-error-';
 	const TIMVIEC365_LINK = 'timviec365-link';
 	const TIMVIEC365_HOME = 'https://timviec365.vn';
@@ -288,7 +289,11 @@ class TimViec365Crawler extends Controller{
 				, $website
 				// , $url
 			);
-			Common::AppendArrayToFile($job_data, $data_path.self::TIMVIEC365_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::TIMVIEC365_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::TIMVIEC365_DATA.'.csv', "|");
+			}
 			return 0;
 		}
 	}

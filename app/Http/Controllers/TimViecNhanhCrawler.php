@@ -16,6 +16,7 @@ class TimViecNhanhCrawler extends Controller{
 	const JOB_NAME = "timviecnhanh";
 	const TIMVIECNHANH_DATA_PATH = 'timviecnhanh';
 	const TIMVIECNHANH_DATA = 'timviecnhanh-data';
+	const TIMVIECNHANH_DATA_NO_CONTACT = 'timviecnhanh-data-no-contact';
 	const TIMVIECNHANH_ERROR = 'timviecnhanh-error-';
 	const TIMVIECNHANH_LINK = 'timviecnhanh-link';
 	const TIMVIECNHANH_HOME = 'https://www.timviecnhanh.com/vieclam/timkiem?&page=';
@@ -330,9 +331,11 @@ class TimViecNhanhCrawler extends Controller{
 				, $website
 				// , $url
 			);
-			
-			Common::AppendArrayToFile($job_data
-				, $data_path.self::TIMVIECNHANH_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::TIMVIECNHANH_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::TIMVIECNHANH_DATA.'.csv', "|");
+			}
 		}
 	}
 

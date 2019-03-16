@@ -16,6 +16,7 @@ class ITViecCrawler extends Controller{
 	const JOB_NAME = "itviec";
 	const ITVIEC_DATA_PATH = 'itviec';
 	const ITVIEC_DATA = 'itviec-data';
+	const ITVIEC_DATA_NO_CONTACT = 'itviec-data-no-contact';
 	const ITVIEC_ERROR = 'itviec-error-';
 	const ITVIEC_LINK = 'itviec-link';
 	const ITVIEC_HOME = 'https://itviec.com';
@@ -282,9 +283,11 @@ class ITViecCrawler extends Controller{
 				, $website
 				// , $url
 			);
-			
-			Common::AppendArrayToFile($job_data
-				, $data_path.self::ITVIEC_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::ITVIEC_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::ITVIEC_DATA.'.csv', "|");
+			}
 			return 0;
 		}
 	}

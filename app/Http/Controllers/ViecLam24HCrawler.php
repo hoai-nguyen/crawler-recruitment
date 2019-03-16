@@ -16,6 +16,7 @@ class ViecLam24HCrawler extends Controller{
 	const JOB_NAME = "vieclam24h";
 	const VIECLAM24H_DATA_PATH = 'vieclam24h'; 
 	const VIECLAM24H_DATA = 'vieclam24h-data';
+	const VIECLAM24H_DATA_NO_CONTACT = 'vieclam24h-data-no-contact';
 	const VIECLAM24H_ERROR = 'vieclam24h-error-';
 	const VIECLAM24H_LINK = 'vieclam24h-link';
 	const VIECLAM24H_HOME = 'https://vieclam24h.vn';
@@ -325,8 +326,11 @@ class ViecLam24HCrawler extends Controller{
 				, $website
 				// , $url
 			);
-			
-			Common::AppendArrayToFile($job_data , $data_path.self::VIECLAM24H_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::VIECLAM24H_DATA_NO_CONTACT.'.csv', "|");
+			} else {
+				Common::AppendArrayToFile($job_data, $data_path.self::VIECLAM24H_DATA.'.csv', "|");
+			}
 			return 0;
 		}
 		return 1;

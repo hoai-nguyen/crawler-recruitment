@@ -262,4 +262,12 @@ class Common extends Controller{
 		}
 		return "";
 	}
+
+	public static function IsNullOrEmpty($str){
+		return strlen($str) == 0;
+	}
+
+	public static function isNotMobile($mobile){
+		return Common::startsWith($mobile, "02") or strlen($mobile) < 9;
+	}
 }

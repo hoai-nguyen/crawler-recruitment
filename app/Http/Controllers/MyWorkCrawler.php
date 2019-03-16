@@ -16,6 +16,7 @@ class MyWorkCrawler extends Controller{
 	const JOB_NAME = "mywork";
 	const MYWORK_DATA_PATH = 'mywork'; 
 	const MYWORK_DATA = 'mywork-data';
+	const MYWORK_DATA_NO_CONTACT = 'mywork-data-no-contact';
 	const MYWORK_ERROR = 'mywork-error-';
 	const MYWORK_LINK = 'mywork-link';
 	const MYWORK_HOME = 'https://mywork.com.vn';
@@ -321,9 +322,11 @@ class MyWorkCrawler extends Controller{
 				, $website
 				// , $url
 			);
-			
-			Common::AppendArrayToFile($job_data
-			, $data_path.self::MYWORK_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::MYWORK_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::MYWORK_DATA.'.csv', "|");
+			}
 		}
 	}
 

@@ -16,6 +16,7 @@ class FindJobsCrawler extends Controller{
 	const JOB_NAME = "findjobs";
 	const FINDJOBS_DATA_PATH = 'findjobs';
 	const FINDJOBS_DATA = 'findjobs-data';
+	const FINDJOBS_DATA_NO_CONTACT = 'findjobs-data-no-contact';
 	const FINDJOBS_ERROR = 'findjobs-error-';
 	const FINDJOBS_LINK = 'findjobs-link';
 	const FINDJOBS_HOME = 'https://www.findjobs.vn/viec-lam-vi?page=';
@@ -258,7 +259,11 @@ class FindJobsCrawler extends Controller{
 				, $website
 				// , $url
 			);
-			Common::AppendArrayToFile($job_data, $data_path.self::FINDJOBS_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::FINDJOBS_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::FINDJOBS_DATA.'.csv', "|");
+			}
 		}
 	}
 	

@@ -16,6 +16,7 @@ class ITGuruCrawler extends Controller{
 	const JOB_NAME = "itguru";
 	const ITGURU_DATA_PATH = 'itguru';
 	const ITGURU_DATA = 'itguru-data';
+	const ITGURU_DATA_NO_CONTACT = 'itguru-data-no-contact';
 	const ITGURU_ERROR = 'itguru-error-';
 	const ITGURU_LINK = 'itguru-link';
 	const ITGURU_HOME = 'https://itguru.vn';
@@ -257,7 +258,11 @@ class ITGuruCrawler extends Controller{
 				, $website
 				, $url
 			);
-			Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
+				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA_NO_CONTACT.'.csv', "|");
+			} else{
+				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA.'.csv', "|");
+			}
 			return 0;
 		}
 	}
