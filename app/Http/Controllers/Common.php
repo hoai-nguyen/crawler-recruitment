@@ -12,6 +12,7 @@ class Common extends Controller{
 	const BATCH_SIZE = 3;
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
 	const WEBSITE_PATTERN = "#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#";
+	const MOBILE_PREFIX = array("032", "033", "034", "035", "036", "037", "038", "039", "096", "097", "098", "086", "070", "079", "077", "076", "078", "089", "090", "093", "081", "082", "083", "084", "085", "088", "091", "094", "056", "058", "092", "059", "099");
 	const PHONE_PATTERN = "!\d+!";
 	const PHONE_CODE_VN = "84";
 	const PHONE_START = "0";
@@ -268,6 +269,9 @@ class Common extends Controller{
 	}
 
 	public static function isNotMobile($mobile){
-		return strlen($mobile) < 9 or Common::startsWith($mobile, "02") or Common::startsWith($mobile, "04") or Common::startsWith($mobile, "06");
+		if (strlen($mobile) != 10) 
+        	return true;
+		return ! in_array(substr($mobile, 0, 3), self::MOBILE_PREFIX);
 	}
+
 }
