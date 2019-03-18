@@ -239,6 +239,9 @@ class CareerBuilderCrawler extends Controller{
 						}
 					}
 				}
+				if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+					return 2;
+				}
 			} catch (\Exception $e) {
 				CareerLinkCrawler::AppendStringToFile('Ex on salary + deadline. p.fl_right: '.$url.': '.$e -> getMessage()
 					, $data_path.self::CAREERBUILDER_ERROR.date(self::DATE_FORMAT).'.csv');

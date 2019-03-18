@@ -214,6 +214,9 @@ class TopCVCrawler extends Controller{
 			$deadline = $general_infos -> filter('div.job-deadline') -> text();
 			$deadline = str_replace(self::LABEL_DEADLINE, "", $deadline); 
 			$deadline = Common::RemoveTrailingChars($deadline);
+			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+				return 2;
+			}
 			// $deadline = Common::ConvertDateFormat($deadline, self::INPUT_DATE_FORMAT, Common::DATE_DATA_FORMAT);
 			
 			$address_crl = $general_infos -> filter('div.text-dark-gray');

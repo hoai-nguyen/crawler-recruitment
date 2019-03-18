@@ -222,7 +222,10 @@ class TuyenCongNhanCrawler extends Controller{
 					}
 				}
 			}
-
+			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+				return 2;
+			}
+			
 			$employer_crl = $crawler -> filter("#tab-employer-info > div.tab-body > div.text-left");
 			if ($employer_crl -> count() <= 0){
 				Common::AppendStringToFile("No job-detail: ".$url

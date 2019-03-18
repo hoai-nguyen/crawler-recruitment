@@ -220,6 +220,9 @@ class TimViecNhanhCrawler extends Controller{
 			} 
 			$deadline = trim($deadline, "\r\n ");
 			$deadline = Common::ConvertDateFormat($deadline, self::INPUT_DATE_FORMAT, Common::DATE_DATA_FORMAT);
+			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+				return 2;
+			}
 			// echo 'deadline: '.(microtime(true) - $deadline_start).' secs, ';
 
 			// $salary_start = microtime(true);

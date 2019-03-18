@@ -281,7 +281,10 @@ class MyWorkCrawler extends Controller{
                         }
                     }
                 }
-            }
+			}
+			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+				return 2;
+			}
 			// echo 'deadjob_data: '.(microtime(true) - $deadjob_data_start).' secs, ';
 
 			// $job_des 
@@ -298,14 +301,13 @@ class MyWorkCrawler extends Controller{
 					$idx++;
 				}
 			}
-			$job_des = trim($job_des, "\r\n -");
-
-			$mobile = Common::ExtractFirstMobile($contact);
-
 			$email = Common::ExtractEmailFromText($contact);
 			if ($email == ""){
 				$email = Common::ExtractEmailFromText($job_des);
 			}
+			$job_des =Common::RemoveTrailingChars($job_des);;
+
+			$mobile = Common::ExtractFirstMobile($contact);
 
 			// $file_start = microtime(true);
 			$job_data = array($mobile

@@ -266,7 +266,7 @@ class ITViecCrawler extends Controller{
 			$email = "";
 			$soluong = "";
 			$deadline = "";
-			$contact = "";
+			// $contact = "";
 			$salary = "";
 			
 			$job_data = array($mobile

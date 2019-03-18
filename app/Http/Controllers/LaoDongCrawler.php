@@ -276,6 +276,9 @@ class LaoDongCrawler extends Controller{
 			if ($deadline -> count() > 0){
 				$deadline = $deadline -> first() -> text();
 			}
+			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+				return 2;
+			}
 			
 			$created = "";
 			$soluong = "";

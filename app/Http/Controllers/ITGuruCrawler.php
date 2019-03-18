@@ -213,6 +213,9 @@ class ITGuruCrawler extends Controller{
 					}
 				}
 			}
+			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+				return 2;
+			}
 			
 			$company = "";
 			$mobile = "";
@@ -256,7 +259,7 @@ class ITGuruCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				, $url
+				// , $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA_NO_CONTACT.'.csv', "|");

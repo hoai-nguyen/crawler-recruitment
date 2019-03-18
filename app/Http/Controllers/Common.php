@@ -8,6 +8,7 @@ class Common extends Controller{
 
 	const DATE_FORMAT = "Ymd";
 	const DATE_DATA_FORMAT = "d/m/Y";
+	const DEFAULT_DEADLINE = "-1 day";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
@@ -196,7 +197,7 @@ class Common extends Controller{
 
 		$new_batch = null;
 		try{
-			// find latest batch: id, job_name, start_page, end_page, timestamp
+			// find latest batch: id, job_name, start_page, end_page, job_deadline
 			$select_query = "select * from ".$database.".".$table." where job_name='".$job_name."' order by end_page desc limit 1 ";
 			$select_result = DB::select($select_query);
 	
@@ -275,4 +276,16 @@ class Common extends Controller{
 		return ! in_array(substr($mobile, 0, 3), self::MOBILE_PREFIX);
 	}
 
+	public static function IsJobExpired($interval, $date_string){
+		try{
+			if (strlen($date_string) == 0) return false;
+			if (strlen($interval) == 0) $interval = "0 day";
+			$current = strtotime($interval, strtotime("now"));
+			$job_deadline = \DateTime::createFromFormat(self::DATE_DATA_FORMAT, $date_string)->getTimestamp();
+			return $job_deadline < $current;
+		} catch(\Throwable $ex){
+			// error_log($ex -> getMessage());
+		}
+		return true;
+	}
 }

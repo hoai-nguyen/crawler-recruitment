@@ -263,7 +263,10 @@ class TuyenDungSinhVienCrawler extends Controller{
 					}
 				}
 			}
-
+			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+				return 2;
+			}
+			
 			$email = ""; //TODO 
 
 			$job_data = array($mobile

@@ -216,7 +216,11 @@ class CareerLinkCrawler extends Controller{
 					$website = $website_crl -> first() -> attr('href');
 				}
 			}
-			$company = trim($company, "\r\n- ");
+			if (strpos($company, "Careerlink's Client") !== false){
+				$company = "";
+			} else{
+				$company = Common::RemoveTrailingChars($company);
+			}
 			
 			$address = "";
 			if($critical_job_data_crl -> count() > 1){
@@ -283,7 +287,10 @@ class CareerLinkCrawler extends Controller{
 			}
 			$created = Common::ConvertDateFormat($created, self::INPUT_DATE_FORMAT, Common::DATE_DATA_FORMAT);
 			$deadline = Common::ConvertDateFormat($deadline, self::INPUT_DATE_FORMAT, Common::DATE_DATA_FORMAT);
-
+			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+				return 2;
+			}
+			
 			$soluong = "";
 
 			$job_data = array($mobile

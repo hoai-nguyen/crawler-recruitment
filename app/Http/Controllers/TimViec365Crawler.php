@@ -229,6 +229,9 @@ class TimViec365Crawler extends Controller{
 				}
 			}
 			$deadline = Common::RemoveTrailingChars($deadline);
+			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+				return 2;
+			}
 
 			$created = "";
 			$created_crl = $general_info_crl -> filter('div.xacthuc_tit > p');

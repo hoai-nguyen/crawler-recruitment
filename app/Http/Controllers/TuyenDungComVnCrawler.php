@@ -226,6 +226,9 @@ class TuyenDungComVnCrawler extends Controller{
 			if ($deadline_crl->count() > 0){
 				$deadline = $deadline_crl -> text();
 			}
+			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+				return 2;
+			}
 
 			$email = "";
 			$email_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_hplContactEmail');

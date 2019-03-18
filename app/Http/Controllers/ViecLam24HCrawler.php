@@ -228,6 +228,9 @@ class ViecLam24HCrawler extends Controller{
 						$deadline = $deadline -> first() -> text();
 					}
 				}
+				if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
+					return 2;
+				}
 				// $deadline = Common::ConvertDateFormat($deadline, "d/m/y", Common::DATE_DATA_FORMAT);
 
 				// $posted_start = microtime(true);
