@@ -275,6 +275,9 @@ class TuyenDungComVnCrawler extends Controller{
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA_NO_CONTACT.'.csv', "|");
 			} else{
+				if (Common::isNotMobile($mobile)){
+					$job_data[0] = "";
+				}
 				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA.'.csv', "|");
 			}
 			return 0;
