@@ -252,7 +252,7 @@ class CareerBuilderCrawler extends Controller{
 			if ($job_des_crl -> count() > 0){
 				$job_des = $job_des_crl -> first() -> text();
 			}
-			$job_des = CareerBuilderCrawler::RemoveTrailingChars($job_des);
+			$job_des = Common::RemoveTrailingChars($job_des);
 
 			$company_info_crl = $content -> filter('p.TitleDetailNew > label');
 			$address = "";
@@ -293,7 +293,8 @@ class CareerBuilderCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				, $url);
+				// , $url
+			);
 			
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::CAREERBUILDER_DATA_NO_CONTACT.'.csv', "|");

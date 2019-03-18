@@ -249,6 +249,7 @@ class CareerLinkCrawler extends Controller{
 			}
 			$job_des = preg_replace('!\s+!', ' ', $job_des);
 			$job_des = trim($job_des, "\r\n- ");
+			$job_des = Common::RemoveTrailingChars($job_des);
 
 			$contact_crl = $job_data_crl -> filter('ul.list-unstyled');
 			$contact = "";

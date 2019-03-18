@@ -235,6 +235,7 @@ class FindJobsCrawler extends Controller{
 			}
 			$job_des = trim($job_des, "\r\n -");
 			$job_des = preg_replace("/[\r\n]/", " ", $job_des);
+			$job_des = Common::RemoveTrailingChars($job_des);
 
 			// $mobile = FindJobsCrawler::ExtractMobile($contact);
 			$mobile = "";

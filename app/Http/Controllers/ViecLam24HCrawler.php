@@ -288,6 +288,7 @@ class ViecLam24HCrawler extends Controller{
 				Common::AppendStringToFile('Exception on getting job_des: '.$url.': '.$e -> getMessage()
 					, $data_path.self::VIECLAM24H_ERROR.date(self::DATE_FORMAT).'.csv');
 			}
+			$job_des = Common::RemoveTrailingChars($job_des);
 
 			$contact = "";
 			$address = "";

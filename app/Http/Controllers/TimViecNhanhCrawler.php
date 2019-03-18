@@ -316,6 +316,7 @@ class TimViecNhanhCrawler extends Controller{
 				Common::AppendStringToFile('Exception on getting job_des: '.$url.': '.$e -> getMessage()
 					, $data_path.self::TIMVIECNHANH_ERROR.date(self::DATE_FORMAT).'.csv');
 			}
+			$job_des = Common::RemoveTrailingChars($job_des);
 			
 			// $mobile = Common::ExtractFirstMobile($contact);
 			
