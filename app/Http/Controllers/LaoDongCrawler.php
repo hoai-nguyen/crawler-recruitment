@@ -24,6 +24,7 @@ class LaoDongCrawler extends Controller{
 	const LABEL_SALARY = 'Mức lương:';
 	const LABEL_QUANTITY = 'Số lượng cần tuyển:';
 	const LABEL_DEADLINE = "Hạn nộp hồ sơ:";
+	const LABEL_DEAL = "Thỏa thuận";
 	const DATE_FORMAT = "Ymd";
 	const DATA_DATE_FORMAT = "Y-m-d";
 	const SLASH = DIRECTORY_SEPARATOR;
@@ -246,7 +247,7 @@ class LaoDongCrawler extends Controller{
 			}
 			if ($salary_max -> count() > 0){
 				$salary_max = $salary_max -> first() -> text();
-				$salary = $salary.' - '.$salary_max;
+				$salary = $salary.' - '.$salary_max.' Triệu';
 			}
 			$salary = Common::RemoveTrailingChars($salary);
 			if ($salary === ""){
