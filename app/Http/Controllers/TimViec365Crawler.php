@@ -262,8 +262,10 @@ class TimViec365Crawler extends Controller{
 			$job_des = "";
 			if ($job_des_crl -> count() > 0){
 				$job_des = $job_des_crl -> text();
-				$job_des = Common::RemoveTrailingChars($job_des);
 			}
+			$job_des = str_replace("Mô tả công việc", '', $job_des);
+			$job_des = Common::RemoveTrailingChars($job_des);
+
 			
 			$address = "";
 			$address_crl = $crawler -> filter('div.tt_com > p');

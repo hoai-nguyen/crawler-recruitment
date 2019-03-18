@@ -247,7 +247,7 @@ class LaoDongCrawler extends Controller{
 			}
 			if ($salary_max -> count() > 0){
 				$salary_max = $salary_max -> first() -> text();
-				$salary = $salary.' - '.$salary_max.' Triệu';
+				$salary = $salary.' - '.$salary_max.' triệu';
 			}
 			$salary = Common::RemoveTrailingChars($salary);
 			if ($salary === ""){

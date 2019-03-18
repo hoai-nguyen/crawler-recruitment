@@ -14,6 +14,7 @@ class Common extends Controller{
 	const WEBSITE_PATTERN = "#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#";
 	const MOBILE_PREFIX = array("032", "033", "034", "035", "036", "037", "038", "039", "096", "097", "098", "086", "070", "079", "077", "076", "078", "089", "090", "093", "081", "082", "083", "084", "085", "088", "091", "094", "056", "058", "092", "059", "099");
 	const PHONE_PATTERN = "!\d+!";
+	const TRIM_SET = "\r\n- =*+.";
 	const PHONE_CODE_VN = "84";
 	const PHONE_START = "0";
 	const DB_DEFAULT = "phpmyadmin";
@@ -187,7 +188,7 @@ class Common extends Controller{
 	}
 	
 	public static function RemoveTrailingChars($text){
-		return trim(preg_replace('!\s+!', ' ', $text), "\r\n- ");
+		return trim(preg_replace('!\s+!', ' ', $text), self::TRIM_SET);
     }
     
 	public static function FindNewBatchToProcess($database, $table, $job_name){
