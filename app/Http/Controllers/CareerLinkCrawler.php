@@ -19,6 +19,7 @@ class CareerLinkCrawler extends Controller{
 	const CAREERLINK_DATA_NO_CONTACT = 'careerlink-data-no-contact';
 	const CAREERLINK_ERROR = 'careerlink-error-';
 	const CAREERLINK_LINK = 'careerlink-link';
+	const CAREERLINK_CLIENT = "Careerlink's Client";
 	const CAREERLINK_HOME = 'https://www.careerlink.vn';
 	const CAREERLINK_PAGE = 'https://www.careerlink.vn/vieclam/list?page=';
 	const LABEL_CONTACT = "Người liên hệ";
@@ -216,7 +217,7 @@ class CareerLinkCrawler extends Controller{
 					$website = $website_crl -> first() -> attr('href');
 				}
 			}
-			if (strpos($company, "Careerlink's Client") !== false){
+			if (strpos($company, self::CAREERLINK_CLIENT) !== false){
 				$company = "";
 			} else{
 				$company = Common::RemoveTrailingChars($company);

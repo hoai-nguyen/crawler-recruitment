@@ -281,11 +281,19 @@ class Common extends Controller{
 			if (strlen($date_string) == 0) return false;
 			if (strlen($interval) == 0) $interval = "0 day";
 			$current = strtotime($interval, strtotime("now"));
-			$job_deadline = \DateTime::createFromFormat(self::DATE_DATA_FORMAT, $date_string)->getTimestamp();
+			$job_deadline = \DateTime::createFromFormat('d/m/Y', $date_string)->getTimestamp();
 			return $job_deadline < $current;
 		} catch(\Throwable $ex){
-			// error_log($ex -> getMessage());
+			error_log($ex -> getMessage());
 		}
-		return true;
+		return false;
 	}
+
+	public static function EndWithUpper($str) {
+        if (strlen($str) < 1) return false;
+        
+        $chr = substr($str, -1);
+        return mb_strtolower($chr, "UTF-8") != $chr;
+	}
+	
 }

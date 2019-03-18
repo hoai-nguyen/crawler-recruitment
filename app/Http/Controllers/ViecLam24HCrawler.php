@@ -196,7 +196,7 @@ class ViecLam24HCrawler extends Controller{
 				$content = $content -> first();
 				
 				// $header_start = microtime(true);
-				$job_title = "n/a";
+				$job_title = "";
 				$title_crawler = $crawler -> filter('h1.text_blue');
 				if ($title_crawler -> count() > 0 ) {
 					$job_title = $title_crawler -> first() -> text();

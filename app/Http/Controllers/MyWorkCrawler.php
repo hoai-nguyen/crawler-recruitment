@@ -181,7 +181,7 @@ class MyWorkCrawler extends Controller{
 		} else{
 			$content = $content_crawler -> first();
 			// $header_start = microtime(true);
-			$job_title = "n/a";
+			$job_title = "";
 			$title_crawler = $crawler -> filter('h1.main-title > span');
 			if ($title_crawler -> count() > 0 ) {
 				$job_title = $title_crawler -> first() -> text();
@@ -189,7 +189,7 @@ class MyWorkCrawler extends Controller{
 			// echo 'header: '.(microtime(true) - $header_start).' secs, ';
 
 			// $posted_start = microtime(true);
-			$created = "n/a";
+			$created = "";
 			$created_infos = $content -> filter('div.content > p');
 			if ($created_infos -> count() > 0 ) {
                 foreach ($created_infos as $node) {
@@ -210,7 +210,7 @@ class MyWorkCrawler extends Controller{
 			// echo 'posted time: '.(microtime(true) - $posted_start).' secs, ';
 			
 			// $company_start = microtime(true);
-            $company = "n/a";
+            $company = "";
 			$company_crawler = $content -> filter('p.company-name > a > strong');
 			if ($company_crawler -> count() > 0 ) {
 				$company = $company_crawler -> first() -> text();
@@ -218,7 +218,7 @@ class MyWorkCrawler extends Controller{
 			// echo 'company: '.(microtime(true) - $company_start).' secs, ';
 
 			// $address_start = microtime(true);
-			$address = "n/a";
+			$address = "";
 			$address_crawler = $content -> filter('p.address > span');
 			if ($address_crawler -> count() > 0 ) {
 				$address = $address_crawler -> first() -> text();
@@ -226,7 +226,7 @@ class MyWorkCrawler extends Controller{
 			// echo 'address: '.(microtime(true) - $address_start).' secs, ';
 
             // $salary_start = microtime(true);
-            $salary = 'n/a';
+            $salary = '';
             $salary_crawler = $content -> filter('span.text_red');
             if ($salary_crawler -> count() > 0 ) {
 				$salary = $salary_crawler -> first() -> text();
@@ -236,7 +236,7 @@ class MyWorkCrawler extends Controller{
             // echo 'salary: '.(microtime(true) - $salary_start).' secs, ';
             
             // $website_start = microtime(true);
-			$website = 'n/a';
+			$website = '';
 			$website_crawler = $content -> filter('p.company-name > a');
 			if ($website_crawler -> count() > 0 ) {
                 $ref = $website_crawler -> first() -> attr('href');
@@ -245,7 +245,7 @@ class MyWorkCrawler extends Controller{
             // echo 'website: '.(microtime(true) - $website_start).' secs, ';
             
             // $soluong_start = microtime(true);
-            $soluong = "n/a";
+            $soluong = "";
 			$general_infos = $content -> filter('div.job_detail_general > div.item1 > p');
 			if ($general_infos -> count() > 0 ) {
                 foreach ($general_infos as $node) {
@@ -263,8 +263,8 @@ class MyWorkCrawler extends Controller{
 			// echo 'soluong: '.(microtime(true) - $soluong_start).' secs, ';
 
             // $deadjob_data_start = microtime(true);
-            $contact = "n/a";
-            $deadline = 'n/a';
+            $contact = "";
+            $deadline = '';
             $contact_infos = $content -> filter('div.box-contact > div.row');
 			if ($contact_infos -> count() > 0 ) {
                 foreach ($contact_infos as $node) {
@@ -282,14 +282,14 @@ class MyWorkCrawler extends Controller{
                     }
                 }
 			}
+			$deadline = substr($deadline, 0, 10);
 			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
 				return 2;
 			}
-			// echo 'deadjob_data: '.(microtime(true) - $deadjob_data_start).' secs, ';
 
 			// $job_des 
 			$jds = $content -> filter('div.multiple > div.mw-box-item');
-			$job_des = "n/a";
+			$job_des = "";
 			$idx = 0;
 			if ($jds -> count() > 0){
 				foreach ($jds as $node) {
@@ -305,7 +305,10 @@ class MyWorkCrawler extends Controller{
 			if ($email == ""){
 				$email = Common::ExtractEmailFromText($job_des);
 			}
-			$job_des =Common::RemoveTrailingChars($job_des);;
+			if (Common::EndWithUpper($email)){
+				$email = substr($email, 0, -1);
+			}
+			$job_des =Common::RemoveTrailingChars($job_des);
 
 			$mobile = Common::ExtractFirstMobile($contact);
 
