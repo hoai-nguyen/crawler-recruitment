@@ -32,4 +32,5 @@ Route::get('tuyencongnhan',['uses' => 'TuyenCongNhanCrawler@CrawlerStarter'])->n
 Route::get('tuyendungsinhvien',['uses' => 'TuyenDungSinhVienCrawler@CrawlerStarter'])->name('tuyendungsinhvien');
 Route::get('tuyendungcomvn',['uses' => 'TuyenDungComVnCrawler@CrawlerStarter'])->name('tuyendungcomvn');
 Route::get('itguru',['uses' => 'ITGuruCrawler@CrawlerStarter'])->name('itguru');
+Route::get('automotive',['uses' => 'AutomotiveExpoCrawler@CrawlerStarter'])->name('automotive');
 Route::get('careerbuilder',['uses' => 'CareerBuilderCrawler@CrawlerStarter'])->name('careerbuilder');

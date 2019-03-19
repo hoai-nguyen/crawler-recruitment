@@ -20,11 +20,11 @@ class Common extends Controller{
 	const PHONE_START = "0";
 	const DB_DEFAULT = "phpmyadmin";
 
-	public static function ExtractMobile($contact){
-		if ($contact == null) return "";
+	public static function ExtractMobile($text){
+		if ($text == null) return "";
 		$mobiles_str = "";
 		try{
-			preg_match_all(self::PHONE_PATTERN, $contact, $matches);
+			preg_match_all(self::PHONE_PATTERN, $text, $matches);
 			$len = count($matches[0]);
 			if ($len > 0){
 				$nums = $matches[0];
@@ -50,11 +50,11 @@ class Common extends Controller{
 		return $mobiles_str;		
 	}
 
-	public static function ExtractFirstMobile($contact){
-		if ($contact == null) return "";
+	public static function ExtractFirstMobile($text){
+		if ($text == null) return "";
 		$mobiles_str = "";
 		try{
-			preg_match_all(self::PHONE_PATTERN, $contact, $matches);
+			preg_match_all(self::PHONE_PATTERN, $text, $matches);
 			$len = count($matches[0]);
 			if ($len > 0){
 				$nums = $matches[0];
@@ -81,6 +81,44 @@ class Common extends Controller{
 			} 
 			if (strlen($mobiles_str) < 8 or strlen($mobiles_str) > 16) return "";
 			return Common::PhoneCleasing($mobiles_str);
+		} catch (\Throwable $e) {
+			// error_log('Exception on ExtractFirstMobile: '.($e -> getMessage ()));
+		}
+		return $mobiles_str;		
+	}
+
+	public static function ExtractJapaneseMobile($text){
+		if ($text == null) return "";
+		$mobiles_str = "";
+		try{
+			preg_match_all(self::PHONE_PATTERN, $text, $matches);
+			$len = count($matches[0]);
+			if ($len > 0){
+				$nums = $matches[0];
+				$mobiles = array();
+				$mobile_tmp = "";
+				for ($x = 0; $x < $len; $x++) {
+					$num = $nums[$x];
+					if (strlen($mobile_tmp.$num) <= 12){
+						$mobile_tmp = $mobile_tmp.$num;
+					} else {
+						array_push($mobiles, $mobile_tmp);
+						$mobile_tmp = $num;
+					}
+					if ($x == $len - 1){
+						array_push($mobiles, $mobile_tmp);
+					}
+				} 
+				if (sizeof($mobiles) > 0 ){
+					if (sizeof($mobiles) > 1 and strlen($mobiles[1]) < 5){
+						$mobiles_str = $mobiles[0].'/'.$mobiles[1];
+					} 
+					$mobiles_str = $mobiles[0];
+				}
+			} 
+			if (strlen($mobiles_str) < 8 or strlen($mobiles_str) > 16) return "";
+			return $mobiles_str;
+			// return Common::PhoneCleasing($mobiles_str);
 		} catch (\Throwable $e) {
 			// error_log('Exception on ExtractFirstMobile: '.($e -> getMessage ()));
 		}
