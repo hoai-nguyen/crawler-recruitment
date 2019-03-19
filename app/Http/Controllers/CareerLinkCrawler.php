@@ -198,7 +198,7 @@ class CareerLinkCrawler extends Controller{
 				return 4;
 			}
 			$job_title = $title_crl -> first() -> text();
-			$job_title = trim($job_title, "\r\n- ");
+			$job_title = Common::RemoveTrailingChars($job_title);
 			
 			$job_data_crl = $crawler -> filter('div.job-data');
 			if($job_data_crl -> count() <= 0){
@@ -227,8 +227,7 @@ class CareerLinkCrawler extends Controller{
 			if($critical_job_data_crl -> count() > 1){
 				$address = $critical_job_data_crl -> eq(1) -> text();
 			}
-			$address = preg_replace('!\s+!', ' ', $address);
-			$address = trim($address, "\r\n- ");
+			$address = Common::RemoveTrailingChars($address);
 
 			$salary = "";
 			if($critical_job_data_crl -> count() > 2){
@@ -247,8 +246,6 @@ class CareerLinkCrawler extends Controller{
 					$job_des = $node -> first() -> text();
 				}
 			}
-			$job_des = preg_replace('!\s+!', ' ', $job_des);
-			$job_des = trim($job_des, "\r\n- ");
 			$job_des = Common::RemoveTrailingChars($job_des);
 
 			$contact_crl = $job_data_crl -> filter('ul.list-unstyled');

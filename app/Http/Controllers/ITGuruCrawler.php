@@ -187,6 +187,7 @@ class ITGuruCrawler extends Controller{
 			} else {
 				return -1;
 			}
+			$job_title = Common::RemoveTrailingChars($job_title);
 
 			$salary = "";
 			$deadline = "";
@@ -242,7 +243,8 @@ class ITGuruCrawler extends Controller{
 				$address = $company_info_crl -> text();
 				$address = Common::RemoveTrailingChars($address);
 			}
-			
+			$company = Common::RemoveTrailingChars($company);
+
 			$email = "";
 			$created = "";
 			$soluong = "";

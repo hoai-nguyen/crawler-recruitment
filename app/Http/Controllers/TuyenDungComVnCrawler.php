@@ -188,12 +188,14 @@ class TuyenDungComVnCrawler extends Controller{
 			if ($company_crl->count() > 0){
 				$company = $company_crl -> text();
 			}
+			$company = Common::RemoveTrailingChars($company);
 			
 			$address = "";
 			$address_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblCompanyAddress');
 			if ($address_crl->count() > 0){
 				$address = $address_crl -> text();
 			}
+			$address = Common::RemoveTrailingChars($address);
 
 			$website = "";
 			$website_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_hplWebsite');
@@ -208,6 +210,7 @@ class TuyenDungComVnCrawler extends Controller{
 			} else {
 				return -1;
 			}
+			$job_title = Common::RemoveTrailingChars($job_title);
 
 			$soluong = "";
 			$soluong_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblReqNumber');

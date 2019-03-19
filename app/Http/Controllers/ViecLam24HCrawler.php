@@ -218,7 +218,7 @@ class ViecLam24HCrawler extends Controller{
 						$website = $atag -> first() -> attr('href');
 					}
 				}
-				// echo 'company: '.(microtime(true) - $company_start).' secs, ';
+				$company = Common::RemoveTrailingChars($company);
 
 				$deadline = '';
 				$deadline_crl = $content -> filter('i.icon-countdown');
@@ -314,6 +314,7 @@ class ViecLam24HCrawler extends Controller{
 
 			$mobile = Common::ExtractFirstMobile($contact);
 			$email = Common::ExtractEmailFromText($contact);
+			$address = Common::RemoveTrailingChars($address);
 
 			// $file_start = microtime(true);
 			$job_data = array($mobile

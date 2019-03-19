@@ -196,6 +196,7 @@ class TuyenDungSinhVienCrawler extends Controller{
 			if ($job_title_crl->count() > 0){
 				$job_title = $job_title_crl -> text();
 			}
+			$job_title = Common::RemoveTrailingChars($job_title);
 
 			$created = "";
 			$created_crl = $header_crl -> filter('#jd-date');

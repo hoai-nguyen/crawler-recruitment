@@ -185,7 +185,8 @@ class MyWorkCrawler extends Controller{
 			$title_crawler = $crawler -> filter('h1.main-title > span');
 			if ($title_crawler -> count() > 0 ) {
 				$job_title = $title_crawler -> first() -> text();
-            }
+			}
+			$job_title = Common::RemoveTrailingChars($job_title);
 			// echo 'header: '.(microtime(true) - $header_start).' secs, ';
 
 			// $posted_start = microtime(true);
@@ -214,7 +215,8 @@ class MyWorkCrawler extends Controller{
 			$company_crawler = $content -> filter('p.company-name > a > strong');
 			if ($company_crawler -> count() > 0 ) {
 				$company = $company_crawler -> first() -> text();
-            }
+			}
+			$company = Common::RemoveTrailingChars($company);
 			// echo 'company: '.(microtime(true) - $company_start).' secs, ';
 
 			// $address_start = microtime(true);
@@ -222,7 +224,8 @@ class MyWorkCrawler extends Controller{
 			$address_crawler = $content -> filter('p.address > span');
 			if ($address_crawler -> count() > 0 ) {
 				$address = $address_crawler -> first() -> text();
-            }
+			}
+			$address = Common::RemoveTrailingChars($address);
 			// echo 'address: '.(microtime(true) - $address_start).' secs, ';
 
             // $salary_start = microtime(true);

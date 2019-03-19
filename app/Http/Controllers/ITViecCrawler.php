@@ -251,6 +251,7 @@ class ITViecCrawler extends Controller{
 			}
 			$company = $company_crl -> first() -> text();
 			$company = Common::RemoveTrailingChars($company);
+			
 			$website = $company_crl -> filter('a') -> first() -> attr('href');
 			$website = self::ITVIEC_HOME.$website;
 

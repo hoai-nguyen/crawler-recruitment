@@ -23,6 +23,7 @@ class TopCVCrawler extends Controller{
 	const LABEL_SALARY = 'Mức lương:';
 	const LABEL_QUANTITY = 'Số lượng cần tuyển:';
 	const LABEL_DEADLINE = "Hạn nộp hồ sơ:";
+	const LABEL_CONFIRMED = "đã xác thực";
 	const DATE_FORMAT = "Ymd";
 	const INPUT_DATE_FORMAT = "d/m/Y";
 	const SLASH = DIRECTORY_SEPARATOR;
@@ -207,9 +208,10 @@ class TopCVCrawler extends Controller{
 			}
 			
 			$job_title = $general_infos -> filter('h1.job-title') -> text();
+			$job_title = Common::RemoveTrailingChars($job_title);
 			$company = $general_infos -> filter('div.company-title') -> text();
+			$company = str_replace(self::LABEL_CONFIRMED, "", $company); 
 			$company = Common::RemoveTrailingChars($company);
-
 			
 			$deadline = $general_infos -> filter('div.job-deadline') -> text();
 			$deadline = str_replace(self::LABEL_DEADLINE, "", $deadline); 

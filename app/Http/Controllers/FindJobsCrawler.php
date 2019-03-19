@@ -191,6 +191,7 @@ class FindJobsCrawler extends Controller{
 			if ($title_crawler -> count() > 0 ) {
 				$job_title = $title_crawler -> first() -> text();
 			}
+			$job_title = Common::RemoveTrailingChars($job_title);
 			// echo 'header: '.(microtime(true) - $header_start).' secs, ';
 
 			// $company_start = microtime(true);
@@ -199,6 +200,7 @@ class FindJobsCrawler extends Controller{
 			if ($company_crawler -> count() > 0 ) {
 				$company = $company_crawler -> first() -> text();
 			}
+			$company = Common::RemoveTrailingChars($company);
 			// echo 'company: '.(microtime(true) - $company_start).' secs, ';
 
 			$company_details = $crawler -> filter('div.detail > dl.dl-horizontal > dd');
@@ -217,7 +219,7 @@ class FindJobsCrawler extends Controller{
 					}
 				}
 			}
-			$address = trim($address, "\r\n ");
+			$address = Common::RemoveTrailingChars($address);
 			
             // $salary_start = microtime(true);
             $salary = '';
@@ -233,8 +235,6 @@ class FindJobsCrawler extends Controller{
 			if ($jds -> count() > 0){
 				$job_des = $jds -> text();
 			}
-			$job_des = trim($job_des, "\r\n -");
-			$job_des = preg_replace("/[\r\n]/", " ", $job_des);
 			$job_des = Common::RemoveTrailingChars($job_des);
 
 			// $mobile = FindJobsCrawler::ExtractMobile($contact);

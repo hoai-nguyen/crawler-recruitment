@@ -187,6 +187,7 @@ class TopDevCrawler extends Controller{
 			}
 
 			$job_title = $job_details_crl -> filter('h1.job-title') -> text();
+			$job_title = Common::RemoveTrailingChars($job_title);
 			
 			$company = $job_details_crl -> filter('div.job-header-info > span.company-name') -> text();
 			$company = Common::RemoveTrailingChars($company);

@@ -201,6 +201,7 @@ class TimViec365Crawler extends Controller{
 			if ($job_title_crl->count() > 0){
 				$job_title = $job_title_crl -> text();
 			}
+			$job_title = Common::RemoveTrailingChars($job_title);
 
 			$company = "";
 			$website = "";
@@ -210,6 +211,7 @@ class TimViec365Crawler extends Controller{
 				$website = $company_crl -> first() -> attr('href');
 				$website = self::TIMVIEC365_HOME.$website;
 			}
+			$company = Common::RemoveTrailingChars($company);
 			
 			$salary = "";
 			$salary_crl = $general_info_crl -> filter('div.right_tit > p.lv_luong');

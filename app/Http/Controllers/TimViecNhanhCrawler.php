@@ -193,6 +193,7 @@ class TimViecNhanhCrawler extends Controller{
 			if ($title_crawler -> count() > 0 ) {
 				$job_title = $title_crawler -> first() -> text();
 			}
+			$job_title = Common::RemoveTrailingChars($job_title);
 			// echo 'header: '.(microtime(true) - $header_start).' secs, ';
 
 			// $posted_start = microtime(true);
@@ -210,7 +211,7 @@ class TimViecNhanhCrawler extends Controller{
 			if ($company_crawler -> count() > 0 ) {
 				$company = $company_crawler -> first() -> text();
 			}
-			$company = trim($company, "\r\n ");
+			$company = Common::RemoveTrailingChars($company);
 			// echo 'company: '.(microtime(true) - $company_start).' secs, ';
 
 			// $deadline_start = microtime(true);
@@ -300,8 +301,8 @@ class TimViecNhanhCrawler extends Controller{
 						}
 					}
 				}
-				$contact = trim(preg_replace("/[\t\r\n]*/", "", $contact), "\t\r\n ");
-				$address = trim(preg_replace("/[\t\r\n]*/", "", $address), "\t\r\n ");
+				$contact = Common::RemoveTrailingChars($contact);
+				$address = Common::RemoveTrailingChars($address);
 
 			} catch (\Exception $e) {
 				Common::AppendStringToFile('Exception on getting contact or address: '.$url.': '.$e -> getMessage()
