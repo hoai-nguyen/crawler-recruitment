@@ -78,4 +78,9 @@ if [ ! -d $itguru ]; then
 	mkdir -p $itguru
 fi
 
+tenshoku=$dir'/tenshoku'
+if [ ! -d $tenshoku ]; then
+	mkdir -p $tenshoku
+fi
+
 echo "DONE creating data directories!"

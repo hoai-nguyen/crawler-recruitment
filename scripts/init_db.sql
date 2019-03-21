@@ -100,3 +100,9 @@ CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_itguru`(
 	`link` varchar(2000) DEFAULT NULL,
 	PRIMARY KEY(`id`)
 );
+
+CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_tenshoku`(
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`link` varchar(2000) DEFAULT NULL,
+	PRIMARY KEY(`id`)
+);

@@ -122,6 +122,14 @@ case $1 in
 		fi
 		echo "DONE"
 		;;
+	tenshoku)
+		echo "RESET tenshoku!"
+		tenshoku='public/data/tenshoku'
+		if [ -d $tenshoku ]; then
+		  rm -rf $tenshoku/*.csv
+		fi
+		echo "DONE"
+		;;
 	all)
 		echo "RESET all!"
 		alldata='public/data'
@@ -135,7 +143,7 @@ case $1 in
 		echo "Sorry, there is no directory name: $1"
 		echo ""
 		echo "Usage: ./script/clean_data_dir.sh [option]"
-		echo "Available options: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink, laodong, timviec365, tuyencongnhan, tuyendungsinhvien, tuyendungcomvn, itguru"
+		echo "Available options: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink, laodong, timviec365, tuyencongnhan, tuyendungsinhvien, tuyendungcomvn, itguru, tenshoku"
 		echo "Example: To clean crawled data for topdev crawler, we use: ./script/clean_data_dir.sh topdev"
 		echo ""
 		;;
