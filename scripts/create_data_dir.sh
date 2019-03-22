@@ -83,4 +83,9 @@ if [ ! -d $tenshoku ]; then
 	mkdir -p $tenshoku
 fi
 
+hatalike=$dir'/hatalike'
+if [ ! -d $hatalike ]; then
+	mkdir -p $hatalike
+fi
+
 echo "DONE creating data directories!"

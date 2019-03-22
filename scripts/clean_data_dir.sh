@@ -130,6 +130,14 @@ case $1 in
 		fi
 		echo "DONE"
 		;;
+	hatalike)
+		echo "RESET hatalike!"
+		hatalike='public/data/hatalike'
+		if [ -d $hatalike ]; then
+		  rm -rf $hatalike/*.csv
+		fi
+		echo "DONE"
+		;;
 	all)
 		echo "RESET all!"
 		alldata='public/data'
