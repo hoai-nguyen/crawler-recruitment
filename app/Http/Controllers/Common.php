@@ -87,6 +87,44 @@ class Common extends Controller{
 		return $mobiles_str;		
 	}
 
+	public static function ExtractFirstJPMobile($contact){
+		if ($contact == null) return "";
+		$mobiles_str = "";
+		try{
+			preg_match_all(self::PHONE_PATTERN, $contact, $matches);
+			$len = count($matches[0]);
+			if ($len > 0){
+				$nums = $matches[0];
+				$mobiles = array();
+				$mobile_tmp = "";
+				for ($x = 0; $x < $len; $x++) {
+					$num = $nums[$x];
+					if (strlen($mobile_tmp.$num) < 12){
+						$mobile_tmp = $mobile_tmp.$num;
+					} else {
+						array_push($mobiles, $mobile_tmp);
+						$mobile_tmp = $num;
+					}
+					if ($x == $len - 1){
+						array_push($mobiles, $mobile_tmp);
+					}
+				} 
+				if (sizeof($mobiles) > 0 ){
+					$mobiles_str = $mobiles[0];
+				}
+			} 
+			if (strlen($mobiles_str) < 10 or strlen($mobiles_str) > 11) return "";
+			if (strlen($mobiles_str) == 11 
+					and ! in_array(substr($mobiles_str, 0, 3), array("070", "080", "090"))){
+				$mobiles_str =	substr($mobiles_str, 0, -1);
+			}
+			return $mobiles_str;
+		} catch (\Throwable $e) {
+			// error_log('Exception on ExtractFirstMobile: '.($e -> getMessage ()));
+		}
+		return $mobiles_str;		
+	}
+
 	static function startsWith($string, $startString) { 
 		try{
 			$len = strlen($startString); 
@@ -190,6 +228,10 @@ class Common extends Controller{
 	
 	public static function RemoveTrailingChars($text){
 		return trim(preg_replace('!\s+!', ' ', $text), self::TRIM_SET);
+	}
+	
+	public static function RemoveSpaceChars($text){
+		return preg_replace('!\s+!', ' ', $text);
     }
     
 	public static function FindNewBatchToProcess($database, $table, $job_name){

@@ -32,4 +32,5 @@ Route::get('itguru',['uses' => 'ITGuruCrawler@CrawlerStarter'])->name('itguru');
 Route::get('tenshoku',['uses' => 'TenshokuCrawler@CrawlerStarter'])->name('tenshoku');
 Route::get('tenshokuex',['uses' => 'TenshokuExCrawler@CrawlerStarter'])->name('tenshokuex');
 Route::get('hatalike',['uses' => 'HatalikeCrawler@CrawlerStarter'])->name('hatalike');
+Route::get('rikunabi',['uses' => 'RikunabiCrawler@CrawlerStarter'])->name('rikunabi');
 Route::get('careerbuilder',['uses' => 'CareerBuilderCrawler@CrawlerStarter'])->name('careerbuilder');
