@@ -83,6 +83,11 @@ if [ ! -d $tenshoku ]; then
 	mkdir -p $tenshoku
 fi
 
+tenshokuex=$dir'/tenshokuex'
+if [ ! -d $tenshokuex ]; then
+	mkdir -p $tenshokuex
+fi
+
 hatalike=$dir'/hatalike'
 if [ ! -d $hatalike ]; then
 	mkdir -p $hatalike

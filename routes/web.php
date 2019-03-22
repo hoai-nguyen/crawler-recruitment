@@ -15,11 +15,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('github',['uses' => 'TimViecNhanhCrawler@GithubLogin'])->name('github');
-
 Route::get('timviecnhanh',['uses' => 'TimViecNhanhCrawler@CrawlerStarter'])->name('timviecnhanh');
-Route::get('mywork/{start_page}/{end_page}',['uses' => 'MyWorkCrawler@MyWorkCrawler'])->name('mywork');
-Route::get('mywork',['uses' => 'MyWorkCrawler@CrawlerStarter'])->name('mywork1');
+Route::get('mywork',['uses' => 'MyWorkCrawler@CrawlerStarter'])->name('mywork');
 Route::get('findjobs',['uses' => 'FindJobsCrawler@CrawlerStarter'])->name('findjobs');
 Route::get('vieclam24h',['uses' => 'ViecLam24HCrawler@CrawlerStarter'])->name('vieclam24h');
 Route::get('careerlink',['uses' => 'CareerLinkCrawler@CrawlerStarter'])->name('careerlink');
@@ -33,5 +30,6 @@ Route::get('tuyendungsinhvien',['uses' => 'TuyenDungSinhVienCrawler@CrawlerStart
 Route::get('tuyendungcomvn',['uses' => 'TuyenDungComVnCrawler@CrawlerStarter'])->name('tuyendungcomvn');
 Route::get('itguru',['uses' => 'ITGuruCrawler@CrawlerStarter'])->name('itguru');
 Route::get('tenshoku',['uses' => 'TenshokuCrawler@CrawlerStarter'])->name('tenshoku');
+Route::get('tenshokuex',['uses' => 'TenshokuExCrawler@CrawlerStarter'])->name('tenshokuex');
 Route::get('hatalike',['uses' => 'HatalikeCrawler@CrawlerStarter'])->name('hatalike');
 Route::get('careerbuilder',['uses' => 'CareerBuilderCrawler@CrawlerStarter'])->name('careerbuilder');
