@@ -93,4 +93,9 @@ if [ ! -d $hatalike ]; then
 	mkdir -p $hatalike
 fi
 
+rikunabi=$dir'/rikunabi'
+if [ ! -d $rikunabi ]; then
+	mkdir -p $rikunabi
+fi
+
 echo "DONE creating data directories!"

@@ -119,3 +119,9 @@ CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_hatalike`(
 	PRIMARY KEY(`id`)
 );
 
+CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_rikunabi`(
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`link` varchar(2000) DEFAULT NULL,
+	PRIMARY KEY(`id`)
+);
+
