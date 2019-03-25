@@ -15,6 +15,7 @@ class Common extends Controller{
 	const WEBSITE_PATTERN = "#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#";
 	const MOBILE_PREFIX = array("032", "033", "034", "035", "036", "037", "038", "039", "096", "097", "098", "086", "070", "079", "077", "076", "078", "089", "090", "093", "081", "082", "083", "084", "085", "088", "091", "094", "056", "058", "092", "059", "099");
 	const PHONE_PATTERN = "!\d+!";
+	const PHONE_PATTERN_JP = "/\b[0-9]{2,4}\s*-\s*[0-9]{2,4}\s*-\s*[0-9]{2,4}\b/";
 	const TRIM_SET = "\r\n- =*+. –נ●•âƢẢܔ֠Ȓƪܨۨ®";
 	const PHONE_CODE_VN = "84";
 	const PHONE_START = "0";
@@ -91,32 +92,17 @@ class Common extends Controller{
 		if ($contact == null) return "";
 		$mobiles_str = "";
 		try{
-			preg_match_all(self::PHONE_PATTERN, $contact, $matches);
-			$len = count($matches[0]);
-			if ($len > 0){
-				$nums = $matches[0];
-				$mobiles = array();
-				$mobile_tmp = "";
-				for ($x = 0; $x < $len; $x++) {
-					$num = $nums[$x];
-					if (strlen($mobile_tmp.$num) < 12){
-						$mobile_tmp = $mobile_tmp.$num;
-					} else {
-						array_push($mobiles, $mobile_tmp);
-						$mobile_tmp = $num;
-					}
-					if ($x == $len - 1){
-						array_push($mobiles, $mobile_tmp);
-					}
-				} 
-				if (sizeof($mobiles) > 0 ){
-					$mobiles_str = $mobiles[0];
-				}
-			} 
+			preg_match_all(self::PHONE_PATTERN_JP, $contact, $matches);
+			if (sizeof($matches[0]) > 0){
+				$mobiles_str = $matches[0][0];
+				$mobiles_str = preg_replace('!-!', '', $mobiles_str);
+			} else{
+				$mobiles_str = "";
+			}
 			if (strlen($mobiles_str) < 10 or strlen($mobiles_str) > 11) return "";
 			if (strlen($mobiles_str) == 11 
 					and ! in_array(substr($mobiles_str, 0, 3), array("070", "080", "090"))){
-				$mobiles_str =	substr($mobiles_str, 0, -1);
+				$mobiles_str =	"";
 			}
 			return $mobiles_str;
 		} catch (\Throwable $e) {

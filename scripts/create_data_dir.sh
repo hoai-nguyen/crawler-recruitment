@@ -98,4 +98,9 @@ if [ ! -d $rikunabi ]; then
 	mkdir -p $rikunabi
 fi
 
+doda=$dir'/doda'
+if [ ! -d $doda ]; then
+	mkdir -p $doda
+fi
+
 echo "DONE creating data directories!"
