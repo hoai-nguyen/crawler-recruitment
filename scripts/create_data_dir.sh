@@ -103,4 +103,9 @@ if [ ! -d $doda ]; then
 	mkdir -p $doda
 fi
 
+enjapan=$dir'/enjapan'
+if [ ! -d $enjapan ]; then
+	mkdir -p $enjapan
+fi
+
 echo "DONE creating data directories!"

@@ -9,35 +9,35 @@ use \Exception as Exception;
 
 use App\Http\Controllers\Common;
 
-class RikunabiCrawler extends Controller{
+class EnJapanCrawler extends Controller{
 
-	const TABLE = "crawler_rikunabi";
+	const TABLE = "crawler_enjapan";
 	const TABLE_METADATA = "job_metadata";
-	const JOB_NAME = "rikunabi";
-	const RIKUNABI_DATA_PATH = 'rikunabi';
-	const RIKUNABI_DATA = 'rikunabi-data';
-	const RIKUNABI_DATA_NO_CONTACT = 'rikunabi-data-no-contact';
-	const RIKUNABI_ERROR = 'rikunabi-error-';
-	const RIKUNABI_LINK = 'rikunabi-link';
-	const RIKUNABI_HOME = 'https://next.rikunabi.com';
-	const RIKUNABI_PAGE = 'https://next.rikunabi.com/lst/crn';
-	const RIKUNABI_POSTFIX = '.html';
+	const JOB_NAME = "enjapan";
+	const ENJAPAN_DATA_PATH = 'enjapan';
+	const ENJAPAN_DATA = 'enjapan-data';
+	const ENJAPAN_DATA_NO_CONTACT = 'enjapan-data-no-contact';
+	const ENJAPAN_ERROR = 'enjapan-error-';
+	const ENJAPAN_LINK = 'enjapan-link';
+	const ENJAPAN_HOME = 'https://employment.en-japan.com';
+	const ENJAPAN_PAGE = 'https://employment.en-japan.com/search/search_list/?aroute=12&refine=1&pagenum=';
+	const ENJAPAN_POSTFIX = '-fm__jobdetail/-mpsc_sid__10/';
 	const LABEL_SALARY = "給与";
 	const LABEL_QUANTITY = "採用予定人数";
-	const LABEL_DESCRIPTION = "仕事の内容";
+	const LABEL_DESCRIPTION = "仕事内容";
 	const LABEL_MOBILE = "連絡先";
-	const LABEL_ADDRESS = "勤務地";
+	const LABEL_ADDRESS = "勤務地・交通";
 	const LABEL_WEBSITE = "企業ホームページ";
 	const DATE_FORMAT = "Ymd";
-	const DATE_REGEX = '/\d{4}\/\d{1,2}\/\d{1,2}/';
-	const INPUT_DATE_FORMAT = "Y/m/d";
+	const DATE_REGEX = '/\d{2}\/\d{1,2}\/\d{1,2}/';
+	const INPUT_DATE_FORMAT = "y/m/d";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const MAX_PAGE =  1000;
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
-		error_log("Start crawling rikunabi ...");
+		error_log("Start crawling enjapan ...");
 
 		$client = new Client(); 
 		while (true){
@@ -47,14 +47,14 @@ class RikunabiCrawler extends Controller{
 				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
 				if ($new_batch == null) break;
 				
-				$return_code = $this -> RikunabiCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
+				$return_code = $this -> EnJapanCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
 				
 				if ($return_code > 1) break;
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
 
 			} catch (\Exception $e) {
 				error_log($e -> getMessage());
-				$file_name = public_path('data').self::SLASH.self::RIKUNABI_DATA_PATH.self::SLASH.self::RIKUNABI_ERROR.date(self::DATE_FORMAT).'.csv';
+				$file_name = public_path('data').self::SLASH.self::ENJAPAN_DATA_PATH.self::SLASH.self::ENJAPAN_ERROR.date(self::DATE_FORMAT).'.csv';
 				Common::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
@@ -68,31 +68,31 @@ class RikunabiCrawler extends Controller{
 		echo "DONE!";
 	}
 	
-	public function RikunabiCrawlerFunc($client, $start_page, $end_page){
-		$DATA_PATH = public_path('data').self::SLASH.self::RIKUNABI_DATA_PATH.self::SLASH;
+	public function EnJapanCrawlerFunc($client, $start_page, $end_page){
+		$DATA_PATH = public_path('data').self::SLASH.self::ENJAPAN_DATA_PATH.self::SLASH;
 
 		$last_page_is_empty = false;
 		$return_code = 0;
 		$x = (int) $start_page; 
 		$end_page = (int) $end_page;
         while($x <= $end_page) {
-			$step = 50*($x - 1)+1;
 			$page_start = microtime(true);
 			error_log("Page = ".$x);
 			echo "page = ".$x.": ";
 			
 			try{
-				$pageUrl = self::RIKUNABI_PAGE.$step.self::RIKUNABI_POSTFIX;
+				$pageUrl = self::ENJAPAN_PAGE.$x;
 				$crawler = $client -> request('GET', $pageUrl);
-				$jobs = $crawler -> filter('ul.rnn-jobOfferList') -> filter('a.rnn-button--primary');
+				$jobs = $crawler -> filter('div.jobSearchListLeftArea > div.list') -> filter("div.buttonArea > a.toDesc");
+				
 				if ($jobs -> count() <= 0) {
 					Common::AppendStringToFile("No job found on page: ".$pageUrl
-						, $DATA_PATH.self::RIKUNABI_ERROR.date(self::DATE_FORMAT).'.csv');
+						, $DATA_PATH.self::ENJAPAN_ERROR.date(self::DATE_FORMAT).'.csv');
 					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
 						Common::AppendStringToFile("Quit because two consecutive pages are empty."
-							, $DATA_PATH.self::RIKUNABI_ERROR.date(self::DATE_FORMAT).'.csv');
+							, $DATA_PATH.self::ENJAPAN_ERROR.date(self::DATE_FORMAT).'.csv');
 						return 2;
 					}
 					$last_page_is_empty = true;
@@ -108,7 +108,7 @@ class RikunabiCrawler extends Controller{
 									return $job_link;
 								}
 							} catch (\Exception $e) {
-								$file_name = public_path('data').self::SLASH.self::RIKUNABI_DATA_PATH.self::SLASH.self::RIKUNABI_ERROR.date(self::DATE_FORMAT).'.csv';
+								$file_name = public_path('data').self::SLASH.self::ENJAPAN_DATA_PATH.self::SLASH.self::ENJAPAN_ERROR.date(self::DATE_FORMAT).'.csv';
 								Common::AppendStringToFile('Exception on getting job_link: '.substr($e -> getMessage (), 0, 1000), $file_name);
 							}
 						}
@@ -136,17 +136,16 @@ class RikunabiCrawler extends Controller{
 									ini_set('max_execution_time', 10000000);				
 
 									if ($job_link != null){
-										$full_link = self::RIKUNABI_HOME.$job_link;
-										$full_link = str_replace("/nx1_", "/nx2_", $job_link);
+										$full_link = self::ENJAPAN_HOME.$job_link;
 										$code = $this->CrawlJob($client, $full_link, $DATA_PATH);
 										if ($code == 0)
 											Common::AppendStringToFile($full_link
-												, $DATA_PATH.self::RIKUNABI_LINK.'.csv');
+												, $DATA_PATH.self::ENJAPAN_LINK.'.csv');
 									}
 								} catch (\Exception $e) {
 									error_log('Crawl each link: '.($e -> getMessage ()));
 									Common::AppendStringToFile("Exception on crawling link: ".$job_link.": ".substr($e -> getMessage (), 0, 1000)
-										, $DATA_PATH.self::RIKUNABI_ERROR.date(self::DATE_FORMAT).'.csv');
+										, $DATA_PATH.self::ENJAPAN_ERROR.date(self::DATE_FORMAT).'.csv');
 								}
 							}
 							// end for
@@ -155,8 +154,8 @@ class RikunabiCrawler extends Controller{
 				}
 			} catch (\Exception $e) {
 				$return_code = 1;
-				error_log('RikunabiCrawlerFunc: '.($e -> getMessage ()));
-				$file_name = public_path('data').self::SLASH.self::RIKUNABI_DATA_PATH.self::SLASH.self::RIKUNABI_ERROR.date(self::DATE_FORMAT).'.csv';
+				error_log('EnJapanCrawlerFunc: '.($e -> getMessage ()));
+				$file_name = public_path('data').self::SLASH.self::ENJAPAN_DATA_PATH.self::SLASH.self::ENJAPAN_ERROR.date(self::DATE_FORMAT).'.csv';
 				Common::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
@@ -176,26 +175,32 @@ class RikunabiCrawler extends Controller{
 			$crawler = $client -> request('GET', $url);
 		} catch (\Exception $e) {
 			Common::AppendStringToFile("Cannot request page: ".$url.": ".substr($e -> getMessage (), 0, 1000)
-				, $data_path.self::RIKUNABI_ERROR.date(self::DATE_FORMAT).'.csv');
+				, $data_path.self::ENJAPAN_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		}
-
+		
 		if ($crawler -> count() <= 0 ) {
 			Common::AppendStringToFile("Cannot request page: ".$url
-				, $data_path.self::RIKUNABI_ERROR.date(self::DATE_FORMAT).'.csv');
+				, $data_path.self::ENJAPAN_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		} else{
+			$company = "";
+			$company_name_crl = $crawler -> filter("div.base > div.company > span");
+			if ($company_name_crl -> count() > 0){
+				$company = $company_name_crl -> first() -> text();
+			}
+			$company = Common::RemoveSpaceChars($company);
 
 			$job_title = "";
-			$job_title_crl = $crawler -> filter('h1.rnn-offerInfoHeader__title');
+			$job_title_crl = $crawler -> filter('div.nameSet > h2.name');
 			if ($job_title_crl->count() > 0){
 				$job_title = $job_title_crl -> first() -> text();
 			} 
 			$job_title = Common::RemoveSpaceChars($job_title);
-
+			
 			$created = "";
 			$deadline = "";
-			$period_crl = $crawler -> filter("p.rnn-offerInfoHeader__date");
+			$period_crl = $crawler -> filter("div.publish");
 			if ($period_crl -> count() > 0){
 				$text = $period_crl -> first() -> text();
 				preg_match_all(self::DATE_REGEX, $text, $matches);
@@ -211,23 +216,17 @@ class RikunabiCrawler extends Controller{
 			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
 				return 2;
 			}
-			
-			$company = "";
-			$company_name_crl = $crawler -> filter("p.rnn-offerCompanyName");
-			if ($company_name_crl -> count() > 0){
-				$company = $company_name_crl -> first() -> text();
-			}
 
 			$salary = "";
-			$mobile = "";
-			$email = "";
 			$address = "";
-			$website = "";
 			$job_des = "";
-			$job_infos_crl = $crawler -> filter("table.rnn-detailTable") -> filter("tr");
+			$mobile = "";
+			$website = "";
+			$email = "";
+			$job_infos_crl = $crawler -> filter("table.dataTable") -> filter("tr");
 			if ($job_infos_crl -> count() <= 0 ) {
-				Common::AppendStringToFile("No job info: ".$url
-					, $data_path.self::RIKUNABI_ERROR.date(self::DATE_FORMAT).'.csv');
+				Common::AppendStringToFile("No job content: ".$url
+					, $data_path.self::ENJAPAN_ERROR.date(self::DATE_FORMAT).'.csv');
 				return -1;
 			}
 			foreach($job_infos_crl as $node){
@@ -240,14 +239,11 @@ class RikunabiCrawler extends Controller{
 					$address = Common::RemoveSpaceChars($value);
 				} else if (strpos($label, self::LABEL_SALARY) !== false){
 					$salary = Common::RemoveSpaceChars($value);
+				} else if (strpos($label, self::LABEL_WEBSITE) !== false){
+					$website = Common::ExtractWebsiteFromText($value);
 				} else if (strpos($label, self::LABEL_MOBILE) !== false){
 					$mobile = Common::ExtractFirstJPMobile($value);
 					$email = Common::ExtractEmailFromText($value);
-					$atag = $node -> filter("a");
-					if ($atag -> count() > 0){
-						$website = $atag -> first() -> attr("href");
-						$website = self::RIKUNABI_HOME.$website;
-					}
 				} 
 			}
 
@@ -266,10 +262,11 @@ class RikunabiCrawler extends Controller{
 				, $website
 				// , $url
 			);
+
 			if (Common::IsNullOrEmpty($email) and Common::IsNullOrEmpty($mobile)){
-				Common::AppendArrayToFile($job_data, $data_path.self::RIKUNABI_DATA_NO_CONTACT.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::ENJAPAN_DATA_NO_CONTACT.'.csv', "|");
 			} else{
-				Common::AppendArrayToFile($job_data, $data_path.self::RIKUNABI_DATA.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::ENJAPAN_DATA.'.csv', "|");
 			}
 			return 0;
 		}

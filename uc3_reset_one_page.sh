@@ -7,10 +7,12 @@ job_name=$1
 
 echo "Prepare to crawl "$job_name
 
-array=("topdev" "topcv" "itviec" "mywork" "timviecnhanh" "vieclam24h" "findjobs" "careerlink" "timviec365" "laodong" "tuyencongnhan" "tuyendungsinhvien" "itguru" "tenshoku" "tenshokuex" "hatalike" "rikunabi" "doda")
+array=("topdev" "topcv" "itviec" "mywork" "timviecnhanh" "vieclam24h" "findjobs" "careerlink" "timviec365" "laodong" "tuyencongnhan" "tuyendungsinhvien" "itguru" "tenshoku" "tenshokuex" "hatalike" "rikunabi" "doda" "enjapan")
 if [[ ! " ${array[@]} " =~ "$job_name" ]] || [ "$job_name" = "" ]; then
     echo "Please provide job_name."
-    echo "Available job_name: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, careerlink, timviec365, laodong, tuyencongnhan, tuyendungsinhvien, itguru, tenshoku, tenshokuex, hatalike, rikunabi, doda."	
+    echo "Available job_name: topdev, topcv, itviec, mywork, timviecnhanh, vieclam24h, findjobs, \
+    careerlink, timviec365, laodong, tuyencongnhan, tuyendungsinhvien, itguru, tenshoku, tenshokuex,\
+     hatalike, rikunabi, doda, enjapan."	
     exit 1
 fi
 
