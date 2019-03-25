@@ -3,6 +3,8 @@
 # - reset metadata for that job: job_metadata, url_data
 # - clean current data: jobs, links
 
+export PATH=/Applications/XAMPP/xamppfiles/bin:$PATH
+
 job_name=$1
 
 echo "Prepare to crawl "$job_name
