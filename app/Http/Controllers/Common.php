@@ -17,6 +17,7 @@ class Common extends Controller{
 	const PHONE_PATTERN = "!\d+!";
 	const PHONE_PATTERN_JP = "/\b[0-9]{2,4}\s*-\s*[0-9]{2,4}\s*-\s*[0-9]{2,4}\b/";
 	const TRIM_SET = "\r\n- =*+. –נ●•âƢẢܔ֠Ȓƪܨۨ®";
+	const TRIM_SET_JP = "\r\n- =*+. –";
 	const PHONE_CODE_VN = "84";
 	const PHONE_START = "0";
 	const DB_DEFAULT = "phpmyadmin";
@@ -217,7 +218,7 @@ class Common extends Controller{
 	}
 	
 	public static function RemoveSpaceChars($text){
-		return preg_replace('!\s+!', ' ', $text);
+		return trim(preg_replace('!\s+!', ' ', $text), self::TRIM_SET_JP);
     }
     
 	public static function FindNewBatchToProcess($database, $table, $job_name){
