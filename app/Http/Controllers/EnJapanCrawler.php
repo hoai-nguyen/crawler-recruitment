@@ -244,6 +244,7 @@ class EnJapanCrawler extends Controller{
 				} else if (strpos($label, self::LABEL_MOBILE) !== false){
 					$mobile = Common::ExtractFirstJPMobile($value);
 					$email = Common::ExtractEmailFromText($value);
+					$email = str_replace("E-MAIL", "", $email);
 				} 
 			}
 
