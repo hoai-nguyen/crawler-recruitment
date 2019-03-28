@@ -73,7 +73,7 @@ if [ ! -d $tuyendungsinhvien ]; then
 	mkdir -p $tuyendungsinhvien
 fi
 
-uv_tuyendungsinhvien=$dir'/tuyendungsinhvien'
+uv_tuyendungsinhvien=$diruv'/tuyendungsinhvien'
 if [ ! -d $uv_tuyendungsinhvien ]; then
 	mkdir -p $uv_tuyendungsinhvien
 fi

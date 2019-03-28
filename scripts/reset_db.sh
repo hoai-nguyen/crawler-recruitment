@@ -18,6 +18,13 @@ f_reset () {
 	echo "DONE"
 }
 
+f_reset_crawler () {
+	job=$1
+	echo "RESET $job!"
+	mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='$job';TRUNCATE TABLE phpmyadmin.crawler_$job;"
+	echo "DONE"
+}
+
 f_usage(){
 	job_name=$1
 	echo "Sorry, there is no job name: $job_name"
@@ -135,43 +142,43 @@ elif [ $job_type = 'reset' ]; then
 		f_reset careerbuilder
 		;;
 	laodong)
-		f_reset laodong
+		f_reset_crawler laodong
 		;;
 	timviec365)
-		f_reset timviec365
+		f_reset_crawler timviec365
 		;;
 	tuyencongnhan)
-		f_reset tuyencongnhan
+		f_reset_crawler tuyencongnhan
 		;;
 	tuyendungsinhvien)
-		f_reset tuyendungsinhvien
+		f_reset_crawler tuyendungsinhvien
 		;;
 	uv_tuyendungsinhvien)
-		f_reset uv_tuyendungsinhvien
+		f_reset_crawler uv_tuyendungsinhvien
 		;;
 	tuyendungcomvn)
-		f_reset tuyendungcomvn
+		f_reset_crawler tuyendungcomvn
 		;;
 	itguru)
-		f_reset itguru
+		f_reset_crawler itguru
 		;;
 	tenshoku)
-		f_reset tenshoku
+		f_reset_crawler tenshoku
 		;;
 	tenshokuex)
-		f_reset tenshokuex
+		f_reset_crawler tenshokuex
 		;;
 	hatalike)
-		f_reset hatalike
+		f_reset_crawler hatalike
 		;;
 	rikunabi)
-		f_reset rikunabi
+		f_reset_crawler rikunabi
 		;;
 	doda)
-		f_reset doda
+		f_reset_crawler doda
 		;;
 	enjapan)
-		f_reset enjapan
+		f_reset_crawler enjapan
 		;;
 	all)
 		echo "RESET all!"
