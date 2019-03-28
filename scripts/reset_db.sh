@@ -4,122 +4,97 @@ echo "Your input: job_type=$1, job_name=$2"
 job_type=$1
 job_name=$2
 
+f_continue () {
+	job=$1
+	echo "RESET $job!"
+	mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='$job';"
+	echo "DONE"
+}
+
+f_reset () {
+	job=$1
+	echo "RESET $job!"
+	mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='$job';TRUNCATE TABLE phpmyadmin.$job;"
+	echo "DONE"
+}
+
+f_usage(){
+	job_name=$1
+	echo "Sorry, there is no job name: $job_name"
+	echo ""
+	echo "Usage: ./reset_db.sh option1 option2"
+	echo "Available options 1: continue, reset"
+	echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, \
+	careerlink, laodong, timviec365, tuyencongnhan, tuyendungcomvn, itguru, tenshoku, tenshokuex, \
+	hatalike, rikunabi, doda, enjapan, tuyendungsinhvien, uv_tuyendungsinhvien."
+	echo "Example: To continue crawling from last run for topdev, we use: ./reset_db.sh continue topdev"
+	echo ""
+}
 
 if [ $job_type = 'continue' ]; then
     case $job_name in
 	topdev)
-		echo "RESET topdev!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_topdev.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='topdev';"
-		echo "DONE"
+		f_continue topdev
 		;;
 	topcv)
-		echo "RESET topcv!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_topcv.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='topcv';"
-		echo "DONE"
+		f_continue topcv
 		;;
 	itviec)
-		echo "RESET itviec!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_itviec.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='itviec';"
-		echo "DONE"
+		f_continue itviec
 		;;
 	vieclam24h)
-		echo "RESET vieclam24h!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_vieclam24h.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='vieclam24h';"
-		echo "DONE"
+		f_continue vieclam24h
 		;;
 	timviecnhanh)
-		echo "RESET timviecnhanh!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_timviecnhanh.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='timviecnhanh';"
-		echo "DONE"
+		f_continue timviecnhanh
 		;;
 	mywork)
-		echo "RESET mywork!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_mywork.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='mywork';"
-		echo "DONE"
+		f_continue mywork
 		;;
 	findjobs)
-		echo "RESET findjobs!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_findjobs.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='findjobs';"
-		echo "DONE"
+		f_continue findjobs
 		;;
 	careerlink)
-		echo "RESET careerlink!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_careerlink.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='careerlink';"
-		echo "DONE"
+		f_continue careerlink
 		;;
 	careerbuilder)
-		echo "RESET careerbuilder!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_careerbuilder.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='careerbuilder';"
-		echo "DONE"
+		f_continue careerbuilder
 		;;
 	laodong)
-		echo "RESET laodong!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='laodong';"
-		echo "DONE"
+		f_continue laodong
 		;;
 	timviec365)
-		echo "RESET timviec365!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='timviec365';"
-		echo "DONE"
+		f_continue timviec365
 		;;	
 	tuyencongnhan)
-		echo "RESET tuyencongnhan!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='tuyencongnhan';"
-		echo "DONE"
+		f_continue tuyencongnhan
 		;;
 	tuyendungsinhvien)
-		echo "RESET tuyendungsinhvien!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='tuyendungsinhvien';"
-		echo "DONE"
+		f_continue tuyendungsinhvien
 		;;
 	tuyendungcomvn)
-		echo "RESET tuyendungcomvn!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='tuyendungcomvn';"
-		echo "DONE"
+		f_continue tuyendungcomvn
 		;;
 	itguru)
-		echo "RESET itguru!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='itguru';"
-		echo "DONE"
+		f_continue itguru
 		;;
 	tenshoku)
-		echo "RESET tenshoku!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='tenshoku';"
-		echo "DONE"
+		f_continue tenshoku
 		;;
 	tenshokuex)
-		echo "RESET tenshokuex!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='tenshokuex';"
-		echo "DONE"
+		f_continue tenshokuex
 		;;
 	hatalike)
-		echo "RESET hatalike!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='hatalike';"
-		echo "DONE"
+		f_continue hatalike
 		;;
 	rikunabi)
-		echo "RESET rikunabi!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='rikunabi';"
-		echo "DONE"
+		f_continue rikunabi
 		;;
 	doda)
-		echo "RESET doda!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='doda';"
-		echo "DONE"
+		f_continue doda
 		;;
 	enjapan)
-		echo "RESET enjapan!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='enjapan';"
-		echo "DONE"
+		f_continue enjapan
 		;;
 	all)
 		echo "RESET all!"
@@ -127,129 +102,76 @@ if [ $job_type = 'continue' ]; then
 		echo "DONE"
 		;;
 	*)
-		echo "Sorry, there is no job name: $job_name"
-		echo ""
-		echo "Usage: ./reset_db.sh option1 option2"
-		echo "Available options 1: continue, reset"
-		echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, \
-		careerlink, laodong, timviec365, tuyencongnhan, tuyendungcomvn, itguru, tenshoku, tenshokuex, \
-		hatalike, rikunabi, doda, enjapan."
-		echo "Example: To continue crawling from last run for topdev, we use: ./reset_db.sh continue topdev"
-		echo ""
+		f_usage $job_name
 		;;
 	esac
 elif [ $job_type = 'reset' ]; then
     case $job_name in
 	topdev)
-		echo "RESET topdev!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_topdev.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='topdev';TRUNCATE TABLE phpmyadmin.topdev;"
-		echo "DONE"
+		f_reset topdev
 		;;
 	topcv)
-		echo "RESET topcv!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_topcv.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='topcv';TRUNCATE TABLE phpmyadmin.topcv;"
-		echo "DONE"
+		f_reset topcv
 		;;
 	itviec)
-		echo "RESET itviec!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_itviec.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='itviec';TRUNCATE TABLE phpmyadmin.itviec;"
-		echo "DONE"
+		f_reset itviec
 		;;
 	vieclam24h)
-		echo "RESET vieclam24h!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_vieclam24h.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='vieclam24h';TRUNCATE TABLE phpmyadmin.vieclam24h;"
-		echo "DONE"
+		f_reset vieclam24h
 		;;
 	timviecnhanh)
-		echo "RESET timviecnhanh!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_timviecnhanh.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='timviecnhanh';TRUNCATE TABLE phpmyadmin.timviecnhanh;"
-		echo "DONE"
+		f_reset timviecnhanh
 		;;
 	mywork)
-		echo "RESET mywork!"
-		#mysql -u root -p  phpmyadmin < scripts/reset_mywork.sql
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='mywork';TRUNCATE TABLE phpmyadmin.mywork;"
-		echo "DONE"
+		f_reset mywork
 		;;
 	findjobs)
-		echo "RESET findjobs!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='findjobs';TRUNCATE TABLE phpmyadmin.findjobs;"
-		echo "DONE"
+		f_reset findjobs
 		;;
 	careerlink)
-		echo "RESET careerlink!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='careerlink';TRUNCATE TABLE phpmyadmin.careerlink;"
-		echo "DONE"
+		f_reset careerlink
 		;;
 	careerbuilder)
-		echo "RESET careerbuilder!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='careerbuilder';TRUNCATE TABLE phpmyadmin.careerbuilder;"
-		echo "DONE"
+		f_reset careerbuilder
 		;;
 	laodong)
-		echo "RESET laodong!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='laodong';TRUNCATE TABLE phpmyadmin.crawler_laodong;"
-		echo "DONE"
+		f_reset laodong
 		;;
 	timviec365)
-		echo "RESET timviec365!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='timviec365';TRUNCATE TABLE phpmyadmin.crawler_timviec365;"
-		echo "DONE"
+		f_reset timviec365
 		;;
 	tuyencongnhan)
-		echo "RESET tuyencongnhan!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='tuyencongnhan';TRUNCATE TABLE phpmyadmin.crawler_tuyencongnhan;"
-		echo "DONE"
+		f_reset tuyencongnhan
 		;;
 	tuyendungsinhvien)
-		echo "RESET tuyendungsinhvien!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='tuyendungsinhvien';TRUNCATE TABLE phpmyadmin.crawler_tuyendungsinhvien;"
-		echo "DONE"
+		f_reset tuyendungsinhvien
+		;;
+	uv_tuyendungsinhvien)
+		f_reset uv_tuyendungsinhvien
 		;;
 	tuyendungcomvn)
-		echo "RESET tuyendungcomvn!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='tuyendungcomvn';TRUNCATE TABLE phpmyadmin.crawler_tuyendungcomvn;"
-		echo "DONE"
+		f_reset tuyendungcomvn
 		;;
 	itguru)
-		echo "RESET itguru!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='itguru';TRUNCATE TABLE phpmyadmin.crawler_itguru;"
-		echo "DONE"
+		f_reset itguru
 		;;
 	tenshoku)
-		echo "RESET tenshoku!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='tenshoku';TRUNCATE TABLE phpmyadmin.crawler_tenshoku;"
-		echo "DONE"
+		f_reset tenshoku
 		;;
 	tenshokuex)
-		echo "RESET tenshokuex!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='tenshokuex';TRUNCATE TABLE phpmyadmin.crawler_tenshokuex;"
-		echo "DONE"
+		f_reset tenshokuex
 		;;
 	hatalike)
-		echo "RESET hatalike!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='hatalike';TRUNCATE TABLE phpmyadmin.crawler_hatalike;"
-		echo "DONE"
+		f_reset hatalike
 		;;
 	rikunabi)
-		echo "RESET rikunabi!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='rikunabi';TRUNCATE TABLE phpmyadmin.crawler_rikunabi;"
-		echo "DONE"
+		f_reset rikunabi
 		;;
 	doda)
-		echo "RESET doda!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='doda';TRUNCATE TABLE phpmyadmin.crawler_doda;"
-		echo "DONE"
+		f_reset doda
 		;;
 	enjapan)
-		echo "RESET enjapan!"
-		mysql --user="root" --password="" --database="phpmyadmin" --execute="use phpmyadmin; DELETE FROM phpmyadmin.job_metadata WHERE job_name='enjapan';TRUNCATE TABLE phpmyadmin.crawler_enjapan;"
-		echo "DONE"
+		f_reset enjapan
 		;;
 	all)
 		echo "RESET all!"
@@ -260,7 +182,8 @@ elif [ $job_type = 'reset' ]; then
 			TRUNCATE TABLE phpmyadmin.vieclam24h;TRUNCATE TABLE phpmyadmin.itviec;\
 			TRUNCATE TABLE phpmyadmin.topcv;TRUNCATE TABLE phpmyadmin.topdev;\
 			TRUNCATE TABLE phpmyadmin.crawler_laodong;TRUNCATE TABLE phpmyadmin.crawler_timviec365;\
-			TRUNCATE TABLE phpmyadmin.crawler_tuyendungsinhvien;TRUNCATE TABLE phpmyadmin.crawler_tuyendungcomvn;\
+			TRUNCATE TABLE phpmyadmin.crawler_tuyendungsinhvien; TRUNCATE TABLE phpmyadmin.crawler_uv_tuyendungsinhvien;\
+			TRUNCATE TABLE phpmyadmin.crawler_tuyendungcomvn;\
 			TRUNCATE TABLE phpmyadmin.crawler_tuyencongnhan;TRUNCATE TABLE phpmyadmin.crawler_itguru;\
 			TRUNCATE TABLE phpmyadmin.crawler_tenshoku;TRUNCATE TABLE phpmyadmin.crawler_tenshokuex;\
 			TRUNCATE TABLE phpmyadmin.crawler_hatalike;TRUNCATE TABLE phpmyadmin.crawler_rikunabi;\
@@ -268,15 +191,7 @@ elif [ $job_type = 'reset' ]; then
 		echo "DONE"
 		;;
 	*)
-		echo "Sorry, there is no job name: $job_name"
-		echo ""
-		echo "Usage: ./reset_db.sh option1 option2"
-		echo "Available options 1: continue, reset"
-		echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, \
-		careerlink, laodong, timviec365, tuyencongnhan, tuyendungsinhvien, tuyendungcomvn, itguru, \
-		tenshoku, tenshokuex, hatalike, rikunabi, doda, enjapan."
-		echo "Example: To start crawling from beginning for topdev, we use: ./reset_db.sh reset topdev"
-		echo ""
+		f_usage $job_name
 		;;
 	esac
 else
@@ -285,7 +200,7 @@ else
 	echo "Usage: ./reset_db.sh option1 option2"
 	echo "Available options 1: continue, reset"
 	echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, \
-	careerlink, laodong, timviec365, tuyencongnhan, tuyendungsinhvien, tuyendungcomvn, itguru, \
+	careerlink, laodong, timviec365, tuyencongnhan, tuyendungsinhvien, uv_tuyendungsinhvien, tuyendungcomvn, itguru, \
 	tenshoku, tenshokuex, hatalike, rikunabi, doda, enjapan."
 	echo "Example: To start crawling from beginning for topdev, we use: ./reset_db.sh reset topdev"
 	echo "Example: To continue crawling from last run for topdev, we use: ./reset_db.sh continue topdev"

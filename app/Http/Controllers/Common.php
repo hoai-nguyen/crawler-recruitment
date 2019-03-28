@@ -14,6 +14,29 @@ class Common extends Controller{
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
 	const WEBSITE_PATTERN = "#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#";
 	const MOBILE_PREFIX = array("032", "033", "034", "035", "036", "037", "038", "039", "096", "097", "098", "086", "070", "079", "077", "076", "078", "089", "090", "093", "081", "082", "083", "084", "085", "088", "091", "094", "056", "058", "092", "059", "099");
+	const MOBILE_PREFIX_CONVERSION = array(
+		"0162"=>"032"
+		, "0163"=>"033"
+		, "0164"=>"034"
+		, "0165"=>"035"
+		, "0166"=>"036"
+		, "0167"=>"037"
+		, "0168"=>"038"
+		, "0169"=>"039"
+		, "0120"=>"070"
+		, "0121"=>"079"
+		, "0122"=>"077"
+		, "0126"=>"076"
+		, "0128"=>"078"
+		, "0123"=>"083"
+		, "0124"=>"084"
+		, "0125"=>"085"
+		, "0127"=>"081"
+		, "0129"=>"082"
+		, "0186"=>"056"
+		, "0188"=>"058"
+		, "0199"=>"059"
+	  );
 	const PHONE_PATTERN = "!\d+!";
 	const PHONE_PATTERN_JP = "/[0-9]{2,4}\s*-\s*[0-9]{2,4}\s*-\s*[0-9]{2,4}/";
 	const TRIM_SET = "\r\n- =*+. –נ●•âƢẢܔ֠Ȓƪܨۨ®";
@@ -324,5 +347,31 @@ class Common extends Controller{
         $chr = substr($str, -1);
         return mb_strtolower($chr, "UTF-8") != $chr;
 	}
-	
+
+	public static function UpdateMobilePrefix($mobile){
+		$prefix = substr($mobile, 0, 4);
+		$new_mobile = $mobile;
+		if (array_key_exists($prefix, self::MOBILE_PREFIX_CONVERSION)){
+		  $new_prefix = self::MOBILE_PREFIX_CONVERSION[$prefix];
+		  $new_mobile = $new_prefix.substr($mobile, 4);
+		}
+		return $new_mobile;
+	  }
+
+
+	public static function ExtractCreatedDateFromText($text){
+		if ($text == null) return "";
+		$date_str = "";
+		try{
+			preg_match_all("/[0-9]{1,2}\s*-\s*[0-9]{1,2}\s*-\s*[0-9]{4}/", $text, $matches);
+			if (sizeof($matches[0]) > 0){
+				$date_str = $matches[0][0];
+			} 
+			return $date_str;
+		} catch (\Throwable $e) {
+			// error_log('Exception on ExtractFirstMobile: '.($e -> getMessage ()));
+		}
+		return $date_str;		
+	}
+
 }

@@ -89,6 +89,12 @@ CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_tuyendungsinhvien`(
 	PRIMARY KEY(`id`)
 );
 
+CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_uv_tuyendungsinhvien`(
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`link` varchar(2000) DEFAULT NULL,
+	PRIMARY KEY(`id`)
+);
+
 CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_tuyendungcomvn`(
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`link` varchar(2000) DEFAULT NULL,
