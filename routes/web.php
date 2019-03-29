@@ -17,6 +17,7 @@ Route::get('/', function () {
 
 Route::get('timviecnhanh',['uses' => 'TimViecNhanhCrawler@CrawlerStarter'])->name('timviecnhanh');
 Route::get('mywork',['uses' => 'MyWorkCrawler@CrawlerStarter'])->name('mywork');
+Route::get('uvmywork',['uses' => 'UVMyWorkCrawler@CrawlerStarter'])->name('uvmywork');
 Route::get('findjobs',['uses' => 'FindJobsCrawler@CrawlerStarter'])->name('findjobs');
 Route::get('vieclam24h',['uses' => 'ViecLam24HCrawler@CrawlerStarter'])->name('vieclam24h');
 Route::get('careerlink',['uses' => 'CareerLinkCrawler@CrawlerStarter'])->name('careerlink');

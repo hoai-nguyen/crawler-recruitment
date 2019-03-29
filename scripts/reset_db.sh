@@ -58,6 +58,9 @@ if [ $job_type = 'continue' ]; then
 	mywork)
 		f_continue mywork
 		;;
+	uv_mywork)
+		f_continue uv_mywork
+		;;
 	findjobs)
 		f_continue findjobs
 		;;
@@ -131,6 +134,9 @@ elif [ $job_type = 'reset' ]; then
 		;;
 	mywork)
 		f_reset mywork
+		;;
+	mywork)
+		f_reset_crawler mywork
 		;;
 	findjobs)
 		f_reset findjobs

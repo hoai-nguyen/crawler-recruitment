@@ -14,7 +14,7 @@ class UVTuyenDungSinhVienCrawler extends Controller{
 	const TABLE = "crawler_uv_tuyendungsinhvien";
 	const TABLE_METADATA = "job_metadata";
 	const JOB_NAME = "uvtuyendungsinhvien";
-	const TUYENDUNGSINHVIEN_DATA_PATH = 'uv/tuyendungsinhvien';
+	const TUYENDUNGSINHVIEN_DATA_PATH = 'candidates/tuyendungsinhvien';
 	const TUYENDUNGSINHVIEN_DATA = 'tuyendungsinhvien-data';
 	const TUYENDUNGSINHVIEN_DATA_NO_CONTACT = 'tuyendungsinhvien-data-no-contact';
 	const TUYENDUNGSINHVIEN_ERROR = 'tuyendungsinhvien-error-';

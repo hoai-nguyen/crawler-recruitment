@@ -1,7 +1,7 @@
 echo "Creating data directories: ..."
 echo "Current directory: "`pwd`
 dir='./public/data'
-diruv='./public/data/uv'
+candidate_dir='./public/data/candidates'
 echo "Data directory: "`pwd`'/public/data'
 echo "Creating data directories: ..."
 
@@ -9,8 +9,8 @@ if [ ! -d $dir ]; then
 	mkdir -p $dir
 fi
 
-if [ ! -d $diruv ]; then
-	mkdir -p $diruv
+if [ ! -d $candidate_dir ]; then
+	mkdir -p $candidate_dir
 fi
 
 topdev=$dir'/topdev'
@@ -36,6 +36,11 @@ fi
 mywork=$dir'/mywork'
 if [ ! -d $mywork ]; then
 	mkdir -p $mywork
+fi
+
+uv_mywork=$candidate_dir'/mywork'
+if [ ! -d $uv_mywork ]; then
+	mkdir -p $uv_mywork
 fi
 
 timviecnhanh=$dir'/timviecnhanh'
@@ -73,7 +78,7 @@ if [ ! -d $tuyendungsinhvien ]; then
 	mkdir -p $tuyendungsinhvien
 fi
 
-uv_tuyendungsinhvien=$diruv'/tuyendungsinhvien'
+uv_tuyendungsinhvien=$candidate_dir'/tuyendungsinhvien'
 if [ ! -d $uv_tuyendungsinhvien ]; then
 	mkdir -p $uv_tuyendungsinhvien
 fi

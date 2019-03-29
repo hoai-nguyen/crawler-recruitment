@@ -1,6 +1,8 @@
 echo "Cleaning data directories: ..."
 echo "Your input: $1" # param1
 
+candidate_dir='public/data/candidates'
+
 case $1 in
 	topdev)
 		echo "RESET topdev!"
@@ -47,6 +49,14 @@ case $1 in
 		mywork='public/data/mywork'
 		if [ -d $mywork ]; then
 		  rm -rf $mywork/*.csv
+		fi
+		echo "DONE"
+		;;
+	uv_mywork)
+		echo "RESET uv_mywork!"
+		uv_mywork=$candidate_dir'/mywork'
+		if [ -d $uv_mywork ]; then
+		  rm -rf $uv_mywork/*.csv
 		fi
 		echo "DONE"
 		;;
@@ -108,7 +118,7 @@ case $1 in
 		;;
 	uv_tuyendungsinhvien)
 		echo "RESET uv_tuyendungsinhvien!"
-		uv_tuyendungsinhvien='public/data/uv/tuyendungsinhvien'
+		uv_tuyendungsinhvien=$candidate_dir'/tuyendungsinhvien'
 		if [ -d $uv_tuyendungsinhvien ]; then
 		  rm -rf $uv_tuyendungsinhvien/*.csv
 		fi
