@@ -17,7 +17,7 @@ Route::get('/', function () {
 
 Route::get('timviecnhanh',['uses' => 'TimViecNhanhCrawler@CrawlerStarter'])->name('timviecnhanh');
 Route::get('mywork',['uses' => 'MyWorkCrawler@CrawlerStarter'])->name('mywork');
-Route::get('uvmywork',['uses' => 'UVMyWorkCrawler@CrawlerStarter'])->name('uvmywork');
+Route::get('uv_mywork',['uses' => 'UVMyWorkCrawler@CrawlerStarter'])->name('uv_mywork');
 Route::get('findjobs',['uses' => 'FindJobsCrawler@CrawlerStarter'])->name('findjobs');
 Route::get('vieclam24h',['uses' => 'ViecLam24HCrawler@CrawlerStarter'])->name('vieclam24h');
 Route::get('careerlink',['uses' => 'CareerLinkCrawler@CrawlerStarter'])->name('careerlink');
@@ -25,13 +25,13 @@ Route::get('topcv',['uses' => 'TopCVCrawler@CrawlerStarter'])->name('topcv');
 Route::get('itviec',['uses' => 'ITViecCrawler@CrawlerStarter'])->name('itviec');
 Route::get('topdev',['uses' => 'TopDevCrawler@CrawlerStarter'])->name('topdev');
 Route::get('laodong',['uses' => 'LaoDongCrawler@CrawlerStarter'])->name('laodong');
-Route::get('uvlaodong',['uses' => 'UVLaoDongCrawler@CrawlerStarter'])->name('uvlaodong');
+Route::get('uv_laodong',['uses' => 'UVLaoDongCrawler@CrawlerStarter'])->name('uv_laodong');
 Route::get('timviec365',['uses' => 'TimViec365Crawler@CrawlerStarter'])->name('timviec365');
 Route::get('tuyencongnhan',['uses' => 'TuyenCongNhanCrawler@CrawlerStarter'])->name('tuyencongnhan');
 Route::get('tuyendungsinhvien',['uses' => 'TuyenDungSinhVienCrawler@CrawlerStarter'])->name('tuyendungsinhvien');
-Route::get('uvtuyendungsinhvien',['uses' => 'UVTuyenDungSinhVienCrawler@CrawlerStarter'])->name('uvtuyendungsinhvien');
+Route::get('uv_tuyendungsinhvien',['uses' => 'UVTuyenDungSinhVienCrawler@CrawlerStarter'])->name('uv_tuyendungsinhvien');
 Route::get('tuyendungcomvn',['uses' => 'TuyenDungComVnCrawler@CrawlerStarter'])->name('tuyendungcomvn');
-Route::get('uvtuyendungcomvn',['uses' => 'UVTuyenDungComVnCrawler@CrawlerStarter'])->name('uvtuyendungcomvn');
+Route::get('uv_tuyendungcomvn',['uses' => 'UVTuyenDungComVnCrawler@CrawlerStarter'])->name('uv_tuyendungcomvn');
 Route::get('itguru',['uses' => 'ITGuruCrawler@CrawlerStarter'])->name('itguru');
 Route::get('tenshoku',['uses' => 'TenshokuCrawler@CrawlerStarter'])->name('tenshoku');
 Route::get('tenshokuex',['uses' => 'TenshokuExCrawler@CrawlerStarter'])->name('tenshokuex');
