@@ -88,6 +88,11 @@ if [ ! -d $tuyendungcomvn ]; then
 	mkdir -p $tuyendungcomvn
 fi
 
+uv_tuyendungcomvn=$candidate_dir'/tuyendungcomvn'
+if [ ! -d $uv_tuyendungcomvn ]; then
+	mkdir -p $uv_tuyendungcomvn
+fi
+
 itguru=$dir'/itguru'
 if [ ! -d $itguru ]; then
 	mkdir -p $itguru

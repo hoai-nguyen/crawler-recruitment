@@ -85,6 +85,9 @@ if [ $job_type = 'continue' ]; then
 	tuyendungcomvn)
 		f_continue tuyendungcomvn
 		;;
+	uv_tuyendungcomvn)
+		f_continue uv_tuyendungcomvn
+		;;
 	itguru)
 		f_continue itguru
 		;;
@@ -164,6 +167,9 @@ elif [ $job_type = 'reset' ]; then
 		;;
 	tuyendungcomvn)
 		f_reset_crawler tuyendungcomvn
+		;;
+	uv_tuyendungcomvn)
+		f_reset_crawler uv_tuyendungcomvn
 		;;
 	itguru)
 		f_reset_crawler itguru

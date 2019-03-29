@@ -102,7 +102,7 @@ case $1 in
 		;;
 	tuyencongnhan)
 		echo "RESET tuyencongnhan!"
-		timviec365='public/data/tuyencongnhan'
+		tuyencongnhan='public/data/tuyencongnhan'
 		if [ -d $tuyencongnhan ]; then
 		  rm -rf $tuyencongnhan/*.csv
 		fi
@@ -110,7 +110,7 @@ case $1 in
 		;;
 	tuyendungsinhvien)
 		echo "RESET tuyendungsinhvien!"
-		timviec365='public/data/tuyendungsinhvien'
+		tuyendungsinhvien='public/data/tuyendungsinhvien'
 		if [ -d $tuyendungsinhvien ]; then
 		  rm -rf $tuyendungsinhvien/*.csv
 		fi
@@ -126,15 +126,23 @@ case $1 in
 		;;
 	tuyendungcomvn)
 		echo "RESET tuyendungcomvn!"
-		timviec365='public/data/tuyendungcomvn'
+		tuyendungcomvn='public/data/tuyendungcomvn'
 		if [ -d $tuyendungcomvn ]; then
 		  rm -rf $tuyendungcomvn/*.csv
 		fi
 		echo "DONE"
 		;;
+	uv_tuyendungcomvn)
+		echo "RESET uv_tuyendungcomvn!"
+		uv_tuyendungcomvn=$candidate_dir'/tuyendungcomvn'
+		if [ -d $uv_tuyendungcomvn ]; then
+		  rm -rf $uv_tuyendungcomvn/*.csv
+		fi
+		echo "DONE"
+		;;
 	itguru)
 		echo "RESET itguru!"
-		timviec365='public/data/itguru'
+		itguru='public/data/itguru'
 		if [ -d $itguru ]; then
 		  rm -rf $itguru/*.csv
 		fi
