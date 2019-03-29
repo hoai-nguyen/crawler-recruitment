@@ -25,6 +25,7 @@ Route::get('topcv',['uses' => 'TopCVCrawler@CrawlerStarter'])->name('topcv');
 Route::get('itviec',['uses' => 'ITViecCrawler@CrawlerStarter'])->name('itviec');
 Route::get('topdev',['uses' => 'TopDevCrawler@CrawlerStarter'])->name('topdev');
 Route::get('laodong',['uses' => 'LaoDongCrawler@CrawlerStarter'])->name('laodong');
+Route::get('uvlaodong',['uses' => 'UVLaoDongCrawler@CrawlerStarter'])->name('uvlaodong');
 Route::get('timviec365',['uses' => 'TimViec365Crawler@CrawlerStarter'])->name('timviec365');
 Route::get('tuyencongnhan',['uses' => 'TuyenCongNhanCrawler@CrawlerStarter'])->name('tuyencongnhan');
 Route::get('tuyendungsinhvien',['uses' => 'TuyenDungSinhVienCrawler@CrawlerStarter'])->name('tuyendungsinhvien');

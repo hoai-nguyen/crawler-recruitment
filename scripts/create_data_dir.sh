@@ -58,9 +58,14 @@ if [ ! -d $findjobs ]; then
 	mkdir -p $findjobs
 fi
 
-findjobs=$dir'/laodong'
-if [ ! -d $findjobs ]; then
-	mkdir -p $findjobs
+laodong=$dir'/laodong'
+if [ ! -d $laodong ]; then
+	mkdir -p $laodong
+fi
+
+uv_laodong=$candidate_dir'/laodong'
+if [ ! -d $uv_laodong ]; then
+	mkdir -p $uv_laodong
 fi
 
 timviec365=$dir'/timviec365'

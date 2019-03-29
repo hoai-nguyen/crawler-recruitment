@@ -73,6 +73,9 @@ if [ $job_type = 'continue' ]; then
 	laodong)
 		f_continue laodong
 		;;
+	uv_laodong)
+		f_continue uv_laodong
+		;;
 	timviec365)
 		f_continue timviec365
 		;;	
@@ -153,6 +156,9 @@ elif [ $job_type = 'reset' ]; then
 	laodong)
 		f_reset_crawler laodong
 		;;
+	uv_laodong)
+		f_reset_crawler uv_laodong
+		;;
 	timviec365)
 		f_reset_crawler timviec365
 		;;
@@ -200,7 +206,8 @@ elif [ $job_type = 'reset' ]; then
 			TRUNCATE TABLE phpmyadmin.mywork;TRUNCATE TABLE phpmyadmin.timviecnhanh;\
 			TRUNCATE TABLE phpmyadmin.vieclam24h;TRUNCATE TABLE phpmyadmin.itviec;\
 			TRUNCATE TABLE phpmyadmin.topcv;TRUNCATE TABLE phpmyadmin.topdev;\
-			TRUNCATE TABLE phpmyadmin.crawler_laodong;TRUNCATE TABLE phpmyadmin.crawler_timviec365;\
+			TRUNCATE TABLE phpmyadmin.crawler_laodong;TRUNCATE TABLE phpmyadmin.crawler_uv_laodong;\
+			TRUNCATE TABLE phpmyadmin.crawler_timviec365;\
 			TRUNCATE TABLE phpmyadmin.crawler_tuyendungsinhvien; TRUNCATE TABLE phpmyadmin.crawler_uv_tuyendungsinhvien;\
 			TRUNCATE TABLE phpmyadmin.crawler_tuyendungcomvn;\
 			TRUNCATE TABLE phpmyadmin.crawler_tuyencongnhan;TRUNCATE TABLE phpmyadmin.crawler_itguru;\
@@ -219,7 +226,7 @@ else
 	echo "Usage: ./reset_db.sh option1 option2"
 	echo "Available options 1: continue, reset"
 	echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, \
-	careerlink, laodong, timviec365, tuyencongnhan, tuyendungsinhvien, uv_tuyendungsinhvien, tuyendungcomvn, itguru, \
+	careerlink, laodong, uv_laodong, timviec365, tuyencongnhan, tuyendungsinhvien, uv_tuyendungsinhvien, tuyendungcomvn, itguru, \
 	tenshoku, tenshokuex, hatalike, rikunabi, doda, enjapan."
 	echo "Example: To start crawling from beginning for topdev, we use: ./reset_db.sh reset topdev"
 	echo "Example: To continue crawling from last run for topdev, we use: ./reset_db.sh continue topdev"
