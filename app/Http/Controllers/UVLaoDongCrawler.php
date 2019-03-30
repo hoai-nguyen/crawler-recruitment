@@ -280,7 +280,7 @@ class UVLaoDongCrawler extends Controller{
 				$description = $description."Mô tả thêm: ".$more_info.". ";
 			}
 			
-			$description = Common::RemoveSpaceChars($description);
+			$description = Common::RemoveTrailingChars($description);
 			
 			$created = "";
 

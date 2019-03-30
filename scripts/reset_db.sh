@@ -32,7 +32,7 @@ f_usage(){
 	echo "Usage: ./reset_db.sh option1 option2"
 	echo "Available options 1: continue, reset"
 	echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, \
-	careerlink, laodong, timviec365, tuyencongnhan, tuyendungcomvn, itguru, tenshoku, tenshokuex, \
+	careerlink, laodong, timviec365, tuyencongnhan, tuyendungcomvn, uv_tuyendungcomvn, itguru, tenshoku, tenshokuex, \
 	hatalike, rikunabi, doda, enjapan, tuyendungsinhvien, uv_tuyendungsinhvien."
 	echo "Example: To continue crawling from last run for topdev, we use: ./reset_db.sh continue topdev"
 	echo ""
@@ -209,7 +209,7 @@ elif [ $job_type = 'reset' ]; then
 			TRUNCATE TABLE phpmyadmin.crawler_laodong;TRUNCATE TABLE phpmyadmin.crawler_uv_laodong;\
 			TRUNCATE TABLE phpmyadmin.crawler_timviec365;\
 			TRUNCATE TABLE phpmyadmin.crawler_tuyendungsinhvien; TRUNCATE TABLE phpmyadmin.crawler_uv_tuyendungsinhvien;\
-			TRUNCATE TABLE phpmyadmin.crawler_tuyendungcomvn;\
+			TRUNCATE TABLE phpmyadmin.crawler_tuyendungcomvn;TRUNCATE TABLE phpmyadmin.crawler_uv_tuyendungcomvn;\
 			TRUNCATE TABLE phpmyadmin.crawler_tuyencongnhan;TRUNCATE TABLE phpmyadmin.crawler_itguru;\
 			TRUNCATE TABLE phpmyadmin.crawler_tenshoku;TRUNCATE TABLE phpmyadmin.crawler_tenshokuex;\
 			TRUNCATE TABLE phpmyadmin.crawler_hatalike;TRUNCATE TABLE phpmyadmin.crawler_rikunabi;\
@@ -226,7 +226,7 @@ else
 	echo "Usage: ./reset_db.sh option1 option2"
 	echo "Available options 1: continue, reset"
 	echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, \
-	careerlink, laodong, uv_laodong, timviec365, tuyencongnhan, tuyendungsinhvien, uv_tuyendungsinhvien, tuyendungcomvn, itguru, \
+	careerlink, laodong, uv_laodong, timviec365, tuyencongnhan, tuyendungsinhvien, uv_tuyendungsinhvien, tuyendungcomvn, uv_tuyendungcomvn, itguru, \
 	tenshoku, tenshokuex, hatalike, rikunabi, doda, enjapan."
 	echo "Example: To start crawling from beginning for topdev, we use: ./reset_db.sh reset topdev"
 	echo "Example: To continue crawling from last run for topdev, we use: ./reset_db.sh continue topdev"

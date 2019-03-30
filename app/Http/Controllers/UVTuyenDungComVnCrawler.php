@@ -282,6 +282,7 @@ class UVTuyenDungComVnCrawler extends Controller{
 				$skill = Common::RemoveSpaceChars($skill);
 			}
 			$description = $goal.". ".$edu.". ".$exp.". ".$skill.". ";
+			$description = Common::RemoveTrailingChars($description);
 
 			$candidate_data = array($mobile
 				, $email

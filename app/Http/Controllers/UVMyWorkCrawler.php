@@ -246,6 +246,7 @@ class UVMyWorkCrawler extends Controller{
 					$idx++;
 				}
 			}
+			$description = Common::RemoveTrailingChars($description);
 
 			$mobile = "";
 			$email = "";

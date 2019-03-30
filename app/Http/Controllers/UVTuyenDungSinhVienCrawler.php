@@ -252,6 +252,8 @@ class UVTuyenDungSinhVienCrawler extends Controller{
 			if (strlen($school) > 0){
 				$description = $description.". ".$school;
 			}
+			$description = Common::RemoveTrailingChars($description);
+
 			$candidate_data = array($mobile
 				, $email
 				, $fullname
