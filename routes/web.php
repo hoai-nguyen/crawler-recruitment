@@ -32,6 +32,7 @@ Route::get('tuyendungsinhvien',['uses' => 'TuyenDungSinhVienCrawler@CrawlerStart
 Route::get('uv_tuyendungsinhvien',['uses' => 'UVTuyenDungSinhVienCrawler@CrawlerStarter'])->name('uv_tuyendungsinhvien');
 Route::get('tuyendungcomvn',['uses' => 'TuyenDungComVnCrawler@CrawlerStarter'])->name('tuyendungcomvn');
 Route::get('uv_tuyendungcomvn',['uses' => 'UVTuyenDungComVnCrawler@CrawlerStarter'])->name('uv_tuyendungcomvn');
+Route::get('uv_kenhtimviec',['uses' => 'UVKenhTimViecCrawler@CrawlerStarter'])->name('uv_kenhtimviec');
 Route::get('itguru',['uses' => 'ITGuruCrawler@CrawlerStarter'])->name('itguru');
 Route::get('tenshoku',['uses' => 'TenshokuCrawler@CrawlerStarter'])->name('tenshoku');
 Route::get('tenshokuex',['uses' => 'TenshokuExCrawler@CrawlerStarter'])->name('tenshokuex');

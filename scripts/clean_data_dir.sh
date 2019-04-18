@@ -148,6 +148,14 @@ case $1 in
 		fi
 		echo "DONE"
 		;;
+	uv_kenhtimviec)
+		echo "RESET uv_kenhtimviec!"
+		uv_kenhtimviec=$candidate_dir'/uv_kenhtimviec'
+		if [ -d $uv_kenhtimviec ]; then
+		  rm -rf $uv_kenhtimviec/*.csv
+		fi
+		echo "DONE"
+		;;
 	itguru)
 		echo "RESET itguru!"
 		itguru='public/data/itguru'
@@ -220,7 +228,7 @@ case $1 in
 		echo "Available options: topdev, topcv, itviec, vieclam24h, timviecnhanh,\
 		 mywork, findjobs, careerlink, laodong, uv_laodong, timviec365, tuyencongnhan, tuyendungsinhvien,\
 		  tuyendungcomvn, itguru, tenshoku, tenshokuex, hatalike, rikunabi, doda, enjapan, \
-			uv_tuyendungsinhvien."
+			uv_tuyendungsinhvien, uv_kenhtimviec."
 		echo "Example: To clean crawled data for topdev crawler, we use: ./script/clean_data_dir.sh topdev"
 		echo ""
 		;;

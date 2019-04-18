@@ -10,7 +10,7 @@ job_name=$1
 echo "Prepare to crawl "$job_name
 
 function is_valid_job_name () {
-  array=("topdev" "topcv" "itviec" "mywork" "uv_mywork" "timviecnhanh" "vieclam24h" "findjobs" "careerlink" "timviec365" "laodong" "uv_laodong" "tuyencongnhan" "tuyendungsinhvien" "uv_tuyendungsinhvien" "tuyendungcomvn" "uv_tuyendungcomvn" "itguru" "tenshoku" "tenshokuex" "hatalike" "rikunabi" "doda" "enjapan")
+  array=("topdev" "topcv" "itviec" "mywork" "uv_mywork" "timviecnhanh" "vieclam24h" "findjobs" "careerlink" "timviec365" "laodong" "uv_laodong" "tuyencongnhan" "tuyendungsinhvien" "uv_tuyendungsinhvien" "tuyendungcomvn" "uv_tuyendungcomvn" "itguru" "tenshoku" "tenshokuex" "hatalike" "rikunabi" "doda" "enjapan" "uv_kenhtimviec")
   job_name=$1
   for i in "${array[@]}"
 	do
@@ -32,7 +32,7 @@ else
     echo "Please provide job_name."
     echo "Available job_name: topdev, topcv, itviec, mywork, uv_mywork, timviecnhanh, vieclam24h, findjobs,\
 careerlink, timviec365, laodong, uv_laodong, tuyencongnhan, tuyendungsinhvien, uv_tuyendungsinhvien, tuyendungcomvn, uv_tuyendungcomvn, itguru,\
-tenshoku, tenshokuex, hatalike, rikunabi, doda, enjapan."	
+tenshoku, tenshokuex, hatalike, rikunabi, doda, enjapan, uv_kenhtimviec."	
     exit 1
 fi
 

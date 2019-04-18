@@ -98,6 +98,11 @@ if [ ! -d $uv_tuyendungcomvn ]; then
 	mkdir -p $uv_tuyendungcomvn
 fi
 
+uv_kenhtimviec=$candidate_dir'/uv_kenhtimviec'
+if [ ! -d $uv_kenhtimviec ]; then
+	mkdir -p $uv_kenhtimviec
+fi
+
 itguru=$dir'/itguru'
 if [ ! -d $itguru ]; then
 	mkdir -p $itguru

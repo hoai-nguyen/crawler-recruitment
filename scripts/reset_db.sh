@@ -33,7 +33,7 @@ f_usage(){
 	echo "Available options 1: continue, reset"
 	echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, \
 	careerlink, laodong, timviec365, tuyencongnhan, tuyendungcomvn, uv_tuyendungcomvn, itguru, tenshoku, tenshokuex, \
-	hatalike, rikunabi, doda, enjapan, tuyendungsinhvien, uv_tuyendungsinhvien."
+	hatalike, rikunabi, doda, enjapan, tuyendungsinhvien, uv_tuyendungsinhvien, uv_kenhtimviec."
 	echo "Example: To continue crawling from last run for topdev, we use: ./reset_db.sh continue topdev"
 	echo ""
 }
@@ -90,6 +90,9 @@ if [ $job_type = 'continue' ]; then
 		;;
 	uv_tuyendungcomvn)
 		f_continue uv_tuyendungcomvn
+		;;
+	uv_kenhtimviec)
+		f_continue uv_kenhtimviec
 		;;
 	itguru)
 		f_continue itguru
@@ -177,6 +180,9 @@ elif [ $job_type = 'reset' ]; then
 	uv_tuyendungcomvn)
 		f_reset_crawler uv_tuyendungcomvn
 		;;
+	uv_kenhtimviec)
+		f_reset_crawler uv_kenhtimviec
+		;;
 	itguru)
 		f_reset_crawler itguru
 		;;
@@ -213,6 +219,7 @@ elif [ $job_type = 'reset' ]; then
 			TRUNCATE TABLE phpmyadmin.crawler_tuyencongnhan;TRUNCATE TABLE phpmyadmin.crawler_itguru;\
 			TRUNCATE TABLE phpmyadmin.crawler_tenshoku;TRUNCATE TABLE phpmyadmin.crawler_tenshokuex;\
 			TRUNCATE TABLE phpmyadmin.crawler_hatalike;TRUNCATE TABLE phpmyadmin.crawler_rikunabi;\
+			TRUNCATE TABLE phpmyadmin.crawler_uv_kenhtimviec;\
 			TRUNCATE TABLE phpmyadmin.crawler_doda;TRUNCATE TABLE phpmyadmin.crawler_enjapan;"
 		echo "DONE"
 		;;
@@ -227,7 +234,7 @@ else
 	echo "Available options 1: continue, reset"
 	echo "Available options 2: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, \
 	careerlink, laodong, uv_laodong, timviec365, tuyencongnhan, tuyendungsinhvien, uv_tuyendungsinhvien, tuyendungcomvn, uv_tuyendungcomvn, itguru, \
-	tenshoku, tenshokuex, hatalike, rikunabi, doda, enjapan."
+	tenshoku, tenshokuex, hatalike, rikunabi, doda, enjapan, uv_kenhtimviec."
 	echo "Example: To start crawling from beginning for topdev, we use: ./reset_db.sh reset topdev"
 	echo "Example: To continue crawling from last run for topdev, we use: ./reset_db.sh continue topdev"
 	echo ""

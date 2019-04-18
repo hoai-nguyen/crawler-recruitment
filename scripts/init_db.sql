@@ -119,6 +119,12 @@ CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_uv_tuyendungcomvn`(
 	PRIMARY KEY(`id`)
 );
 
+CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_uv_kenhtimviec`(
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`link` varchar(2000) DEFAULT NULL,
+	PRIMARY KEY(`id`)
+);
+
 CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_itguru`(
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`link` varchar(2000) DEFAULT NULL,
