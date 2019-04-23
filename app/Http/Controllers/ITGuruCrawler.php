@@ -270,6 +270,7 @@ class ITGuruCrawler extends Controller{
 					$job_data[0] = "";
 				}
 				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
 			}
 			return 0;
 		}

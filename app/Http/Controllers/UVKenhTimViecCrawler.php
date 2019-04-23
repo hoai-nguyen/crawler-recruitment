@@ -284,6 +284,7 @@ class UVKenhTimViecCrawler extends Controller{
 					$candidate_data[0] = "";
 				}
 				Common::AppendArrayToFile($candidate_data, $data_path.self::KENHTIMVIEC_DATA.'.csv', "|");
+				Common::AppendArrayToFile($candidate_data, $data_path.self::KENHTIMVIEC_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
 			}
 			return 0;
 		}

@@ -304,6 +304,7 @@ class UVLaoDongCrawler extends Controller{
 					$candidate_data[0] = "";
 				}
 				Common::AppendArrayToFile($candidate_data, $data_path.self::LAODONG_DATA.'.csv', "|");
+				Common::AppendArrayToFile($candidate_data, $data_path.self::LAODONG_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
 			}
 			return 0;
 		}

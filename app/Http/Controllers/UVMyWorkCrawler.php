@@ -270,6 +270,7 @@ class UVMyWorkCrawler extends Controller{
 					$candidate_data[0] = "";
 				}
 				Common::AppendArrayToFile($candidate_data, $data_path.self::MYWORK_DATA.'.csv', "|");
+				Common::AppendArrayToFile($candidate_data, $data_path.self::MYWORK_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
 			}
 		}
 	}

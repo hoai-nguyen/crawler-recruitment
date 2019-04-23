@@ -267,6 +267,7 @@ class FindJobsCrawler extends Controller{
 					$job_data[0] = "";
 				}
 				Common::AppendArrayToFile($job_data, $data_path.self::FINDJOBS_DATA.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::FINDJOBS_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
 			}
 		}
 	}

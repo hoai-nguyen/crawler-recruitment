@@ -312,7 +312,8 @@ class CareerLinkCrawler extends Controller{
 				if (Common::isNotMobile($mobile)){
 					$job_data[0] = "";
 				}
-				Common::AppendArrayToFile($job_data , $data_path.self::CAREERLINK_DATA.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::CAREERLINK_DATA.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::CAREERLINK_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
 			}
 			return 0;
 		}

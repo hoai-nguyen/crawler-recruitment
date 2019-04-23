@@ -338,6 +338,7 @@ class ViecLam24HCrawler extends Controller{
 					$job_data[0] = "";
 				}
 				Common::AppendArrayToFile($job_data, $data_path.self::VIECLAM24H_DATA.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::VIECLAM24H_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
 			}
 			return 0;
 		}

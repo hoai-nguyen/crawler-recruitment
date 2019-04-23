@@ -270,6 +270,7 @@ class RikunabiCrawler extends Controller{
 				Common::AppendArrayToFile($job_data, $data_path.self::RIKUNABI_DATA_NO_CONTACT.'.csv', "|");
 			} else{
 				Common::AppendArrayToFile($job_data, $data_path.self::RIKUNABI_DATA.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::RIKUNABI_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
 			}
 			return 0;
 		}

@@ -286,6 +286,7 @@ class TuyenDungComVnCrawler extends Controller{
 					$job_data[0] = "";
 				}
 				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
 			}
 			return 0;
 		}
