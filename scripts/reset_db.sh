@@ -220,7 +220,8 @@ elif [ $job_type = 'reset' ]; then
 			TRUNCATE TABLE phpmyadmin.crawler_tenshoku;TRUNCATE TABLE phpmyadmin.crawler_tenshokuex;\
 			TRUNCATE TABLE phpmyadmin.crawler_hatalike;TRUNCATE TABLE phpmyadmin.crawler_rikunabi;\
 			TRUNCATE TABLE phpmyadmin.crawler_uv_kenhtimviec;\
-			TRUNCATE TABLE phpmyadmin.crawler_doda;TRUNCATE TABLE phpmyadmin.crawler_enjapan;"
+			TRUNCATE TABLE phpmyadmin.crawler_doda;TRUNCATE TABLE phpmyadmin.crawler_enjapan;\
+			TRUNCATE TABLE phpmyadmin.job_file_index;"
 		echo "DONE"
 		;;
 	*)

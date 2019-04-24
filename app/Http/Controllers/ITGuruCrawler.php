@@ -13,6 +13,7 @@ class ITGuruCrawler extends Controller{
 
 	const TABLE = "crawler_itguru";
 	const TABLE_METADATA = "job_metadata";
+	const TABLE_FILE_METADATA = "job_file_index";
 	const JOB_NAME = "itguru";
 	const ITGURU_DATA_PATH = 'itguru';
 	const ITGURU_DATA = 'itguru-data';
@@ -31,15 +32,19 @@ class ITGuruCrawler extends Controller{
 	const MAX_PAGE = 50;
 	const PATTERN_DATE = '/\d{2}\-\d{2}\-\d{4}/';
 
+	static $file_index = 0;
+
 	public function CrawlerStarter(){
 		$start = microtime(true);
 		error_log("Start crawling ITGURU.VN ...");
 
-		$client = new Client(); 
+		$database = env("DB_DATABASE");
+		if ($database == null)  $database = Common::DB_DEFAULT;
+		self::$file_index = Common::GetFileIndexToProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
+
+		$client = new Client();
 		while (true){
 			try {
-				$database = env("DB_DATABASE");
-				if ($database == null)  $database = Common::DB_DEFAULT;
 				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
 				if ($new_batch == null) break;
 				
@@ -54,7 +59,9 @@ class ITGuruCrawler extends Controller{
 				break;
 			}
 		}
-		
+
+		Common::UpdateFileIndexAfterProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
+
 		$time_elapsed_secs = microtime(true) - $start;
 		error_log('Total Execution Time: '.$time_elapsed_secs.' secs');
 		error_log("DONE!");
@@ -270,7 +277,7 @@ class ITGuruCrawler extends Controller{
 					$job_data[0] = "";
 				}
 				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA.'.csv', "|");
-				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA.'-'.self::$file_index.'.csv', "|");
 			}
 			return 0;
 		}

@@ -374,4 +374,60 @@ class Common extends Controller{
 		return $date_str;		
 	}
 
+	public static function GetFileIndexToProcess($database, $table, $job_name){
+		if ($database == null) $database=self::DB_DEFAULT;
+		try{
+			$select_query = "select * from $database.$table where job_name='$job_name' order by created_date desc limit 1 ";
+			$latest_index = DB::select($select_query);
+			if (sizeof($latest_index) < 1){ 
+				$insert_query = "insert into $database.$table (file_index, job_name, status, running_instance) values (0, '$job_name', 'PROGRESS', 1) ";
+				$insert_results = DB::insert($insert_query);
+				return 0;
+			} 
+			$index = (object) $latest_index[0];
+			
+			if ($index->status == "DONE"){
+				$file_index = $index->file_index + 1;
+				$insert_query = "insert into $database.$table (file_index, job_name, status, running_instance) values ($file_index, '$job_name', 'PROGRESS', 1) ";
+				$insert_result = DB::insert($insert_query);
+				return $file_index;
+			} else {
+				$running_instance = $index->running_instance + 1;
+				$id = $index->id;
+				$update_query = "update $database.$table set running_instance=$running_instance where id=$id ";
+				$update_result = DB::update($update_query);
+				return $index->file_index;
+			}
+		} catch (\Throwable $e) {
+			error_log('Exception on GetFileName: '.($e -> getMessage ()));
+		}
+		return 0;
+	}
+
+	public static function UpdateFileIndexAfterProcess($database, $table, $job_name){
+		if ($database == null) $database=self::DB_DEFAULT;
+		try{
+			$select_query = "select * from $database.$table where job_name='$job_name' order by created_date desc limit 1 ";
+			$latest_index = DB::select($select_query);
+			if (sizeof($latest_index) < 1){
+				return -1;
+			} 
+			$index = (object) $latest_index[0];
+			$number_instances = $index->running_instance;
+			$id = $index->id;
+			if ($number_instances > 1){
+				$number_instances--;
+				$update_query = "update $database.$table set running_instance=$number_instances where id=$id ";
+				$update_result = DB::update($update_query);
+				return $update_result;
+			} else if ($number_instances == 1) {
+				$update_query = "update $database.$table set running_instance=0, status='DONE' where id=$id ";
+				$update_result = DB::update($update_query);
+				return $update_result;
+			}
+		} catch (\Throwable $e) {
+			error_log('Exception on GetFileName: '.($e -> getMessage ()));
+		}
+		return -1;
+	}
 }

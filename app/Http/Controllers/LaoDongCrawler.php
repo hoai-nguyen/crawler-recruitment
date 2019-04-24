@@ -13,6 +13,7 @@ class LaoDongCrawler extends Controller{
 
 	const TABLE = "crawler_laodong";
 	const TABLE_METADATA = "job_metadata";
+	const TABLE_FILE_METADATA = "job_file_index";
 	const JOB_NAME = "laodong";
 	const LAODONG_DATA_PATH = 'laodong';
 	const LAODONG_DATA = 'laodong-data';
@@ -31,22 +32,24 @@ class LaoDongCrawler extends Controller{
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 500;
 
+	static $file_index = 0;
+
 	public function CrawlerStarter(){
 		$start = microtime(true);
 		error_log("Start crawling LAODONG ...");
 
+		$database = env("DB_DATABASE");
+		if ($database == null)  $database = Common::DB_DEFAULT;
+		self::$file_index = Common::GetFileIndexToProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
+	
 		$client = new Client();
 		while (true){
 			try {
-				$database = env("DB_DATABASE");
-				if ($database == null)  $database = Common::DB_DEFAULT;
 				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
 				if ($new_batch == null) break;
 				
 				$return_code = $this->LaoDongCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
-				if ($return_code > 1) {
-					break;
-				}
+				if ($return_code > 1) break;
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
 			} catch (\Exception $e) {
 				error_log($e -> getMessage());
@@ -55,6 +58,8 @@ class LaoDongCrawler extends Controller{
 				break;
 			}
 		}
+
+		Common::UpdateFileIndexAfterProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
 		
 		$time_elapsed_secs = microtime(true) - $start;
 		error_log('Total Execution Time: '.$time_elapsed_secs.' secs');
@@ -305,7 +310,7 @@ class LaoDongCrawler extends Controller{
 					$job_data[0] = "";
 				}
 				Common::AppendArrayToFile($job_data, $data_path.self::LAODONG_DATA.'.csv', "|");
-				Common::AppendArrayToFile($job_data, $data_path.self::LAODONG_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::LAODONG_DATA.'-'.self::$file_index.'.csv', "|");
 			}
 			return 0;
 		}

@@ -13,6 +13,7 @@ class UVMyWorkCrawler extends Controller{
 
 	const TABLE = "crawler_uv_mywork";
 	const TABLE_METADATA = "job_metadata";
+	const TABLE_FILE_METADATA = "job_file_index";
 	const JOB_NAME = "uv_mywork";
 	const MYWORK_DATA_PATH = 'candidates/mywork'; 
 	const MYWORK_DATA = 'mywork-data';
@@ -30,17 +31,18 @@ class UVMyWorkCrawler extends Controller{
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 1000;
 
+	static $file_index = 0;
+
 	public function CrawlerStarter(){
 		$start = microtime(true);
 		error_log("Start crawling candidats of MyWork ...");
 
-		// $DATA_PATH = public_path('data').self::SLASH.self::MYWORK_DATA_PATH.self::SLASH;
-		// $this -> CrawlJob("", $DATA_PATH);
+		$database = env("DB_DATABASE");
+		if ($database == null)  $database = Common::DB_DEFAULT;
+		self::$file_index = Common::GetFileIndexToProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
 
 		while (true){
 			try {
-				$database = env("DB_DATABASE");
-				if ($database == null)  $database = Common::DB_DEFAULT;
 				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
 				if ($new_batch == null) break;
 
@@ -57,6 +59,8 @@ class UVMyWorkCrawler extends Controller{
 				break;
 			}
 		}
+
+		Common::UpdateFileIndexAfterProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
 
 		$time_elapsed_secs = microtime(true) - $start;
 		error_log('Total Execution Time: '.$time_elapsed_secs.' secs');
@@ -270,7 +274,7 @@ class UVMyWorkCrawler extends Controller{
 					$candidate_data[0] = "";
 				}
 				Common::AppendArrayToFile($candidate_data, $data_path.self::MYWORK_DATA.'.csv', "|");
-				Common::AppendArrayToFile($candidate_data, $data_path.self::MYWORK_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
+				Common::AppendArrayToFile($candidate_data, $data_path.self::MYWORK_DATA.'-'.self::$file_index.'.csv', "|");
 			}
 		}
 	}

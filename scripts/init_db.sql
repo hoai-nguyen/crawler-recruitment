@@ -166,3 +166,14 @@ CREATE TABLE IF NOT EXISTS `phpmyadmin`.`crawler_enjapan`(
 	`link` varchar(2000) DEFAULT NULL,
 	PRIMARY KEY(`id`)
 );
+
+CREATE TABLE `phpmyadmin`.`job_file_index` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `file_index` int(11) NOT NULL,
+  `job_name` varchar(200) COLLATE utf8_bin DEFAULT NULL,
+  `status` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `running_instance` int(11) DEFAULT 0,
+  `created_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);

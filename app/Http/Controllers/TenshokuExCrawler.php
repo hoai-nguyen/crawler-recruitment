@@ -13,6 +13,7 @@ class TenshokuExCrawler extends Controller{
 
 	const TABLE = "crawler_tenshokuex";
 	const TABLE_METADATA = "job_metadata";
+	const TABLE_FILE_METADATA = "job_file_index";
 	const JOB_NAME = "tenshokuex";
 	const TENSHOKU_DATA_PATH = 'tenshokuex';
 	const TENSHOKU_DATA = 'tenshokuex-data';
@@ -35,18 +36,19 @@ class TenshokuExCrawler extends Controller{
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 500;
 
+	static $file_index = 0;
+
 	public function CrawlerStarter(){
 		$start = microtime(true);
 		error_log("Start crawling tenshokuex.mynavi.jp ...");
 
+		$database = env("DB_DATABASE");
+		if ($database == null)  $database = Common::DB_DEFAULT;
+		self::$file_index = Common::GetFileIndexToProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
+		
 		$client = new Client(); 
-		// $DATA_PATH = public_path('data').self::SLASH.self::TENSHOKU_DATA_PATH.self::SLASH;
-		// $this -> CrawlJob($client, "", $DATA_PATH);
-		// dd("STOP");
 		while (true){
 			try {
-				$database = env("DB_DATABASE");
-				if ($database == null)  $database = Common::DB_DEFAULT;
 				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
 				if ($new_batch == null) break;
 				
@@ -54,7 +56,6 @@ class TenshokuExCrawler extends Controller{
 				
 				if ($return_code > 1) break;
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
-
 			} catch (\Exception $e) {
 				error_log($e -> getMessage());
 				$file_name = public_path('data').self::SLASH.self::TENSHOKU_DATA_PATH.self::SLASH.self::TENSHOKU_ERROR.date(self::DATE_FORMAT).'.csv';
@@ -63,6 +64,8 @@ class TenshokuExCrawler extends Controller{
 			}
 		}
 		
+		Common::UpdateFileIndexAfterProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
+
 		$time_elapsed_secs = microtime(true) - $start;
 		error_log('Total Execution Time: '.$time_elapsed_secs.' secs');
 		error_log("DONE!");
@@ -253,7 +256,7 @@ class TenshokuExCrawler extends Controller{
 				Common::AppendArrayToFile($job_data, $data_path.self::TENSHOKU_DATA_NO_CONTACT.'.csv', "|");
 			} else{
 				Common::AppendArrayToFile($job_data, $data_path.self::TENSHOKU_DATA.'.csv', "|");
-				Common::AppendArrayToFile($job_data, $data_path.self::TENSHOKU_DATA.'-'.date(self::DATE_FORMAT).'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::TENSHOKU_DATA.'-'.self::$file_index.'.csv', "|");
 			}
 			return 0;
 		}
