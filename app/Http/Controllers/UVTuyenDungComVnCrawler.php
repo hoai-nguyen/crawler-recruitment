@@ -32,6 +32,7 @@ class UVTuyenDungComVnCrawler extends Controller{
 	const LABEL_COMPANY = "Nhà tuyển dụng";
 	const DATE_FORMAT = "Ymd";
 	const INPUT_DATE_FORMAT = "d M Y";
+	const INPUT_DATE_FORMAT_CREATED = "m/d/Y";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 500;
@@ -48,6 +49,7 @@ class UVTuyenDungComVnCrawler extends Controller{
 		self::$file_index = Common::GetFileIndexToProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
 
 		$client = $this->TuyenDungComvnLogin();
+
 		while (true){
 			try {
 				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
@@ -202,6 +204,7 @@ class UVTuyenDungComVnCrawler extends Controller{
 				$created = $created_crl -> text();
 			}
 			$created = Common::RemoveSpaceChars($created);
+			$created = Common::ConvertDateFormat($created, self::INPUT_DATE_FORMAT_CREATED, Common::DATE_DATA_FORMAT);
 
 			$address = "";
 			$address_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblAddress');
