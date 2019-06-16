@@ -45,7 +45,6 @@ class AutomotiveExpoCrawler extends Controller{
 				$exhibitors = $crawler -> filter("#01") -> filter("li");
 				
 				foreach( $exhibitors as $el){
-					error_log($idx);
 					$start = microtime(true);
 
 					$company_crl = new Crawler($el);
