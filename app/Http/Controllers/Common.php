@@ -14,8 +14,33 @@ class Common extends Controller{
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
 	const WEBSITE_PATTERN = "#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#";
 	const MOBILE_PREFIX = array("032", "033", "034", "035", "036", "037", "038", "039", "096", "097", "098", "086", "070", "079", "077", "076", "078", "089", "090", "093", "081", "082", "083", "084", "085", "088", "091", "094", "056", "058", "092", "059", "099");
+	const MOBILE_PREFIX_CONVERSION = array(
+		"0162"=>"032"
+		, "0163"=>"033"
+		, "0164"=>"034"
+		, "0165"=>"035"
+		, "0166"=>"036"
+		, "0167"=>"037"
+		, "0168"=>"038"
+		, "0169"=>"039"
+		, "0120"=>"070"
+		, "0121"=>"079"
+		, "0122"=>"077"
+		, "0126"=>"076"
+		, "0128"=>"078"
+		, "0123"=>"083"
+		, "0124"=>"084"
+		, "0125"=>"085"
+		, "0127"=>"081"
+		, "0129"=>"082"
+		, "0186"=>"056"
+		, "0188"=>"058"
+		, "0199"=>"059"
+	  );
 	const PHONE_PATTERN = "!\d+!";
+	const PHONE_PATTERN_JP = "/[0-9]{2,4}\s*-\s*[0-9]{2,4}\s*-\s*[0-9]{2,4}/";
 	const TRIM_SET = "\r\n- =*+. –נ●•âƢẢܔ֠Ȓƪܨۨ®";
+	const TRIM_SET_JP = "\r\n- =*+. –";
 	const PHONE_CODE_VN = "84";
 	const PHONE_START = "0";
 	const DB_DEFAULT = "phpmyadmin";
@@ -87,38 +112,23 @@ class Common extends Controller{
 		return $mobiles_str;		
 	}
 
-	public static function ExtractJapaneseMobile($text){
-		if ($text == null) return "";
+	public static function ExtractFirstJPMobile($contact){
+		if ($contact == null) return "";
 		$mobiles_str = "";
 		try{
-			preg_match_all(self::PHONE_PATTERN, $text, $matches);
-			$len = count($matches[0]);
-			if ($len > 0){
-				$nums = $matches[0];
-				$mobiles = array();
-				$mobile_tmp = "";
-				for ($x = 0; $x < $len; $x++) {
-					$num = $nums[$x];
-					if (strlen($mobile_tmp.$num) <= 12){
-						$mobile_tmp = $mobile_tmp.$num;
-					} else {
-						array_push($mobiles, $mobile_tmp);
-						$mobile_tmp = $num;
-					}
-					if ($x == $len - 1){
-						array_push($mobiles, $mobile_tmp);
-					}
-				} 
-				if (sizeof($mobiles) > 0 ){
-					if (sizeof($mobiles) > 1 and strlen($mobiles[1]) < 5){
-						$mobiles_str = $mobiles[0].'/'.$mobiles[1];
-					} 
-					$mobiles_str = $mobiles[0];
-				}
-			} 
-			if (strlen($mobiles_str) < 8 or strlen($mobiles_str) > 16) return "";
+			preg_match_all(self::PHONE_PATTERN_JP, $contact, $matches);
+			if (sizeof($matches[0]) > 0){
+				$mobiles_str = $matches[0][0];
+				$mobiles_str = preg_replace('!-!', '', $mobiles_str);
+			} else{
+				$mobiles_str = "";
+			}
+			if (strlen($mobiles_str) < 10 or strlen($mobiles_str) > 11) return "";
+			if (strlen($mobiles_str) == 11 
+					and ! in_array(substr($mobiles_str, 0, 3), array("070", "080", "090"))){
+				$mobiles_str =	"";
+			}
 			return $mobiles_str;
-			// return Common::PhoneCleasing($mobiles_str);
 		} catch (\Throwable $e) {
 			// error_log('Exception on ExtractFirstMobile: '.($e -> getMessage ()));
 		}
@@ -228,6 +238,10 @@ class Common extends Controller{
 	
 	public static function RemoveTrailingChars($text){
 		return trim(preg_replace('!\s+!', ' ', $text), self::TRIM_SET);
+	}
+	
+	public static function RemoveSpaceChars($text){
+		return trim(preg_replace('!\s+!', ' ', $text), self::TRIM_SET_JP);
     }
     
 	public static function FindNewBatchToProcess($database, $table, $job_name){
@@ -333,5 +347,87 @@ class Common extends Controller{
         $chr = substr($str, -1);
         return mb_strtolower($chr, "UTF-8") != $chr;
 	}
-	
+
+	public static function UpdateMobilePrefix($mobile){
+		$prefix = substr($mobile, 0, 4);
+		$new_mobile = $mobile;
+		if (array_key_exists($prefix, self::MOBILE_PREFIX_CONVERSION)){
+		  $new_prefix = self::MOBILE_PREFIX_CONVERSION[$prefix];
+		  $new_mobile = $new_prefix.substr($mobile, 4);
+		}
+		return $new_mobile;
+	}
+
+
+	public static function ExtractCreatedDateFromText($text){
+		if ($text == null) return "";
+		$date_str = "";
+		try{
+			preg_match_all("/[0-9]{1,2}\s*-\s*[0-9]{1,2}\s*-\s*[0-9]{4}/", $text, $matches);
+			if (sizeof($matches[0]) > 0){
+				$date_str = $matches[0][0];
+			} 
+			return $date_str;
+		} catch (\Throwable $e) {
+			// error_log('Exception on ExtractFirstMobile: '.($e -> getMessage ()));
+		}
+		return $date_str;		
+	}
+
+	public static function GetFileIndexToProcess($database, $table, $job_name){
+		if ($database == null) $database=self::DB_DEFAULT;
+		try{
+			$select_query = "select * from $database.$table where job_name='$job_name' order by created_date desc limit 1 ";
+			$latest_index = DB::select($select_query);
+			if (sizeof($latest_index) < 1){ 
+				$insert_query = "insert into $database.$table (file_index, job_name, status, running_instance) values (0, '$job_name', 'PROGRESS', 1) ";
+				$insert_results = DB::insert($insert_query);
+				return 0;
+			} 
+			$index = (object) $latest_index[0];
+			
+			if ($index->status == "DONE"){
+				$file_index = $index->file_index + 1;
+				$insert_query = "insert into $database.$table (file_index, job_name, status, running_instance) values ($file_index, '$job_name', 'PROGRESS', 1) ";
+				$insert_result = DB::insert($insert_query);
+				return $file_index;
+			} else {
+				$running_instance = $index->running_instance + 1;
+				$id = $index->id;
+				$update_query = "update $database.$table set running_instance=$running_instance where id=$id ";
+				$update_result = DB::update($update_query);
+				return $index->file_index;
+			}
+		} catch (\Throwable $e) {
+			error_log('Exception on GetFileName: '.($e -> getMessage ()));
+		}
+		return 0;
+	}
+
+	public static function UpdateFileIndexAfterProcess($database, $table, $job_name){
+		if ($database == null) $database=self::DB_DEFAULT;
+		try{
+			$select_query = "select * from $database.$table where job_name='$job_name' order by created_date desc limit 1 ";
+			$latest_index = DB::select($select_query);
+			if (sizeof($latest_index) < 1){
+				return -1;
+			} 
+			$index = (object) $latest_index[0];
+			$number_instances = $index->running_instance;
+			$id = $index->id;
+			if ($number_instances > 1){
+				$number_instances--;
+				$update_query = "update $database.$table set running_instance=$number_instances where id=$id ";
+				$update_result = DB::update($update_query);
+				return $update_result;
+			} else if ($number_instances == 1) {
+				$update_query = "update $database.$table set running_instance=0, status='DONE' where id=$id ";
+				$update_result = DB::update($update_query);
+				return $update_result;
+			}
+		} catch (\Throwable $e) {
+			error_log('Exception on GetFileName: '.($e -> getMessage ()));
+		}
+		return -1;
+	}
 }

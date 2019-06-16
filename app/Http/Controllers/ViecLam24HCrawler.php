@@ -13,6 +13,7 @@ class ViecLam24HCrawler extends Controller{
 
 	const TABLE = "vieclam24h";
 	const TABLE_METADATA = "job_metadata";
+	const TABLE_FILE_METADATA = "job_file_index";
 	const JOB_NAME = "vieclam24h";
 	const VIECLAM24H_DATA_PATH = 'vieclam24h'; 
 	const VIECLAM24H_DATA = 'vieclam24h-data';
@@ -30,21 +31,23 @@ class ViecLam24HCrawler extends Controller{
 	const EMAIL_PATTERN = "/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i";
 	const PHONE_PATTERN = "!\d+!";
 
+	static $file_index = 0;
+
 	public function CrawlerStarter(){
 		$start = microtime(true);
 		error_log("Start crawling ViecLam24H ...");
 
+		$database = env("DB_DATABASE");
+		if ($database == null)  $database = Common::DB_DEFAULT;
+		self::$file_index = Common::GetFileIndexToProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
 		while (true){
 			try {
-				$database = env("DB_DATABASE");
-				if ($database == null)  $database = Common::DB_DEFAULT;
 				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
 				if ($new_batch == null) break;
 
 				$return_code = $this->ViecLam24HPageCrawler($new_batch -> start_page, $new_batch -> end_page);
 
 				if ($return_code > 1) break;
-
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
 
 			} catch (\Exception $e) {
@@ -54,6 +57,8 @@ class ViecLam24HCrawler extends Controller{
 				break;
 			}
 		}
+
+		Common::UpdateFileIndexAfterProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
 
 		$time_elapsed_secs = microtime(true) - $start;
 		error_log('Total Execution Time: '.$time_elapsed_secs.' secs');
@@ -333,11 +338,12 @@ class ViecLam24HCrawler extends Controller{
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::VIECLAM24H_DATA_NO_CONTACT.'.csv', "|");
-			} else {
+			} else{
 				if (Common::isNotMobile($mobile)){
 					$job_data[0] = "";
 				}
 				Common::AppendArrayToFile($job_data, $data_path.self::VIECLAM24H_DATA.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::VIECLAM24H_DATA.'-'.self::$file_index.'.csv', "|");
 			}
 			return 0;
 		}

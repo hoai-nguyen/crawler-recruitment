@@ -9,52 +9,57 @@ use \Exception as Exception;
 
 use App\Http\Controllers\Common;
 
-class ITGuruCrawler extends Controller{
+class HatalikeCrawler extends Controller{
 
-	const TABLE = "crawler_itguru";
+	const TABLE = "crawler_hatalike";
 	const TABLE_METADATA = "job_metadata";
 	const TABLE_FILE_METADATA = "job_file_index";
-	const JOB_NAME = "itguru";
-	const ITGURU_DATA_PATH = 'itguru';
-	const ITGURU_DATA = 'itguru-data';
-	const ITGURU_DATA_NO_CONTACT = 'itguru-data-no-contact';
-	const ITGURU_ERROR = 'itguru-error-';
-	const ITGURU_LINK = 'itguru-link';
-	const ITGURU_HOME = 'https://itguru.vn';
-	const ITGURU_PAGE = 'https://itguru.vn/search-results-jobs/?page=';
-	const LABEL_SALARY = 'Lương:';
-	const LABEL_DEADLINE = "Ngày hết hạn:";
-	const LABEL_DESCRIPTION = "Mô tả công việc:";
+	const JOB_NAME = "hatalike";
+	const HATALIKE_DATA_PATH = 'hatalike';
+	const HATALIKE_DATA = 'hatalike-data';
+	const HATALIKE_DATA_NO_CONTACT = 'hatalike-data-no-contact';
+	const HATALIKE_ERROR = 'hatalike-error-';
+	const HATALIKE_LINK = 'hatalike-link';
+	const HATALIKE_HOME = 'https://www.hatalike.jp';
+	const HATALIKE_PAGE = 'https://www.hatalike.jp/PBL_05';
+	const HATALIKE_POSTFIX = '/?SCA=05&st=P03';
+	const LABEL_SALARY = "給与";
+	const LABEL_QUANTITY = "採用予定人数";
+	const LABEL_DESCRIPTION = "職種/仕事内容";
+	const LABEL_MOBILE = "連絡先/担当者";
+	const LABEL_ADDRESS = "勤務地";
+	const LABEL_WEBSITE = "企業ホームページ";
 	const DATE_FORMAT = "Ymd";
-	const INPUT_DATE_FORMAT = "d-m-Y";
+	const DATE_REGEX = '/\d{4}\/\d{2}\/\d{2}/';
+	const INPUT_DATE_FORMAT = "Y/m/d";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
-	const MAX_PAGE = 50;
-	const PATTERN_DATE = '/\d{2}\-\d{2}\-\d{4}/';
+	const MAX_PAGE =  1000;
 
 	static $file_index = 0;
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
-		error_log("Start crawling ITGURU.VN ...");
+		error_log("Start crawling hatalike.mynavi.jp ...");
 
 		$database = env("DB_DATABASE");
 		if ($database == null)  $database = Common::DB_DEFAULT;
 		self::$file_index = Common::GetFileIndexToProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
 
-		$client = new Client();
+		$client = new Client(); 
 		while (true){
 			try {
 				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
 				if ($new_batch == null) break;
 				
-				$return_code = $this->ITGuruCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
+				$return_code = $this -> HatalikeCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
 				
 				if ($return_code > 1) break;
 				if($new_batch -> start_page >= self::MAX_PAGE) break;
+
 			} catch (\Exception $e) {
 				error_log($e -> getMessage());
-				$file_name = public_path('data').self::SLASH.self::ITGURU_DATA_PATH.self::SLASH.self::ITGURU_ERROR.date(self::DATE_FORMAT).'.csv';
+				$file_name = public_path('data').self::SLASH.self::HATALIKE_DATA_PATH.self::SLASH.self::HATALIKE_ERROR.date(self::DATE_FORMAT).'.csv';
 				Common::AppendStringToFile('Exception on starter: '.substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
@@ -70,31 +75,35 @@ class ITGuruCrawler extends Controller{
 		echo "DONE!";
 	}
 	
-	public function ITGuruCrawlerFunc($client, $start_page, $end_page){
-		$DATA_PATH = public_path('data').self::SLASH.self::ITGURU_DATA_PATH.self::SLASH;
+	public function HatalikeCrawlerFunc($client, $start_page, $end_page){
+		$DATA_PATH = public_path('data').self::SLASH.self::HATALIKE_DATA_PATH.self::SLASH;
 
 		$last_page_is_empty = false;
 		$return_code = 0;
 		$x = (int) $start_page; 
 		$end_page = (int) $end_page;
         while($x <= $end_page) {
+			$step = 30*($x - 1);
 			$page_start = microtime(true);
 			error_log("Page = ".$x);
 			echo "page = ".$x.": ";
-
+			
 			try{
-				$pageUrl = self::ITGURU_PAGE.$x;
+				if ($step  == 0){
+					$pageUrl = self::HATALIKE_PAGE.self::HATALIKE_POSTFIX;
+				} else{
+					$pageUrl = self::HATALIKE_PAGE.'/'.$step.self::HATALIKE_POSTFIX;
+				}
 				$crawler = $client -> request('GET', $pageUrl);
-				$jobs = $crawler -> filter('#new_list__IT') -> filter('div.name_company > h3 > a');
-
+				$jobs = $crawler -> filter('#leftCol') -> filter('p.lead > a');
 				if ($jobs -> count() <= 0) {
 					Common::AppendStringToFile("No job found on page: ".$pageUrl
-						, $DATA_PATH.self::ITGURU_ERROR.date(self::DATE_FORMAT).'.csv');
+						, $DATA_PATH.self::HATALIKE_ERROR.date(self::DATE_FORMAT).'.csv');
 					
 					// if previous page is empty and current page is empty => quit
 					if ($last_page_is_empty){
 						Common::AppendStringToFile("Quit because two consecutive pages are empty."
-							, $DATA_PATH.self::ITGURU_ERROR.date(self::DATE_FORMAT).'.csv');
+							, $DATA_PATH.self::HATALIKE_ERROR.date(self::DATE_FORMAT).'.csv');
 						return 2;
 					}
 					$last_page_is_empty = true;
@@ -110,7 +119,7 @@ class ITGuruCrawler extends Controller{
 									return $job_link;
 								}
 							} catch (\Exception $e) {
-								$file_name = public_path('data').self::SLASH.self::ITGURU_DATA_PATH.self::SLASH.self::ITGURU_ERROR.date(self::DATE_FORMAT).'.csv';
+								$file_name = public_path('data').self::SLASH.self::HATALIKE_DATA_PATH.self::SLASH.self::HATALIKE_ERROR.date(self::DATE_FORMAT).'.csv';
 								Common::AppendStringToFile('Exception on getting job_link: '.substr($e -> getMessage (), 0, 1000), $file_name);
 							}
 						}
@@ -127,7 +136,6 @@ class ITGuruCrawler extends Controller{
 					
 					// deduplicate
 					$new_links = array_diff($jobs_links, $duplicated_links);
-
 					if (is_array($new_links) and sizeof($new_links) > 0){
 						error_log(sizeof($new_links)." new links.");
 
@@ -138,17 +146,16 @@ class ITGuruCrawler extends Controller{
 								try {
 									ini_set('max_execution_time', 10000000);				
 
-									if ($job_link == null){
-									} else{
+									if ($job_link != null){
 										$code = $this->CrawlJob($client, $job_link, $DATA_PATH);
 										if ($code == 0)
 											Common::AppendStringToFile($job_link
-												, $DATA_PATH.self::ITGURU_LINK.'.csv');
+												, $DATA_PATH.self::HATALIKE_LINK.'.csv');
 									}
 								} catch (\Exception $e) {
 									error_log('Crawl each link: '.($e -> getMessage ()));
 									Common::AppendStringToFile("Exception on crawling link: ".$job_link.": ".substr($e -> getMessage (), 0, 1000)
-										, $DATA_PATH.self::ITGURU_ERROR.date(self::DATE_FORMAT).'.csv');
+										, $DATA_PATH.self::HATALIKE_ERROR.date(self::DATE_FORMAT).'.csv');
 								}
 							}
 							// end for
@@ -157,8 +164,8 @@ class ITGuruCrawler extends Controller{
 				}
 			} catch (\Exception $e) {
 				$return_code = 1;
-				error_log('ITGuruCrawlerFunc: '.($e -> getMessage ()));
-				$file_name = public_path('data').self::SLASH.self::ITGURU_DATA_PATH.self::SLASH.self::ITGURU_ERROR.date(self::DATE_FORMAT).'.csv';
+				error_log('HatalikeCrawlerFunc: '.($e -> getMessage ()));
+				$file_name = public_path('data').self::SLASH.self::HATALIKE_DATA_PATH.self::SLASH.self::HATALIKE_ERROR.date(self::DATE_FORMAT).'.csv';
 				Common::AppendStringToFile("Exception on page = ".$x.": ".substr($e -> getMessage (), 0, 1000), $file_name);
 				break;
 			}
@@ -178,84 +185,80 @@ class ITGuruCrawler extends Controller{
 			$crawler = $client -> request('GET', $url);
 		} catch (\Exception $e) {
 			Common::AppendStringToFile("Cannot request page: ".$url.": ".substr($e -> getMessage (), 0, 1000)
-				, $data_path.self::ITGURU_ERROR.date(self::DATE_FORMAT).'.csv');
+				, $data_path.self::HATALIKE_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		}
 
 		if ($crawler -> count() <= 0 ) {
 			Common::AppendStringToFile("Cannot request page: ".$url
-				, $data_path.self::ITGURU_ERROR.date(self::DATE_FORMAT).'.csv');
+				, $data_path.self::HATALIKE_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		} else{
-			$job_title = "";
-			$job_title_crl = $crawler -> filter('div.listingInfo > h2');
-			if ($job_title_crl->count() > 0){
-				$job_title = $job_title_crl -> first() -> text();
-			} else {
-				return -1;
-			}
-			$job_title = Common::RemoveTrailingChars($job_title);
-
-			$salary = "";
+			$created = "";
 			$deadline = "";
-			$job_des = "";
-			$job_infos_crl = $crawler -> filter("div.displayFieldBlock");
-			if ($job_infos_crl->count() > 0){
-				foreach($job_infos_crl as $item){
-					$node = new Crawler($item);
-					$label_crl = $node -> filter('h3');
-					if ($label_crl -> count() > 0){
-						$label = $label_crl -> first() -> text();
-						$value = $node -> filter('div.displayField') -> first() -> text();
-						if (strpos($label, self::LABEL_SALARY) !== false){
-							$salary = $value;
-							$salary = Common::RemoveTrailingChars($salary);
-						} else if (strpos($label, self::LABEL_DEADLINE) !== false){
-							$deadline = $value;
-							$deadline = Common::RemoveTrailingChars($deadline);
-						} else if (strpos($label, self::LABEL_DESCRIPTION) !== false){
-							$job_des = $value;
-							$job_des = Common::RemoveTrailingChars($job_des);
-							break;
-						}
-					}
+			$period_crl = $crawler -> filter("p.period");
+			if ($period_crl -> count() > 0){
+				$text = $period_crl -> first() -> text();
+				preg_match_all(self::DATE_REGEX,$text,$matches);
+				if (sizeof($matches) > 0){
+					$created = $matches[0][0];
+					$deadline = $matches[0][1];
 				}
 			}
+			$created = Common::RemoveTrailingChars($created);
+			$deadline = Common::RemoveTrailingChars($deadline);
+			$created = Common::ConvertDateFormat($created, self::INPUT_DATE_FORMAT, Common::DATE_DATA_FORMAT);
+			$deadline = Common::ConvertDateFormat($deadline, self::INPUT_DATE_FORMAT, Common::DATE_DATA_FORMAT);
 			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
 				return 2;
 			}
+
+			$job_title = "";
+			$job_title_crl = $crawler -> filter('p.em01');
+			if ($job_title_crl->count() > 0){
+				$job_title = $job_title_crl -> first() -> text();
+			} 
+			$job_title = Common::RemoveTrailingChars($job_title);
 			
-			$company = "";
+			$salary = "";
 			$mobile = "";
 			$address = "";
-			$company_info_crl = $crawler -> filter("div.compProfileInfo > div.comp-profile-content");
-			if ($company_info_crl->count() > 0){
-				$company_crl = $company_info_crl -> filter("span");
-				if ($company_crl -> count() > 0){
-					$company = $company_crl -> first() -> text();
-				}
-				if ($company_crl -> count() > 2){
-					$mobile = $company_crl -> last() -> text();
-					$mobile = Common::ExtractFirstMobile($mobile);
-				}
-			
-				$address = "";
-				$company_info_crl -> filter('span')->each(
-					function (Crawler $crawler) {
-						foreach ($crawler as $node) {
-							$node->parentNode->removeChild($node);
-						}
-					}
-				);
-				$address = $company_info_crl -> text();
-				$address = Common::RemoveTrailingChars($address);
+			$job_des = "";
+			$job_infos_crl = $crawler -> filter("table.design01") -> filter("tr");
+			if ($job_infos_crl -> count() <= 0 ) {
+				Common::AppendStringToFile("No job info: ".$url
+					, $data_path.self::HATALIKE_ERROR.date(self::DATE_FORMAT).'.csv');
+				return -1;
 			}
-			$company = Common::RemoveTrailingChars($company);
+			foreach($job_infos_crl as $node){
+				$node = new Crawler($node);
+				$label = $node -> children() -> first() -> text();
+				$value = $node -> children() -> last() -> text();	
+
+				if (strpos($label, self::LABEL_DESCRIPTION) !== false){
+					$job_des = Common::RemoveTrailingChars($value);
+				} else if (strpos($label, self::LABEL_SALARY) !== false){
+					$salary = Common::RemoveTrailingChars($value);
+				} else if (strpos($label, self::LABEL_ADDRESS) !== false){
+					$address = Common::RemoveTrailingChars($value);
+				} else if (strpos($label, self::LABEL_MOBILE) !== false){
+					$mobile = Common::ExtractFirstMobile($value);
+				} 
+			}
+			
+			$company = "";
+			$website = "";
+			$company_name_crl = $crawler -> filter("div.rightCol > dl.companyInfo > dd");
+			if ($company_name_crl -> count() > 0){
+				$company = $company_name_crl -> first() -> text();
+				$web_crl = $company_name_crl -> filter("a");
+				if ($web_crl -> count() > 0){
+					$website = $web_crl -> first() -> attr("href");
+				}
+			}
 
 			$email = "";
-			$created = "";
 			$soluong = "";
-			$website = "";
 
 			$job_data = array($mobile
 				, $email
@@ -270,14 +273,11 @@ class ITGuruCrawler extends Controller{
 				, $website
 				// , $url
 			);
-			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
-				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA_NO_CONTACT.'.csv', "|");
+			if (Common::IsNullOrEmpty($email) and Common::IsNullOrEmpty($mobile)){
+				Common::AppendArrayToFile($job_data, $data_path.self::HATALIKE_DATA_NO_CONTACT.'.csv', "|");
 			} else{
-				if (Common::isNotMobile($mobile)){
-					$job_data[0] = "";
-				}
-				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA.'.csv', "|");
-				Common::AppendArrayToFile($job_data, $data_path.self::ITGURU_DATA.'-'.self::$file_index.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::HATALIKE_DATA.'.csv', "|");
+				Common::AppendArrayToFile($job_data, $data_path.self::HATALIKE_DATA.'-'.self::$file_index.'.csv', "|");
 			}
 			return 0;
 		}

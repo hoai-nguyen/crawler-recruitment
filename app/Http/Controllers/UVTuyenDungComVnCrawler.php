@@ -9,19 +9,19 @@ use \Exception as Exception;
 
 use App\Http\Controllers\Common;
 
-class TuyenDungComVnCrawler extends Controller{
+class UVTuyenDungComVnCrawler extends Controller{
 
-	const TABLE = "crawler_tuyendungcomvn";
+	const TABLE = "crawler_uv_tuyendungcomvn";
 	const TABLE_METADATA = "job_metadata";
-	const TABLE_FILE_METADATA = "job_file_index";
-	const JOB_NAME = "tuyendungcomvn";
-	const TUYENDUNGCOMVN_DATA_PATH = 'tuyendungcomvn';
+	const TABLE_FILE_METADATA = "job_file_index";	
+	const JOB_NAME = "uv_tuyendungcomvn";
+	const TUYENDUNGCOMVN_DATA_PATH = 'candidates/tuyendungcomvn';
 	const TUYENDUNGCOMVN_DATA = 'tuyendungcomvn-data';
 	const TUYENDUNGCOMVN_DATA_NO_CONTACT = 'tuyendungcomvn-data-no-contact';
 	const TUYENDUNGCOMVN_ERROR = 'tuyendungcomvn-error-';
 	const TUYENDUNGCOMVN_LINK = 'tuyendungcomvn-link';
 	const TUYENDUNGCOMVN_HOME = 'https://tuyendung.com.vn';
-	const TUYENDUNGCOMVN_PAGE = 'https://tuyendung.com.vn/timvieclam/JobResult.aspx?page=';
+	const TUYENDUNGCOMVN_PAGE = 'https://tuyendung.com.vn/tuyendung/resumeresult.aspx?page=';
 	const LABEL_SALARY = 'Mức lương';
 	const LABEL_QUANTITY = 'Số lượng';
 	const LABEL_DEADLINE = "Hạn nộp hồ sơ";
@@ -31,7 +31,8 @@ class TuyenDungComVnCrawler extends Controller{
 	const LABEL_DESCRIPTION = "Chi tiết công việc";
 	const LABEL_COMPANY = "Nhà tuyển dụng";
 	const DATE_FORMAT = "Ymd";
-	const INPUT_DATE_FORMAT = "d-m-Y";
+	const INPUT_DATE_FORMAT = "d M Y";
+	const INPUT_DATE_FORMAT_CREATED = "m/d/Y";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 500;
@@ -41,18 +42,19 @@ class TuyenDungComVnCrawler extends Controller{
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
-		error_log("Start crawling TUYENDUNG.COM.VN ...");
+		error_log("Start crawling candidates of TUYENDUNG.COM.VN ...");
 
 		$database = env("DB_DATABASE");
 		if ($database == null)  $database = Common::DB_DEFAULT;
 		self::$file_index = Common::GetFileIndexToProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
-		
+
 		$client = $this->TuyenDungComvnLogin();
+
 		while (true){
 			try {
 				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
 				if ($new_batch == null) break;
-				if($new_batch -> start_page >= 20) break;
+				
 				$return_code = $this->TuyenDungComVnCrawlerFunc($client, $new_batch -> start_page, $new_batch -> end_page);
 				
 				if ($return_code > 1) break;
@@ -64,7 +66,7 @@ class TuyenDungComVnCrawler extends Controller{
 				break;
 			}
 		}
-		
+
 		Common::UpdateFileIndexAfterProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
 
 		$time_elapsed_secs = microtime(true) - $start;
@@ -119,6 +121,7 @@ class TuyenDungComVnCrawler extends Controller{
 							}
 						}
 					);
+					
 					// select duplicated records
 					$existing_links = Common::CheckLinksExist($jobs_links, env("DB_DATABASE"), self::TABLE);
 					$duplicated_links = array();
@@ -131,7 +134,6 @@ class TuyenDungComVnCrawler extends Controller{
 					
 					// deduplicate
 					$new_links = array_diff($jobs_links, $duplicated_links);
-
 					if (is_array($new_links) and sizeof($new_links) > 0){
 						error_log(sizeof($new_links)." new links.");
 
@@ -190,71 +192,51 @@ class TuyenDungComVnCrawler extends Controller{
 				, $data_path.self::TUYENDUNGCOMVN_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		} else{
-			$company = "";
-			$company_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblCompanyName');
-			if ($company_crl->count() > 0){
-				$company = $company_crl -> text();
+			$fullname = "";
+			$fullname_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblFullName');
+			if ($fullname_crl->count() > 0){
+				$fullname = $fullname_crl -> text();
 			}
-			$company = Common::RemoveTrailingChars($company);
 			
+			$created = "";
+			$created_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblUpdateDate');
+			if ($created_crl->count() > 0){
+				$created = $created_crl -> text();
+			}
+			$created = Common::RemoveSpaceChars($created);
+			$created = Common::ConvertDateFormat($created, self::INPUT_DATE_FORMAT_CREATED, Common::DATE_DATA_FORMAT);
+
 			$address = "";
-			$address_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblCompanyAddress');
+			$address_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblAddress');
 			if ($address_crl->count() > 0){
 				$address = $address_crl -> text();
 			}
-			$address = Common::RemoveTrailingChars($address);
+			$address = Common::RemoveSpaceChars($address);
 
-			$website = "";
-			$website_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_hplWebsite');
-			if ($website_crl->count() > 0){
-				$website = $website_crl -> text();
-			}
-
-			$job_title = "";
-			$job_title_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblJobPosition');
-			if ($job_title_crl->count() > 0){
-				$job_title = $job_title_crl -> text();
-			} else {
-				return -1;
-			}
-			$job_title = Common::RemoveTrailingChars($job_title);
-
-			$soluong = "";
-			$soluong_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblReqNumber');
-			if ($soluong_crl->count() > 0){
-				$soluong = $soluong_crl -> text();
-			}
-			
-			$salary = "";
-			$salary_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblSalary');
-			if ($salary_crl->count() > 0){
-				$salary = $salary_crl -> text();
+			$birthyear = "";
+			$birthyear_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblDOB');
+			if ($birthyear_crl->count() > 0){
+				$birthyear = $birthyear_crl -> text();
+				$birthyear = Common::RemoveSpaceChars($birthyear);
+				$birthyear = Common::ConvertDateFormat($birthyear, self::INPUT_DATE_FORMAT, "Y");
 			}
 
-			$deadline = "";
-			$deadline_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblClosedDate');
-			if ($deadline_crl->count() > 0){
-				$deadline = $deadline_crl -> text();
+			$gender = "";
+			$gender_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblGender');
+			if ($gender_crl->count() > 0){
+				$gender = $gender_crl -> text();
 			}
-			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
-				return 2;
-			}
-
-			$email = "";
-			$email_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_hplContactEmail');
-			if ($email_crl->count() > 0){
-				$email = $email_crl -> text();
-			}
+			$gender = Common::RemoveSpaceChars($gender);
 
 			$mobile = "";
-			$mobile_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblContactMobile');
+			$mobile_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblMobile');
 			if ($mobile_crl->count() > 0){
 				$mobile = $mobile_crl -> text();
 				$mobile = Common::ExtractFirstMobile($mobile);
 			}
 
 			$phone = "";
-			$phone_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblContactTel');
+			$phone_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblTelephone');
 			if ($phone_crl->count() > 0){
 				$phone = $phone_crl -> text();
 				$phone = Common::ExtractFirstMobile($phone);
@@ -263,37 +245,75 @@ class TuyenDungComVnCrawler extends Controller{
 				$mobile = $phone;
 			}
 			$mobile = Common::UpdateMobilePrefix($mobile);
-			
-			$job_des = "";
-			$job_des_crl = $crawler -> filter('div.JobDescription > div.Contents');
-			if ($job_des_crl->count() > 0){
-				$job_des = $job_des_crl -> text();
-				$job_des = Common::RemoveTrailingChars($job_des);
+
+			$email = "";
+			$email_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblEmail');
+			if ($email_crl->count() > 0){
+				$email = $email_crl -> text();
+			}
+			$email = Common::RemoveSpaceChars($email);
+
+			$jobname = "";
+			$jobname_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblJobPosition');
+			if ($jobname_crl->count() > 0){
+				$jobname = $jobname_crl -> text();
+			} 
+			$jobname = Common::RemoveTrailingChars($jobname);
+	
+			$salary = "";
+			$salary_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblExpectedsalary');
+			if ($salary_crl->count() > 0){
+				$salary = $salary_crl -> text();
 			}
 
-			$created = "";
+			$description = "";
+			$edu = "";
+			$edu_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_divEducation');
+			if ($edu_crl->count() > 0){
+				$edu = $edu_crl -> text();
+				$edu = Common::RemoveSpaceChars($edu);
+			}
+			$goal = "";
+			$goal_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_divObjective');
+			if ($goal_crl->count() > 0){
+				$goal = $goal_crl -> text();
+				$goal = Common::RemoveSpaceChars($goal);
+			}
+			$exp = "";
+			$exp_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_divWorkingExp');
+			if ($exp_crl->count() > 0){
+				$exp = $exp_crl -> text();
+				$exp = Common::RemoveSpaceChars($exp);
+			}
+			$skill = "";
+			$skill_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_divSkills');
+			if ($skill_crl->count() > 0){
+				$skill = $skill_crl -> text();
+				$skill = Common::RemoveSpaceChars($skill);
+			}
+			$description = $goal.". ".$edu.". ".$exp.". ".$skill.". ";
+			$description = Common::RemoveTrailingChars($description);
 
-			$job_data = array($mobile
+			$candidate_data = array($mobile
 				, $email
-				, $company
+				, $fullname
 				, $address
-				, $job_title
+				, $jobname
 				, $salary
-				, $job_des
-                , $created
-                , $deadline
-				, $soluong
-				, $website
-				// , $url
+				, $birthyear
+                , $gender
+                , $description
+				, $created
+				, $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
-				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA_NO_CONTACT.'.csv', "|");
+				Common::AppendArrayToFile($candidate_data, $data_path.self::TUYENDUNGCOMVN_DATA_NO_CONTACT.'.csv', "|");
 			} else{
 				if (Common::isNotMobile($mobile)){
-					$job_data[0] = "";
+					$candidate_data[0] = "";
 				}
-				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA.'.csv', "|");
-				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA.'-'.self::$file_index.'.csv', "|");
+				Common::AppendArrayToFile($candidate_data, $data_path.self::TUYENDUNGCOMVN_DATA.'.csv', "|");
+				Common::AppendArrayToFile($candidate_data, $data_path.self::TUYENDUNGCOMVN_DATA.'-'.self::$file_index.'.csv', "|");
 			}
 			return 0;
 		}
@@ -302,7 +322,7 @@ class TuyenDungComVnCrawler extends Controller{
 	public function TuyenDungComvnLogin(){
 		$client = new Client;
 		try{
-			$crawler = $client -> request('GET', 'https://tuyendung.com.vn/timvieclam/login.aspx');
+			$crawler = $client -> request('GET', 'https://tuyendung.com.vn/tuyendung/login.aspx?');
 			$button = $crawler -> selectButton('Đăng nhập');
 			$form = $button -> form();
 			$form['ctl00$ContentPlaceHolder1$txtEmail'] = 'itviecvietnam11@gmail.com';
@@ -311,7 +331,7 @@ class TuyenDungComVnCrawler extends Controller{
 			return $client;
 		} catch (\Exception $e) {
 			$client = new Client;
-			error_log('TimViec365Login: '.($e -> getMessage ()));
+			error_log('TuyenDungComvnLogin: '.($e -> getMessage ()));
 			$file_name = public_path('data').self::SLASH.self::TUYENDUNGCOMVN_DATA_PATH.self::SLASH.self::TUYENDUNGCOMVN_ERROR.date(self::DATE_FORMAT).'.csv';
 			Common::AppendStringToFile('Exception on login: '.($e -> getMessage ()), $file_name);
 		}

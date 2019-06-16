@@ -14,15 +14,21 @@ class AutomotiveExpoCrawler extends Controller{
 	const DATE_FORMAT = "Ymd";
 	const INPUT_DATE_FORMAT = "d-m-Y";
 	const SLASH = DIRECTORY_SEPARATOR;
+	const DATA_PATH = "exhibitors";
+	const EXHIBITOR_DATA = "exhibitors";
+	const EXHIBITOR_DATA_NO_CONTACT = "exhibitors-no-contact";
 
 
 	public function CrawlerStarter(){
 		ini_set('max_execution_time', 10000000);		
 		$start = microtime(true);
 		error_log("Start crawling AutomotiveExpo ...");
-		 try {
-			 $database = env("DB_DATABASE");
+
+		$file_path = public_path('data').self::SLASH.self::DATA_PATH.self::SLASH;
+		try {
+			$database = env("DB_DATABASE");
 			if ($database == null)  $database = Common::DB_DEFAULT;
+
 			$pageUrl = "https://jan2019.tems-system.com/exhiSearch/AUTO/eng/ExhiList";
 			$client = new Client(); 
 			$crawler = $client -> request('GET', $pageUrl);
@@ -30,7 +36,12 @@ class AutomotiveExpoCrawler extends Controller{
 			$exhibitors = $crawler -> filter("#01") -> filter("li");
 			$infos = array();
 			
+			$idx = 0;
 			foreach( $exhibitors as $el){
+				$idx = $idx + 1;
+				if ($idx > 30){
+					break;
+				}
 				$start = microtime(true);
 
 				$company_crl = new Crawler($el);
@@ -39,6 +50,7 @@ class AutomotiveExpoCrawler extends Controller{
 				$tel = "";
 				$website = "";
 				$email = "";
+				
 				if ($atag -> count() > 0){
 					$id = $atag -> attr("val-id");
 					$type = $atag -> attr("val-type");
@@ -50,7 +62,11 @@ class AutomotiveExpoCrawler extends Controller{
 						$crl = new Crawler($node);
 						$text = $crl -> text();
 						if (strpos($text, 'TEL') !== false){
-							$tel = Common::ExtractJapaneseMobile($text);
+							$tel_arr = preg_split("/：/", $text);
+							$tel = "";
+							if (sizeof($tel_arr) > 1){
+								$tel = Common::RemoveTrailingChars($tel_arr[1]);
+							}
 						} else if (strpos($text, 'URL') !== false){
 							$website_crl = $crl -> filter("a");
 							if ($website_crl -> count() > 0){
@@ -60,10 +76,24 @@ class AutomotiveExpoCrawler extends Controller{
 									$email = Common::ExtractEmailFromText($page_crl -> text());
 								}
 							}
-						};;
+						}
 					}
 				}
+				// $data = "company: ".$company.", website: ".$website.", tel: ".$tel.", email: ".$email;
+				// echo $data."<br>";
 				error_log("company: ".$company.", website: ".$website.", tel: ".$tel.", email: ".$email);
+
+				$exhibitor_data = array(
+					$company
+					, $tel
+					, $email
+					, $website
+				);
+				if (!Common::IsNullOrEmpty($email) or !Common::IsNullOrEmpty($tel) or !Common::IsNullOrEmpty($email)){
+					Common::AppendArrayToFile($exhibitor_data, $file_path.self::EXHIBITOR_DATA.'.csv', "|");
+				} else {
+					Common::AppendArrayToFile($exhibitor_data, $file_path.self::EXHIBITOR_DATA_NO_CONTACT.'.csv', "|");
+				}
 			}
 
 		 } catch (\Exception $e) {

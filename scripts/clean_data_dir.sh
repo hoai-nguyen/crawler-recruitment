@@ -1,6 +1,8 @@
 echo "Cleaning data directories: ..."
 echo "Your input: $1" # param1
 
+candidate_dir='public/data/candidates'
+
 case $1 in
 	topdev)
 		echo "RESET topdev!"
@@ -50,6 +52,14 @@ case $1 in
 		fi
 		echo "DONE"
 		;;
+	uv_mywork)
+		echo "RESET uv_mywork!"
+		uv_mywork=$candidate_dir'/mywork'
+		if [ -d $uv_mywork ]; then
+		  rm -rf $uv_mywork/*.csv
+		fi
+		echo "DONE"
+		;;
 	findjobs)
 		echo "RESET findjobs!"
 		findjobs='public/data/findjobs'
@@ -82,6 +92,14 @@ case $1 in
 		fi
 		echo "DONE"
 		;;
+	uv_laodong)
+		echo "RESET uv_laodong!"
+		uv_laodong=$candidate_dir'/laodong'
+		if [ -d $uv_laodong ]; then
+		  rm -rf $uv_laodong/*.csv
+		fi
+		echo "DONE"
+		;;
 	timviec365)
 		echo "RESET timviec365!"
 		timviec365='public/data/timviec365'
@@ -92,7 +110,7 @@ case $1 in
 		;;
 	tuyencongnhan)
 		echo "RESET tuyencongnhan!"
-		timviec365='public/data/tuyencongnhan'
+		tuyencongnhan='public/data/tuyencongnhan'
 		if [ -d $tuyencongnhan ]; then
 		  rm -rf $tuyencongnhan/*.csv
 		fi
@@ -100,25 +118,97 @@ case $1 in
 		;;
 	tuyendungsinhvien)
 		echo "RESET tuyendungsinhvien!"
-		timviec365='public/data/tuyendungsinhvien'
+		tuyendungsinhvien='public/data/tuyendungsinhvien'
 		if [ -d $tuyendungsinhvien ]; then
 		  rm -rf $tuyendungsinhvien/*.csv
 		fi
 		echo "DONE"
 		;;
+	uv_tuyendungsinhvien)
+		echo "RESET uv_tuyendungsinhvien!"
+		uv_tuyendungsinhvien=$candidate_dir'/tuyendungsinhvien'
+		if [ -d $uv_tuyendungsinhvien ]; then
+		  rm -rf $uv_tuyendungsinhvien/*.csv
+		fi
+		echo "DONE"
+		;;
 	tuyendungcomvn)
 		echo "RESET tuyendungcomvn!"
-		timviec365='public/data/tuyendungcomvn'
+		tuyendungcomvn='public/data/tuyendungcomvn'
 		if [ -d $tuyendungcomvn ]; then
 		  rm -rf $tuyendungcomvn/*.csv
 		fi
 		echo "DONE"
 		;;
+	uv_tuyendungcomvn)
+		echo "RESET uv_tuyendungcomvn!"
+		uv_tuyendungcomvn=$candidate_dir'/tuyendungcomvn'
+		if [ -d $uv_tuyendungcomvn ]; then
+		  rm -rf $uv_tuyendungcomvn/*.csv
+		fi
+		echo "DONE"
+		;;
+	uv_kenhtimviec)
+		echo "RESET uv_kenhtimviec!"
+		uv_kenhtimviec=$candidate_dir'/uv_kenhtimviec'
+		if [ -d $uv_kenhtimviec ]; then
+		  rm -rf $uv_kenhtimviec/*.csv
+		fi
+		echo "DONE"
+		;;
 	itguru)
 		echo "RESET itguru!"
-		timviec365='public/data/itguru'
+		itguru='public/data/itguru'
 		if [ -d $itguru ]; then
 		  rm -rf $itguru/*.csv
+		fi
+		echo "DONE"
+		;;
+	tenshoku)
+		echo "RESET tenshoku!"
+		tenshoku='public/data/tenshoku'
+		if [ -d $tenshoku ]; then
+		  rm -rf $tenshoku/*.csv
+		fi
+		echo "DONE"
+		;;
+	tenshokuex)
+		echo "RESET tenshokuex!"
+		tenshoku='public/data/tenshokuex'
+		if [ -d $tenshokuex ]; then
+		  rm -rf $tenshokuex/*.csv
+		fi
+		echo "DONE"
+		;;
+	hatalike)
+		echo "RESET hatalike!"
+		hatalike='public/data/hatalike'
+		if [ -d $hatalike ]; then
+		  rm -rf $hatalike/*.csv
+		fi
+		echo "DONE"
+		;;
+	rikunabi)
+		echo "RESET rikunabi!"
+		rikunabi='public/data/rikunabi'
+		if [ -d $rikunabi ]; then
+		  rm -rf $rikunabi/*.csv
+		fi
+		echo "DONE"
+		;;
+	doda)
+		echo "RESET doda!"
+		doda='public/data/doda'
+		if [ -d $doda ]; then
+		  rm -rf $doda/*.csv
+		fi
+		echo "DONE"
+		;;
+	enjapan)
+		echo "RESET enjapan!"
+		enjapan='public/data/enjapan'
+		if [ -d $enjapan ]; then
+		  rm -rf $enjapan/*.csv
 		fi
 		echo "DONE"
 		;;
@@ -135,7 +225,10 @@ case $1 in
 		echo "Sorry, there is no directory name: $1"
 		echo ""
 		echo "Usage: ./script/clean_data_dir.sh [option]"
-		echo "Available options: topdev, topcv, itviec, vieclam24h, timviecnhanh, mywork, findjobs, careerlink, laodong, timviec365, tuyencongnhan, tuyendungsinhvien, tuyendungcomvn, itguru"
+		echo "Available options: topdev, topcv, itviec, vieclam24h, timviecnhanh,\
+		 mywork, findjobs, careerlink, laodong, uv_laodong, timviec365, tuyencongnhan, tuyendungsinhvien,\
+		  tuyendungcomvn, itguru, tenshoku, tenshokuex, hatalike, rikunabi, doda, enjapan, \
+			uv_tuyendungsinhvien, uv_kenhtimviec."
 		echo "Example: To clean crawled data for topdev crawler, we use: ./script/clean_data_dir.sh topdev"
 		echo ""
 		;;

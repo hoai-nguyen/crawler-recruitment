@@ -5,6 +5,8 @@
 
 echo "Prepare to run from start."
 
+export PATH=/Applications/XAMPP/xamppfiles/bin:$PATH
+
 ./scripts/start_db_server.sh
 ./scripts/init_db.sh
 ./scripts/create_data_dir.sh

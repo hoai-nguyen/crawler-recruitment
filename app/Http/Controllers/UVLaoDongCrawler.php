@@ -9,25 +9,26 @@ use \Exception as Exception;
 
 use App\Http\Controllers\Common;
 
-class LaoDongCrawler extends Controller{
+class UVLaoDongCrawler extends Controller{
 
-	const TABLE = "crawler_laodong";
+	const TABLE = "crawler_uv_laodong";
 	const TABLE_METADATA = "job_metadata";
 	const TABLE_FILE_METADATA = "job_file_index";
-	const JOB_NAME = "laodong";
-	const LAODONG_DATA_PATH = 'laodong';
+	const JOB_NAME = "uv_laodong";
+	const LAODONG_DATA_PATH = 'candidates/laodong';
 	const LAODONG_DATA = 'laodong-data';
 	const LAODONG_DATA_NO_CONTACT = 'laodong-data-no-contact';
 	const LAODONG_ERROR = 'laodong-error-';
 	const LAODONG_LINK = 'laodong-link';
 	const LAODONG_HOME = 'http://vieclam.laodong.com.vn';
-	const LAODONG_PAGE = 'http://vieclam.laodong.com.vn/tim-kiem-ky-tuyen-dung.html?page=';
+	const LAODONG_PAGE = 'http://vieclam.laodong.com.vn/ung-vien/?page=';
 	const LABEL_SALARY = 'Mức lương:';
 	const LABEL_QUANTITY = 'Số lượng cần tuyển:';
 	const LABEL_DEADLINE = "Hạn nộp hồ sơ:";
 	const LABEL_DEAL = "Thỏa thuận";
 	const DATE_FORMAT = "Ymd";
 	const DATA_DATE_FORMAT = "Y-m-d";
+	const INPUT_DATE_FORMAT = "d/m/Y";
 	const SLASH = DIRECTORY_SEPARATOR;
 	const BATCH_SIZE = 3;
 	const MAX_PAGE = 500;
@@ -36,13 +37,14 @@ class LaoDongCrawler extends Controller{
 
 	public function CrawlerStarter(){
 		$start = microtime(true);
-		error_log("Start crawling LAODONG ...");
+		error_log("Start crawling candidates of LAODONG ...");
 
 		$database = env("DB_DATABASE");
 		if ($database == null)  $database = Common::DB_DEFAULT;
 		self::$file_index = Common::GetFileIndexToProcess($database, self::TABLE_FILE_METADATA, self::JOB_NAME);
-	
+
 		$client = new Client();
+		
 		while (true){
 			try {
 				$new_batch = Common::FindNewBatchToProcess($database, self::TABLE_METADATA, self::JOB_NAME);
@@ -84,7 +86,7 @@ class LaoDongCrawler extends Controller{
 			try{
 				$pageUrl = self::LAODONG_PAGE.$x;
 				$crawler = $client -> request('GET', $pageUrl);
-				$jobs = $crawler -> filter('header.job > h3.name > a');
+				$jobs = $crawler -> filter('section.search-list-zone > div.zone-content') -> filter("h3.name > a");
 				if ($jobs -> count() <= 0) {
 					Common::AppendStringToFile("No job found on page: ".$pageUrl
 						, $DATA_PATH.self::LAODONG_ERROR.date(self::DATE_FORMAT).'.csv');
@@ -123,7 +125,6 @@ class LaoDongCrawler extends Controller{
 		
 					// deduplicate
 					$new_links = array_diff($jobs_links, $duplicated_links);
-					
 					if (is_array($new_links) and sizeof($new_links) > 0){
 						error_log(sizeof($new_links)." new links.");
 
@@ -171,6 +172,7 @@ class LaoDongCrawler extends Controller{
 	}
 
     public function CrawlJob($client, $url, $data_path){
+		// $url = "http://vieclam.laodong.com.vn/nguoi-lao-dong/nguyen-thi-thanh-tuyen-12502.html";
 		$job_start = microtime(true);
 		
 		try{
@@ -187,130 +189,125 @@ class LaoDongCrawler extends Controller{
 				, $data_path.self::LAODONG_ERROR.date(self::DATE_FORMAT).'.csv');
 			return -1;
 		} else{
-			//featured-info
-			$featured_info_crl = $crawler -> filter('div.featured-info-content > div.info');
-			if($featured_info_crl -> count() <= 0){
-				Common::AppendStringToFile("No featured-info-content: ".$url
-					, $data_path.self::LAODONG_ERROR.date(self::DATE_FORMAT).'.csv');
-				return 1;
+			$fullname = "";
+			$fullname_crl = $crawler -> filter('#cphMainContent_lblFullName');
+			if ($fullname_crl->count() > 0){
+				$fullname = $fullname_crl -> text();
 			}
-
-			$job_title = "";
-			$job_title_crl = $featured_info_crl -> filter('#cphMainContent_lblTitle');
-			if ($job_title_crl->count() > 0){
-				$job_title = $job_title_crl -> text();
-			}
-			$job_title = Common::RemoveTrailingChars($job_title);
-
-			$company = "";
-			$company_crl = $featured_info_crl -> filter('p.building > strong');
-			if ($company_crl->count() > 0){
-				$company = $company_crl -> text();
-			}
-			$company = Common::RemoveTrailingChars($company);
-
+			
 			$address = "";
-			$address_crl = $featured_info_crl -> filter('p.addres > span');
+			$address_crl = $crawler -> filter('#cphMainContent_lblAddress');
 			if ($address_crl->count() > 0){
 				$address = $address_crl -> text();
 			}
-			$address = Common::RemoveTrailingChars($address);
+			$address = Common::RemoveSpaceChars($address);
+
+			$birthyear = "";
+			$birthyear_crl = $crawler -> filter('#cphMainContent_lblDOB');
+			if ($birthyear_crl->count() > 0){
+				$birthyear = $birthyear_crl -> text();
+				$birthyear = Common::RemoveSpaceChars($birthyear);
+				$birthyear = Common::ConvertDateFormat($birthyear, self::INPUT_DATE_FORMAT, "Y");
+			}
+
+			$gender = "";
+			$gender_crl = $crawler -> filter('#cphMainContent_lblGender');
+			if ($gender_crl->count() > 0){
+				$gender = $gender_crl -> text();
+			}
+			$gender = Common::RemoveSpaceChars($gender);
 
 			$mobile = "";
-			$mobile_crl = $featured_info_crl -> filter('p.phone > span');
+			$mobile_crl = $crawler -> filter('#cphMainContent_lblPhone');
 			if ($mobile_crl->count() > 0){
 				$mobile = $mobile_crl -> text();
-			}
-			$mobile = Common::RemoveTrailingChars($mobile);
-			$mobile = Common::ExtractFirstMobile($mobile);
-
-			$website = "";
-			$website_crl = $featured_info_crl -> filter('p.website > a');
-			if ($website_crl->count() > 0){
-				$website = $website_crl -> text();
-			}
-
-			$basic_info_crl = $crawler -> filter('div.basic-info');
-			if($basic_info_crl -> count() <= 0){
-				Common::AppendStringToFile("No basic-info: ".$url
-					, $data_path.self::LAODONG_ERROR.date(self::DATE_FORMAT).'.csv');
-				return 1;
-			}
-
-			$job_des_crl = $basic_info_crl -> filter('#cphMainContent_lblDescription');
-			$job_des = "";
-			if ($job_des_crl -> count() > 0){
-				$job_des = $job_des_crl -> first() -> text();
-				$job_des = Common::RemoveTrailingChars($job_des);
-			}
-
-			$salary = "";
-			$salary_min = $basic_info_crl -> filter('#cphMainContent_lblMinSalary');
-			$salary_max = $basic_info_crl -> filter('#cphMainContent_lblMaxSalary');
-			if ($salary_min -> count() > 0){
-				$salary_min = $salary_min -> first() -> text();
-				$salary = $salary_min;
-			}
-			if ($salary_max -> count() > 0){
-				$salary_max = $salary_max -> first() -> text();
-				$salary = $salary.' - '.$salary_max.' triệu';
-			}
-			$salary = Common::RemoveTrailingChars($salary);
-			if ($salary === ""){
-				$salary = $basic_info_crl -> filter('#cphMainContent_pnNegotiableSalary') -> filter('span.pull-right');
-				if ($salary -> count() > 0){
-					$salary = Common::RemoveTrailingChars($salary -> text());
-				}
-			}
-
-			$mobile = "";
-			$mobile = $basic_info_crl -> filter('#cphMainContent_lblContactPhone');
-			if ($mobile -> count() > 0){
-				$mobile = $mobile -> first() -> text();
 				$mobile = Common::ExtractFirstMobile($mobile);
 			}
+			$mobile = Common::UpdateMobilePrefix($mobile);
 
 			$email = "";
-			$email = $basic_info_crl -> filter('#cphMainContent_lblContactEmail');
-			if ($email -> count() > 0){
-				$email = $email -> first() -> text();
+			$email_crl = $crawler -> filter('#cphMainContent_lblEmail');
+			if ($email_crl->count() > 0){
+				$email = $email_crl -> text();
 			}
-			$email = Common::RemoveTrailingChars($email);
+			$email = Common::RemoveSpaceChars($email);
+
+			$jobname = "";
+			$jobname_crl = $crawler -> filter('#cphMainContent_lblExpectedPosition');
+			if ($jobname_crl->count() > 0){
+				$jobname = $jobname_crl -> text();
+			} 
+			$jobname = Common::RemoveTrailingChars($jobname);
+	
+			$salary = "";
+			$salary_crl = $crawler -> filter('#cphMainContent_lblExpectedSalaryRangeID');
+			if ($salary_crl->count() > 0){
+				$salary = $salary_crl -> text();
+			}
+
+			$description = "";
+			$edu = "";
+			$edu_crl = $crawler -> filter('#cphMainContent_lblSpecialized');
+			if ($edu_crl->count() > 0){
+				$edu = $edu_crl -> text();
+				$edu = Common::RemoveSpaceChars($edu);
+			}
+			$more_info = "";
+			$more_info_crl = $crawler -> filter('#cphMainContent_lblMoreInfo');
+			if ($more_info_crl->count() > 0){
+				$more_info = $more_info_crl -> text();
+				$more_info = Common::RemoveSpaceChars($more_info);
+			}
+			$exp = "";
+			$exp_crl = $crawler -> filter('#cphMainContent_lblExperiences');
+			if ($exp_crl->count() > 0){
+				$exp = $exp_crl -> text();
+				$exp = Common::RemoveSpaceChars($exp);
+			}
+			$skill = "";
+			$skill_crl = $crawler -> filter('#cphMainContent_lblQualificationID');
+			if ($skill_crl->count() > 0){
+				$skill = $skill_crl -> text();
+				$skill = Common::RemoveSpaceChars($skill);
+			}
+			if (strlen($edu) > 0){
+				$description = $description."Ngành nghề đào tạo: ".$edu.". ";
+			}
+			if (strlen($skill) > 0){
+				$description = $description."Trình độ chuyên môn - kỹ thuật: ".$skill.". ";
+			}
+			if (strlen($exp) > 0){
+				$description = $description."Kinh nghiệm làm việc: ".$exp.". ";
+			}
+			if (strlen($more_info) > 0){
+				$description = $description."Mô tả thêm: ".$more_info.". ";
+			}
 			
-			$deadline = "";
-			$deadline = $basic_info_crl -> filter('#cphMainContent_lblExpiryDate');
-			if ($deadline -> count() > 0){
-				$deadline = $deadline -> first() -> text();
-			}
-			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
-				return 2;
-			}
+			$description = Common::RemoveTrailingChars($description);
 			
 			$created = "";
-			$soluong = "";
-			
-			$job_data = array($mobile
+
+			$candidate_data = array($mobile
 				, $email
-				// , $contact
-				, $company
+				, $fullname
 				, $address
-				, $job_title
+				, $jobname
 				, $salary
-				, $job_des
-                , $created
-                , $deadline
-				, $soluong
-				, $website
-				// , $url
+				, $birthyear
+                , $gender
+                , $description
+				, $created
+				, $url
 			);
+			// dd($candidate_data);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
-				Common::AppendArrayToFile($job_data, $data_path.self::LAODONG_DATA_NO_CONTACT.'.csv', "|");
+				Common::AppendArrayToFile($candidate_data, $data_path.self::LAODONG_DATA_NO_CONTACT.'.csv', "|");
 			} else{
 				if (Common::isNotMobile($mobile)){
-					$job_data[0] = "";
+					$candidate_data[0] = "";
 				}
-				Common::AppendArrayToFile($job_data, $data_path.self::LAODONG_DATA.'.csv', "|");
-				Common::AppendArrayToFile($job_data, $data_path.self::LAODONG_DATA.'-'.self::$file_index.'.csv', "|");
+				Common::AppendArrayToFile($candidate_data, $data_path.self::LAODONG_DATA.'.csv', "|");
+				Common::AppendArrayToFile($candidate_data, $data_path.self::LAODONG_DATA.'-'.self::$file_index.'.csv', "|");
 			}
 			return 0;
 		}
