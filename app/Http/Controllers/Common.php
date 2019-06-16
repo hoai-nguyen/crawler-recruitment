@@ -45,11 +45,11 @@ class Common extends Controller{
 	const PHONE_START = "0";
 	const DB_DEFAULT = "phpmyadmin";
 
-	public static function ExtractMobile($contact){
-		if ($contact == null) return "";
+	public static function ExtractMobile($text){
+		if ($text == null) return "";
 		$mobiles_str = "";
 		try{
-			preg_match_all(self::PHONE_PATTERN, $contact, $matches);
+			preg_match_all(self::PHONE_PATTERN, $text, $matches);
 			$len = count($matches[0]);
 			if ($len > 0){
 				$nums = $matches[0];
@@ -75,11 +75,11 @@ class Common extends Controller{
 		return $mobiles_str;		
 	}
 
-	public static function ExtractFirstMobile($contact){
-		if ($contact == null) return "";
+	public static function ExtractFirstMobile($text){
+		if ($text == null) return "";
 		$mobiles_str = "";
 		try{
-			preg_match_all(self::PHONE_PATTERN, $contact, $matches);
+			preg_match_all(self::PHONE_PATTERN, $text, $matches);
 			$len = count($matches[0]);
 			if ($len > 0){
 				$nums = $matches[0];

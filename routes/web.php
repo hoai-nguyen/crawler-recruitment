@@ -41,3 +41,5 @@ Route::get('rikunabi',['uses' => 'RikunabiCrawler@CrawlerStarter'])->name('rikun
 Route::get('doda',['uses' => 'DodaCrawler@CrawlerStarter'])->name('doda');
 Route::get('enjapan',['uses' => 'EnJapanCrawler@CrawlerStarter'])->name('enjapan');
 Route::get('careerbuilder',['uses' => 'CareerBuilderCrawler@CrawlerStarter'])->name('careerbuilder');
+Route::get('automotive',['uses' => 'AutomotiveExpoCrawler@CrawlerStarter'])->name('automotive');
+
