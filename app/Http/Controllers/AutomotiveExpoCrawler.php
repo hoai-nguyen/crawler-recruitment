@@ -33,22 +33,19 @@ class AutomotiveExpoCrawler extends Controller{
 				"https://jan2019.tems-system.com/exhiSearch/AUTO/eng/"
 				, "http://jan2019.tems-system.com/exhiSearch/ROBO/eng/"
 				, "http://jan2019.tems-system.com/exhiSearch/SFE/eng/"
-				, "http://jan2019.tems-system.com/exhiSearch/INW/eng/"
-				, "http://jan2019.tems-system.com/exhiSearch/WEA/eng/"
 			);
+			// , "http://jan2019.tems-system.com/exhiSearch/INW/eng/"
+			// , "http://jan2019.tems-system.com/exhiSearch/WEA/eng/"
+
 			foreach( $exhibitions as $exhibition){
 				$exhibitionUrl = $exhibition."ExhiList";
 				error_log($exhibitionUrl);
 				$client = new Client(); 
 				$crawler = $client -> request('GET', $exhibitionUrl);
 				$exhibitors = $crawler -> filter("#01") -> filter("li");
-				$idx = 0;
+				
 				foreach( $exhibitors as $el){
 					error_log($idx);
-					$idx = $idx + 1;
-					if ($idx > 5){
-						break;
-					}
 					$start = microtime(true);
 
 					$company_crl = new Crawler($el);
