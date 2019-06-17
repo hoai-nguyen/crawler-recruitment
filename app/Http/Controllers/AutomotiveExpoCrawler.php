@@ -33,6 +33,8 @@ class AutomotiveExpoCrawler extends Controller{
 				"https://jan2019.tems-system.com/exhiSearch/AUTO/eng/"
 				, "http://jan2019.tems-system.com/exhiSearch/ROBO/eng/"
 				, "http://jan2019.tems-system.com/exhiSearch/SFE/eng/"
+                , "http://jan2019.tems-system.com/exhiSearch/INW/eng/"
+                , "http://jan2019.tems-system.com/exhiSearch/WEA/eng/"
 			);
 			// , "http://jan2019.tems-system.com/exhiSearch/INW/eng/"
 			// , "http://jan2019.tems-system.com/exhiSearch/WEA/eng/"
