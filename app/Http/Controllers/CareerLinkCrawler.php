@@ -259,9 +259,10 @@ class CareerLinkCrawler extends Controller{
 			$contact = "";
 			$email = "";
 			$mobile = "";
+			$type_of_work = "Toàn thời gian";
 			if ($contact_crl -> count() > 0){
 				$contact = $contact_crl -> last() -> text();
-				$li_contact_crl = $contact_crl -> last() -> filter('li');
+				$li_contact_crl = $contact_crl -> filter('li');
 				if ($li_contact_crl -> count() > 0){
 					foreach($li_contact_crl as $li_node){
 						$li_crl = new Crawler($li_node);
@@ -270,6 +271,12 @@ class CareerLinkCrawler extends Controller{
 							$email = Common::ExtractEmailFromText($li_text);
 						} else if (strpos($li_text, 'Điện thoại') !== false){
 							$mobile = Common::ExtractFirstMobile($li_text);
+						} else if (strpos($li_text, 'Loại công việc') !== false){
+							$li_text = str_replace('Loại công việc:', '', $li_text);
+							$li_text = Common::RemoveSpaceChars($li_text);
+							if (strlen($li_text) > 0){
+								$type_of_work = $li_text;
+							}
 						}
 					}
 				}
@@ -311,7 +318,8 @@ class CareerLinkCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				// , $url
+				, $type_of_work
+				, $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::CAREERLINK_DATA_NO_CONTACT.'.csv', "|");
