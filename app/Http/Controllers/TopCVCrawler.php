@@ -305,7 +305,7 @@ class TopCVCrawler extends Controller{
 				, $soluong
 				, $website
 				, $type_of_work
-				, $url
+				// , $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::TOPCV_DATA_NO_CONTACT.'.csv', "|");

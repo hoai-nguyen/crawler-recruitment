@@ -308,7 +308,7 @@ class TimViec365Crawler extends Controller{
 				, $soluong
 				, $website
 				, $type_of_work
-				, $url
+				// , $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::TIMVIEC365_DATA_NO_CONTACT.'.csv', "|");

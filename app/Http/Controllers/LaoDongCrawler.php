@@ -288,7 +288,8 @@ class LaoDongCrawler extends Controller{
 			
 			$created = "";
 			$soluong = "";
-			
+			$type_of_work = "Toàn thời gian";
+
 			$job_data = array($mobile
 				, $email
 				// , $contact
@@ -301,8 +302,10 @@ class LaoDongCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
+				, $type_of_work
 				// , $url
 			);
+			
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::LAODONG_DATA_NO_CONTACT.'.csv', "|");
 			} else{
