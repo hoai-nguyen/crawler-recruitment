@@ -249,8 +249,7 @@ class TuyenDungSinhVienCrawler extends Controller{
 							$soluong = $value;
 							$soluong = Common::RemoveTrailingChars($soluong);
 						} else if (strpos($text, self::LABEL_TYPE_OF_WORK) !== false and !Common::IsEmptyStr($value)){
-							$type_of_work = $value;
-							$type_of_work = Common::RemoveTrailingChars($type_of_work);
+							$type_of_work = Common::RemoveTrailingChars($value);
 						} else if (strpos($text, self::LABEL_DEADLINE) !== false){
 							$deadline = $value;
 							$deadline = Common::RemoveTrailingChars($deadline);
