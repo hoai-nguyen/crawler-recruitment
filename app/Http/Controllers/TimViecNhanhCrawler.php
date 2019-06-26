@@ -22,6 +22,7 @@ class TimViecNhanhCrawler extends Controller{
 	const TIMVIECNHANH_LINK = 'timviecnhanh-link';
 	const TIMVIECNHANH_HOME = 'https://www.timviecnhanh.com/vieclam/timkiem?&page=';
 	const LABEL_SALARY = 'Mức lương';
+	const LABEL_TYPE_OF_WORK = 'Hình thức làm việc';
 	const LABEL_QUANTITY = 'Số lượng tuyển dụng';
 	const LABEL_WEBSITE = 'Website';
 	const LABEL_CONTACT = "Người liên hệ";
@@ -234,23 +235,23 @@ class TimViecNhanhCrawler extends Controller{
 			// $salary_start = microtime(true);
 			$salary = '';
 			$soluong = '';
+			$type_of_work = "Toàn thời gian";
 			try{
 				$quanti_info = $content -> filter('div > ul > li');
-				$reach = 0;
 				foreach ($quanti_info as $node) {
-					if ($reach > 1) break;
 					$quanti_crawler = new Crawler($node);
 					$label = $quanti_crawler -> filter('b') -> first() -> text();
 					if (strpos($label, self::LABEL_SALARY) !== false){
 						$salary = $quanti_crawler -> text();
-						$reach += 1;
 					} else if (strpos($label, self::LABEL_QUANTITY) !== false){
 						$soluong = $quanti_crawler -> text();
-						$reach += 1;
+					} else if (strpos($label, self::LABEL_TYPE_OF_WORK) !== false){
+						$type_of_work = $quanti_crawler -> text();
 					}
 				}
 				$salary = trim(explode("\n", $salary)[2], "\r\n ");
 				$soluong = trim(explode("\n", $soluong)[2], "\r\n ");
+				$type_of_work = trim(explode("\n", $type_of_work)[2], "\r\n ");
 				// echo 'salary + soluong: '.(microtime(true) - $salary_start).' secs, ';
 			} catch (\Exception $e) {
 				Common::AppendStringToFile('Exception on get salaray + soluong: '.$url.': '.$e -> getMessage()
@@ -339,7 +340,8 @@ class TimViecNhanhCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				// , $url
+				, $type_of_work
+				, $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::TIMVIECNHANH_DATA_NO_CONTACT.'.csv', "|");
