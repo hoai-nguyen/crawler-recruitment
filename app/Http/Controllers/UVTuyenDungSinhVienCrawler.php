@@ -30,6 +30,7 @@ class UVTuyenDungSinhVienCrawler extends Controller{
 	const LABEL_GENDER = "Giới tính";
 	const LABEL_MOBILE = "Điện thoại di động";
 	const LABEL_ADDRESS = "Tìm việc tại";
+	const LABEL_TYPE_OF_WORK = "Hình thức mong muốn";
 	const LABEL_DESCRIPTION = "Kinh nghiệm";
 	const LABEL_SCHOOL = "Tên trường";
 	const DATE_FORMAT = "Ymd";
@@ -213,6 +214,7 @@ class UVTuyenDungSinhVienCrawler extends Controller{
 			$salary = "";
 			$mobile = "";
 			$address = "";
+			$type_of_work = "Toàn thời gian";
 			$description = "";
 			$school = "";
 			$job_details_crl = $crawler -> filter('#dynamic_form') -> filter('tr');
@@ -252,6 +254,8 @@ class UVTuyenDungSinhVienCrawler extends Controller{
 							$salary = Common::RemoveSpaceChars($value);
 						} else if (strpos($label_text, self::LABEL_ADDRESS) !== false){
 							$address = Common::RemoveSpaceChars($value);
+						} else if (strpos($label_text, self::LABEL_TYPE_OF_WORK) !== false and !Common::IsEmptyStr($value)){
+							$type_of_work = Common::RemoveSpaceChars($value);
 						} 
 					}
 				}
@@ -271,6 +275,7 @@ class UVTuyenDungSinhVienCrawler extends Controller{
                 , $gender
                 , $description
 				, $created
+				, $type_of_work
 				, $url
 			);
 
