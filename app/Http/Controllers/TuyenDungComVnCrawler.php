@@ -271,6 +271,12 @@ class TuyenDungComVnCrawler extends Controller{
 				$job_des = Common::RemoveTrailingChars($job_des);
 			}
 
+			$type_of_work = "Toàn thời gian";
+			$type_of_work_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_lblWorkingType');
+			if ($type_of_work_crl->count() > 0 and !Common::IsEmptyStr($type_of_work_crl -> text())){
+				$type_of_work = $type_of_work_crl -> text();
+			}
+
 			$created = "";
 
 			$job_data = array($mobile
@@ -284,8 +290,10 @@ class TuyenDungComVnCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				// , $url
+				, $type_of_work
+				, $url
 			);
+			
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGCOMVN_DATA_NO_CONTACT.'.csv', "|");
 			} else{
