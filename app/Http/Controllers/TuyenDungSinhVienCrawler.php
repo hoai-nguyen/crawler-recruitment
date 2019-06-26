@@ -24,6 +24,7 @@ class TuyenDungSinhVienCrawler extends Controller{
 	const TUYENDUNGSINHVIEN_PAGE = 'http://tuyendungsinhvien.com/tim-viec-lam-';
 	const LABEL_SALARY = 'Mức lương';
 	const LABEL_QUANTITY = 'Số lượng';
+	const LABEL_TYPE_OF_WORK = 'Loại hình công việc';
 	const LABEL_DEADLINE = "Hạn nộp hồ sơ";
 	const LABEL_PHONE = "Điện thoại";
 	const LABEL_MOBILE = "Điện thoại riêng";
@@ -228,6 +229,7 @@ class TuyenDungSinhVienCrawler extends Controller{
 			$soluong = "";
 			$mobile = "";
 			$address = "";
+			$type_of_work = "Toàn thời gian";
 			$job_details_crl = $crawler -> filter('#dynamic_form') -> filter('tr');
 			if ($job_details_crl -> count() > 0){
 				foreach($job_details_crl as $item){
@@ -244,8 +246,11 @@ class TuyenDungSinhVienCrawler extends Controller{
 							$salary = $value;
 							$salary = Common::RemoveTrailingChars($salary);
 						} else if (strpos($text, self::LABEL_QUANTITY) !== false){
-							$soluong =$value;
+							$soluong = $value;
 							$soluong = Common::RemoveTrailingChars($soluong);
+						} else if (strpos($text, self::LABEL_TYPE_OF_WORK) !== false and !Common::IsEmptyStr($value)){
+							$type_of_work = $value;
+							$type_of_work = Common::RemoveTrailingChars($type_of_work);
 						} else if (strpos($text, self::LABEL_DEADLINE) !== false){
 							$deadline = $value;
 							$deadline = Common::RemoveTrailingChars($deadline);
@@ -288,7 +293,8 @@ class TuyenDungSinhVienCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				// , $url
+				, $type_of_work
+				, $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::TUYENDUNGSINHVIEN_DATA_NO_CONTACT.'.csv', "|");

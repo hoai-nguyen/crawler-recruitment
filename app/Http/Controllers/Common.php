@@ -75,6 +75,10 @@ class Common extends Controller{
 		return $mobiles_str;		
 	}
 
+	public static function IsEmptyStr($text){
+		return strlen(preg_replace('!\s+!', '', $text)) == 0;
+	}
+
 	public static function ExtractFirstMobile($text){
 		if ($text == null) return "";
 		$mobiles_str = "";
