@@ -286,6 +286,7 @@ class UVLaoDongCrawler extends Controller{
 			$description = Common::RemoveTrailingChars($description);
 			
 			$created = "";
+			$type_of_work = "Toàn thời gian";
 
 			$candidate_data = array($mobile
 				, $email
@@ -297,6 +298,7 @@ class UVLaoDongCrawler extends Controller{
                 , $gender
                 , $description
 				, $created
+				, $type_of_work
 				, $url
 			);
 			// dd($candidate_data);

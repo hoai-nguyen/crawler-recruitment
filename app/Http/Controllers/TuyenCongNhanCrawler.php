@@ -23,6 +23,7 @@ class TuyenCongNhanCrawler extends Controller{
 	const TUYENCONGNHAN_HOME = 'https://tuyencongnhan.vn';
 	const TUYENCONGNHAN_PAGE = 'https://tuyencongnhan.vn/tim-viec?page=';
 	const LABEL_SALARY = 'Mức lương';
+	const LABEL_TYPE_OF_WORK = 'Giờ làm việc';
 	const LABEL_QUANTITY = 'Số lượng';
 	const LABEL_DEADLINE = "Hạn nộp";
 	const LABEL_PHONE = "Điện thoại:";
@@ -209,7 +210,7 @@ class TuyenCongNhanCrawler extends Controller{
 			if ($job_overview_crl->count() > 0){
 				$count = 0;
 				foreach($job_overview_crl as $item){
-					if ($count > 2) break;
+					if ($count > 3) break;
 					$node = new Crawler($item);
 					$text = $node -> text();
 					if (strpos($text, self::LABEL_DEADLINE) !== false){
@@ -227,7 +228,11 @@ class TuyenCongNhanCrawler extends Controller{
 						$soluong = str_replace(self::LABEL_QUANTITY, '', $soluong);
 						$soluong = Common::RemoveTrailingChars($soluong);
 						$count++;
-					}
+					} else if (strpos($text, self::LABEL_TYPE_OF_WORK) !== false){
+						$type_of_work = str_replace(self::LABEL_TYPE_OF_WORK, '', $text);
+						$type_of_work = Common::RemoveTrailingChars($type_of_work);
+						$count++;
+					} 
 				}
 			}
 			if (Common::IsJobExpired(Common::DEFAULT_DEADLINE, $deadline)){
@@ -302,6 +307,7 @@ class TuyenCongNhanCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
+				, $type_of_work
 				// , $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
