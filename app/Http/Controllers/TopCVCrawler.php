@@ -22,6 +22,7 @@ class TopCVCrawler extends Controller{
 	const TOPCV_LINK = 'topcv-link';
 	const TOPCV_HOME = 'https://www.topcv.vn/viec-lam/moi-nhat.html?page=';
 	const LABEL_SALARY = 'Mức lương:';
+	const LABEL_TYPE_OF_WORK = 'Hình thức làm việc:';
 	const LABEL_QUANTITY = 'Số lượng cần tuyển:';
 	const LABEL_DEADLINE = "Hạn nộp hồ sơ:";
 	const LABEL_CONFIRMED = "đã xác thực";
@@ -247,23 +248,29 @@ class TopCVCrawler extends Controller{
 			$count = 0;
 			$salary = "";
 			$soluong = "";
+			$type_of_work = "Toàn thời gian";
 			foreach($job_details_crl as $info){
 				$info_node = new Crawler($info);
 				$text = $info_node -> text();
-				if ($count >= 2){
+				if ($count >= 3){
 					break;
 				} else if (strpos($text, self::LABEL_SALARY) !== false){
 					$salary = $text;
+					$salary = str_replace(self::LABEL_SALARY, "", $salary);
+					$salary = Common::RemoveTrailingChars($salary);
+					$count++;
+				} else if (strpos($text, self::LABEL_TYPE_OF_WORK) !== false and !Common::IsEmptyStr($text)){
+					$type_of_work = $text;
+					$type_of_work = str_replace(self::LABEL_TYPE_OF_WORK, "", $type_of_work);
+					$type_of_work = Common::RemoveTrailingChars($type_of_work);
 					$count++;
 				} else if (strpos($text, self::LABEL_QUANTITY) !== false){ 
 					$soluong = $text;
+					$soluong = str_replace(self::LABEL_QUANTITY, "", $soluong);
+					$soluong = Common::RemoveTrailingChars($soluong);
 					$count++;
 				}
 			}
-			$salary = str_replace(self::LABEL_SALARY, "", $salary);
-			$salary = Common::RemoveTrailingChars($salary);
-			$soluong = str_replace(self::LABEL_QUANTITY, "", $soluong);
-			$soluong = Common::RemoveTrailingChars($soluong);
 			
 			$job_contact_crl = $crawler -> filter('#tab-info-company') -> filter('#col-job-left > div.content-tab');
 			$contact = "";
@@ -288,7 +295,6 @@ class TopCVCrawler extends Controller{
 			
 			$job_data = array($mobile
 				, $email
-				// , $contact
 				, $company
 				, $address
 				, $job_title
@@ -298,7 +304,8 @@ class TopCVCrawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				// , $url
+				, $type_of_work
+				, $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::TOPCV_DATA_NO_CONTACT.'.csv', "|");
