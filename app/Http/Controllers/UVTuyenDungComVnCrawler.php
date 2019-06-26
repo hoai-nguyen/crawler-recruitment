@@ -294,6 +294,13 @@ class UVTuyenDungComVnCrawler extends Controller{
 			$description = $goal.". ".$edu.". ".$exp.". ".$skill.". ";
 			$description = Common::RemoveTrailingChars($description);
 
+			$type_of_work = "Toàn thời gian";
+			$type_of_work_crl = $crawler -> filter('#ctl00_ContentPlaceHolder1_ctl26_lblWorkingType');
+			if ($type_of_work_crl->count() > 0 and !Common::IsEmptyStr( $type_of_work_crl -> text())){
+				$type_of_work = $type_of_work_crl -> text();
+				$type_of_work = Common::RemoveSpaceChars($type_of_work);
+			}
+
 			$candidate_data = array($mobile
 				, $email
 				, $fullname
@@ -304,6 +311,7 @@ class UVTuyenDungComVnCrawler extends Controller{
                 , $gender
                 , $description
 				, $created
+				, $type_of_work
 				, $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
