@@ -27,6 +27,7 @@ class TimViec365Crawler extends Controller{
 	const LABEL_DEADLINE = "Hạn nộp hồ sơ:";
 	const LABEL_CREATED = "Ngày cập nhật:"; 
 	const LABEL_PHONE = "Số điện thoại:";
+	const LABEL_TYPE_OF_WORK = "Hình thức làm việc:";
 	const LABEL_EMAIL = "Email:";
 	const LABEL_ADDRESS = "Địa chỉ:";
 	const DATE_FORMAT = "Ymd";
@@ -253,10 +254,11 @@ class TimViec365Crawler extends Controller{
 
 			$mobile = "";
 			$email = "";
+			$type_of_work = "Toàn thời gian";
 			$tomtat_crl = $crawler -> filter('div.box_tomtat > div.form_control');
-			$count = 0;
+			$count = 1;
 			foreach($tomtat_crl as $item){
-				if ($count > 1) break;
+				if ($count >= 3) break;
 				$node = new Crawler($item);
 				$text = $node -> text();
 				if (strpos($text, self::LABEL_EMAIL) !== false){ 
@@ -264,6 +266,12 @@ class TimViec365Crawler extends Controller{
 					$count++;
 				} else if(strpos($text, self::LABEL_PHONE) !== false){
 					$mobile = Common::ExtractFirstMobile($text);
+					$count++;
+				} else if(strpos($text, self::LABEL_TYPE_OF_WORK) !== false and !Common::IsEmptyStr($text)){
+					if ($node -> filter("span") -> count() > 0){
+						$value = $node -> filter("span") -> first() -> text();
+						$type_of_work = Common::RemoveTrailingChars($value);
+					}
 					$count++;
 				}
 			}
@@ -299,7 +307,8 @@ class TimViec365Crawler extends Controller{
                 , $deadline
 				, $soluong
 				, $website
-				// , $url
+				, $type_of_work
+				, $url
 			);
 			if (Common::IsNullOrEmpty($email) and (Common::IsNullOrEmpty($mobile) or Common::isNotMobile($mobile))){
 				Common::AppendArrayToFile($job_data, $data_path.self::TIMVIEC365_DATA_NO_CONTACT.'.csv', "|");
