@@ -24,6 +24,7 @@ class MyWorkCrawler extends Controller{
 	const LABEL_CONTACT = 'Người liên hệ';
 	const LABEL_DEADLINE = 'Hạn nộp hồ sơ';
 	const LABEL_QUANTITY = 'Số lượng cần tuyển';
+	const LABEL_TYPE_OF_WORK = 'Hình thức làm việc';
 	const LABEL_APPROVER = 'Ngày duyệt';
 	const DATE_FORMAT = "Ymd";
 	const SLASH = DIRECTORY_SEPARATOR;
@@ -256,19 +257,26 @@ class MyWorkCrawler extends Controller{
             
             // $soluong_start = microtime(true);
             $soluong = "";
-			$general_infos = $content -> filter('div.job_detail_general > div.item1 > p');
+            $type_of_work = "Toàn thời gian1";
+			$general_infos = $content -> filter('div.job_detail_general > div.item > p');
 			if ($general_infos -> count() > 0 ) {
                 foreach ($general_infos as $node) {
                     $soluong_crawler = new Crawler($node);
-                    $label = $soluong_crawler -> filter('strong') -> first() -> text();
+					$label = $soluong_crawler -> filter('strong') -> first() -> text();
                     if (strpos($label, self::LABEL_QUANTITY) !== false){
                         $soluong = $soluong_crawler -> first() -> text();
-                        break;
+					} else if (strpos($label, self::LABEL_TYPE_OF_WORK) !== false){
+						if (!Common::IsEmptyStr($soluong_crawler -> first() -> text())){
+							$type_of_work = $soluong_crawler -> first() -> text();
+						}
                     }
                 }
 			}
 			if (strpos($soluong, ':') !== false){
 				$soluong = trim(explode(":", $soluong)[1], "\r\n ");
+			}
+			if (strpos($type_of_work, ':') !== false){
+				$type_of_work = trim(explode(":", $type_of_work)[1], "\r\n ");
 			}
 			// echo 'soluong: '.(microtime(true) - $soluong_start).' secs, ';
 
@@ -334,6 +342,7 @@ class MyWorkCrawler extends Controller{
                 , $created
                 , $deadline
 				, $soluong
+				, $type_of_work
 				, $website
 				// , $url
 			);
