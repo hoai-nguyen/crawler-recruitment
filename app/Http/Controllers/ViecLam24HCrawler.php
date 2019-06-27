@@ -257,6 +257,7 @@ class ViecLam24HCrawler extends Controller{
 				$job_details_crl = $content -> filter('div.job_detail');
 				$salary = '';
 				$soluong = '';
+				$type_of_work = 'Toàn thời gian';
 				try{
 					if ($job_details_crl -> count() > 0){
 						$salary_crl = $job_details_crl -> filter('i.icon-money');
@@ -266,6 +267,10 @@ class ViecLam24HCrawler extends Controller{
 						$quanti_crl = $job_details_crl -> filter('i.icon-quantity');
 						if ($quanti_crl -> count() > 0 and $quanti_crl -> siblings() -> count() > 0){
 							$soluong = $quanti_crl -> siblings() -> filter('span.job_value') -> text();
+						}
+						$type_of_work_crl = $job_details_crl -> filter('i.icon-job-type');
+						if ($type_of_work_crl -> count() > 0 and $type_of_work_crl -> siblings() -> count() > 0){
+							$type_of_work = $type_of_work_crl -> siblings() -> filter('span.job_value') -> text();
 						}
 					}
 				} catch (\Exception $e) {
@@ -333,6 +338,7 @@ class ViecLam24HCrawler extends Controller{
                 , $created
                 , $deadline
 				, $soluong
+				, $type_of_work
 				, $website
 				// , $url
 			);
