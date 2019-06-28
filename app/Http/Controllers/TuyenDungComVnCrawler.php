@@ -289,8 +289,8 @@ class TuyenDungComVnCrawler extends Controller{
                 , $created
                 , $deadline
 				, $soluong
-				, $website
 				, $type_of_work
+				, $website
 				// , $url
 			);
 			
